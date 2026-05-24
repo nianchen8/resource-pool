@@ -2,7 +2,7 @@
 
 > 一套可扩展的网络资源池框架，为爬虫工程提供开箱即用的资源调度能力。
 
-当前内置 **User-Agent 池** 与 **DNS 解析器池**，框架预留适配器层可接入 aiohttp / httpx / Scrapy。
+当前内置 **User-Agent 池**（含完整 Header Profile 组）与 **DNS 解析器池**，框架预留适配器层可接入 aiohttp / httpx / Scrapy。
 
 ---
 
@@ -10,8 +10,8 @@
 
 | 资源类型 | 无池状态 | 有池效果 |
 |---------|---------|---------|
-| User-Agent | 固定一个，高频请求秒被识别 | 按设备分类加权随机，模拟真实浏览器分布 |
-| DNS 解析 | 单点 DNS 频次过高被限流 | 14 台 DNS 轮换解析 + 延迟排序 + 故障隔离 |
+| User-Agent | 固定一个，高频请求秒被识别 | 按设备分类加权随机 + 完整 Header Profile 组，模拟真实浏览器 |
+| DNS 解析 | 单点 DNS 频次过高被限流 | 14 台 DNS 轮换解析 + 延迟排序 + 故障隔离 + 自动复活 |
 
 ---
 
@@ -23,6 +23,9 @@ pip install -e /path/to/resource_pool
 
 # 含框架适配器
 pip install -e /path/to/resource_pool[aiohttp,httpx]
+
+# 开发环境（含测试）
+pip install -e /path/to/resource_pool[dev]
 ```
 
 Python ≥ 3.10，依赖 `dnspython ≥ 2.6`。
@@ -44,15 +47,20 @@ ua = pool.get("desktop")
 # 均匀随机
 ua = pool.get("mobile", weighted=False)
 
+# 获取完整请求头 Profile（推荐反爬场景使用）
+headers = pool.get_headers("desktop")
+# → {"User-Agent": "...", "Accept": "...", "Accept-Language": "...", "Sec-Ch-Ua": "...", ...}
+requests.get(url, headers=headers)
+
 # 统计各分类数量
 print(pool.count())   # {'desktop': 10, 'mobile': 8, 'tablet': 4}
 
-# 上下文管理器 —— 用完自动回收
+# 上下文管理器 —— 取出时移除，用完自动归还
 with pool.reserve("desktop") as ua:
     requests.get(url, headers={"User-Agent": ua})
 
-# 动态增删
-pool.add("MyCrawlerBot/2.0", "desktop", weight=3)
+# 动态增删（支持可选 Header Profile）
+pool.add("MyCrawlerBot/2.0", "desktop", weight=3, profile="chrome_131_win")
 pool.remove("MyCrawlerBot/2.0")
 ```
 
@@ -84,8 +92,9 @@ for s in pool.stats():
 | 方法 | 说明 |
 |------|------|
 | `get(category="all", weighted=True) → str` | 获取一个 UA |
+| `get_headers(category="all", weighted=True) → dict[str,str]` | 获取完整 Header Profile |
 | `get_all(category="all") → list[str]` | 获取该分类全部 UA |
-| `add(ua, category, weight=5)` | 添加 UA |
+| `add(ua, category, weight=5, profile=None)` | 添加 UA（可选 profile） |
 | `remove(ua, category=None) → int` | 移除 UA，返回移除数 |
 | `count(category=None) → dict[str,int]` | 统计各分类数量 |
 | `reserve(category, weighted) → UAReserve` | 上下文管理器 |
@@ -123,16 +132,22 @@ for s in pool.stats():
 resource_pool/
 ├── pyproject.toml
 ├── README.md
+├── resource_pool/            # 统一入口
+│   └── __init__.py
 ├── user_agent_pool/
 │   ├── __init__.py
 │   ├── exceptions.py
-│   ├── agents.py
+│   ├── agents.py             # UA 数据集 + Header Profile 定义
 │   └── pool.py
-└── dns_resolver_pool/
+├── dns_resolver_pool/
+│   ├── __init__.py
+│   ├── exceptions.py
+│   ├── servers.py
+│   └── pool.py
+└── tests/
     ├── __init__.py
-    ├── exceptions.py
-    ├── servers.py
-    └── pool.py
+    ├── test_user_agent_pool.py
+    └── test_dns_resolver_pool.py
 ```
 
 ---

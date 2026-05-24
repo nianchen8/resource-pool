@@ -1,15 +1,19 @@
 """User-Agent 资源池核心逻辑"""
 
+import logging
 import random
 import threading
 from typing import Iterator
 
-from user_agent_pool.exceptions import PoolExhaustedError, InvalidAgentError
+from user_agent_pool.exceptions import PoolExhaustedException, InvalidAgentException
 from user_agent_pool.agents import (
     DEFAULT_AGENTS,
     VALID_CATEGORIES,
+    _HEADER_PROFILES,
     AgentEntry,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class UserAgentPool:
@@ -18,15 +22,17 @@ class UserAgentPool:
     支持：
     - 按分类获取：desktop / mobile / tablet / all
     - 加权随机 / 均匀随机
+    - 完整 Header Profile 组（User-Agent + Accept + Sec-Ch-Ua 等）
     - 动态增删
-    - 上下文管理器（暂存池，用完自动回收）
+    - 上下文管理器（暂存池，取出时移除，用完自动归还）
 
     使用示例::
 
         pool = UserAgentPool()
-        ua = pool.get()                    # 随机获取一个（all 分类）
+        ua = pool.get()                    # 随机获取一个 UA 字符串
         ua = pool.get("mobile")           # 只拿 mobile
         ua = pool.get("desktop", weighted=False)  # 均匀随机
+        headers = pool.get_headers("desktop")     # 获取完整请求头
 
         with pool.reserve("mobile") as ua:
             # 做请求...
@@ -44,6 +50,9 @@ class UserAgentPool:
         """从 agents.py 导入内置数据集"""
         for cat in ("desktop", "mobile", "tablet"):
             self._agents[cat] = [entry.copy() for entry in DEFAULT_AGENTS[cat]]
+        total = sum(len(v) for v in self._agents.values())
+        logger.info("已加载 %d 个 User-Agent（desktop=%d, mobile=%d, tablet=%d）",
+                    total, len(self._agents["desktop"]), len(self._agents["mobile"]), len(self._agents["tablet"]))
 
     # ── 公开 API ─────────────────────────────────────────────────────
 
@@ -58,11 +67,12 @@ class UserAgentPool:
             User-Agent 字符串
 
         Raises:
-            PoolExhaustedError: 该分类下无可用 UA
+            PoolExhaustedException: 该分类下无可用 UA
         """
         candidates = self._pick_candidates(category)
         if not candidates:
-            raise PoolExhaustedError(category)
+            logger.error("UA 池分类 '%s' 已耗尽", category)
+            raise PoolExhaustedException(category)
 
         if weighted:
             return self._weighted_choice(candidates)
@@ -72,21 +82,53 @@ class UserAgentPool:
         """获取该分类下所有 UA 字符串（不修改池）"""
         return [entry["ua"] for entry in self._pick_candidates(category)]
 
-    def add(self, ua: str, category: str, weight: int = 5) -> None:
+    def get_headers(self, category: str = "all", weighted: bool = True) -> dict[str, str]:
+        """获取完整的请求头 Profile（包含 User-Agent + 配套请求头）
+
+        返回的字典可直接用于 requests.get(url, headers=headers)。
+        各字段（Accept / Accept-Language / Sec-Ch-Ua 等）语义与 UA 一致，
+        避免浏览器特征不匹配被反爬识别。
+
+        如果所选 UA 没有关联 profile，则只返回 {"User-Agent": ua}。
+
+        Raises:
+            PoolExhaustedException: 该分类下无可用 UA
+        """
+        candidates = self._pick_candidates(category)
+        if not candidates:
+            logger.error("UA 池分类 '%s' 已耗尽（get_headers）", category)
+            raise PoolExhaustedException(category)
+
+        if weighted:
+            entry = self._weighted_pick(candidates)
+        else:
+            entry = random.choice(candidates)
+        return self._build_headers(entry)
+
+    def add(self, ua: str, category: str, weight: int = 5, profile: str | None = None) -> None:
         """向指定分类添加一个 UA
+
+        Args:
+            ua: User-Agent 字符串
+            category: desktop | mobile | tablet
+            weight: 权重（≥1）
+            profile: Header Profile 键名（可选），见 agents._HEADER_PROFILES
 
         Raises:
             ValueError: 分类不合法
-            InvalidAgentError: ua 为空
+            InvalidAgentException: ua 为空
         """
         if category not in VALID_CATEGORIES or category == "all":
             raise ValueError(f"无效分类 '{category}'，可选: {VALID_CATEGORIES}")
         if not ua or not ua.strip():
-            raise InvalidAgentError("UA 不能为空")
+            raise InvalidAgentException("UA 不能为空")
 
         entry: AgentEntry = {"ua": ua.strip(), "weight": max(1, weight)}
+        if profile:
+            entry["profile"] = profile
         with self._lock:
             self._agents.setdefault(category, []).append(entry)
+        logger.debug("UA 已添加: %s → 分类 '%s'", ua[:50], category)
 
     def remove(self, ua: str, category: str | None = None) -> int:
         """移除匹配的 UA，返回移除数量
@@ -104,6 +146,8 @@ class UserAgentPool:
                     e for e in self._agents[cat] if e["ua"] != ua
                 ]
                 removed += before - len(self._agents[cat])
+        if removed:
+            logger.debug("已移除 %d 条 UA", removed)
         return removed
 
     def count(self, category: str | None = None) -> dict[str, int]:
@@ -112,7 +156,7 @@ class UserAgentPool:
         return {c: len(self._agents.get(c, [])) for c in cats}
 
     def reserve(self, category: str = "all", weighted: bool = True) -> "UAReserve":
-        """上下文管理器 —— 取出一个 UA，退出时自动回收
+        """上下文管理器 —— 取出一个 UA（从池中移除），退出时自动归还
 
         使用::
 
@@ -122,6 +166,16 @@ class UserAgentPool:
         return UAReserve(self, category, weighted)
 
     # ── 内部方法 ─────────────────────────────────────────────────────
+
+    def _remove_one(self, ua: str, category: str) -> bool:
+        """从指定分类移除一条匹配的 UA（仅移除第一条），返回是否成功"""
+        with self._lock:
+            entries = self._agents.get(category, [])
+            for i, entry in enumerate(entries):
+                if entry["ua"] == ua:
+                    entries.pop(i)
+                    return True
+        return False
 
     def _pick_candidates(self, category: str) -> list[AgentEntry]:
         if category == "all":
@@ -134,18 +188,32 @@ class UserAgentPool:
             return list(self._agents.get(category, []))
 
     @staticmethod
-    def _weighted_choice(entries: list[AgentEntry]) -> str:
-        """加权随机选择"""
+    def _weighted_pick(entries: list[AgentEntry]) -> AgentEntry:
+        """加权随机选择一个条目（返回完整 entry）"""
         total = sum(e["weight"] for e in entries)
         if total == 0:
-            return random.choice(entries)["ua"]
+            return random.choice(entries)
         r = random.uniform(0, total)
         cumulative = 0.0
         for entry in entries:
             cumulative += entry["weight"]
             if r <= cumulative:
-                return entry["ua"]
-        return entries[-1]["ua"]
+                return entry
+        return entries[-1]
+
+    @staticmethod
+    def _weighted_choice(entries: list[AgentEntry]) -> str:
+        """加权随机选择 UA 字符串"""
+        return UserAgentPool._weighted_pick(entries)["ua"]
+
+    @staticmethod
+    def _build_headers(entry: AgentEntry) -> dict[str, str]:
+        """从 entry 构建完整请求头字典"""
+        headers: dict[str, str] = {"User-Agent": entry["ua"]}
+        profile_key = entry.get("profile", "")
+        if profile_key and profile_key in _HEADER_PROFILES:
+            headers.update(_HEADER_PROFILES[profile_key])
+        return headers
 
     def __repr__(self) -> str:
         stats = ", ".join(f"{c}={len(v)}" for c, v in self._agents.items())
@@ -161,22 +229,26 @@ class UserAgentPool:
 
 
 class UAReserve:
-    """UA 暂存器 —— 陪跑上下文管理器，退出时把 UA 归还池"""
+    """UA 暂存器 —— 上下文管理器，取出时从池中移除，退出时归还"""
 
     def __init__(self, pool: UserAgentPool, category: str, weighted: bool) -> None:
         self._pool = pool
         self._category = category
         self._weighted = weighted
         self.ua: str = ""
+        self._removed = False
 
     def __enter__(self) -> str:
         self.ua = self._pool.get(self._category, self._weighted)
+        # 从池中暂存取出（移除一条），避免同一 UA 被并发取到
+        if self._category != "all":
+            self._removed = self._pool._remove_one(self.ua, self._category)
         return self.ua
 
     def __exit__(self, *args: object) -> None:
-        """退出时自动 add 回池子"""
-        if self.ua and self._category != "all":
+        """退出时自动归还到池子"""
+        if self.ua and self._removed and self._category != "all":
             try:
                 self._pool.add(self.ua, self._category)
-            except (ValueError, InvalidAgentError):
+            except (ValueError, InvalidAgentException):
                 pass

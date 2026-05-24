@@ -1,4 +1,4 @@
-class PoolExhaustedError(Exception):
+class PoolExhaustedException(Exception):
     """池中无可用的 User-Agent 时抛出"""
 
     def __init__(self, category: str | None = None):
@@ -8,7 +8,7 @@ class PoolExhaustedError(Exception):
         super().__init__(msg)
 
 
-class InvalidAgentError(Exception):
+class InvalidAgentException(Exception):
     """传入无效的 User-Agent 时抛出"""
 
     def __init__(self, reason: str = "不合法的 User-Agent"):

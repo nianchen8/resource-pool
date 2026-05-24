@@ -1,5 +1,6 @@
 """DNS 解析器资源池 —— 可扩展核心"""
 
+import logging
 import threading
 import time
 import random
@@ -16,6 +17,8 @@ from dns_resolver_pool.servers import (
     HEALTH_CHECK_DOMAINS,
 )
 
+logger = logging.getLogger(__name__)
+
 
 class SelectStrategy(Enum):
     """服务端选择策略"""
@@ -31,6 +34,7 @@ class ServerState:
         "ip", "name", "region", "enabled", "weight",
         "latency_ms", "fail_count", "success_count",
         "consecutive_fails", "last_used", "last_health",
+        "_resolver",
     )
 
     def __init__(self, entry: ServerEntry) -> None:
@@ -45,6 +49,7 @@ class ServerState:
         self.consecutive_fails: int = 0
         self.last_used: float = 0.0
         self.last_health: float = 0.0
+        self._resolver: dns.resolver.Resolver | None = None
 
 
 class DNSResolverPool:
@@ -83,6 +88,7 @@ class DNSResolverPool:
         cache_key = f"{domain}:{record_type}"
         cached = self._cache_get(cache_key)
         if cached is not None:
+            logger.debug("缓存命中: %s → %s", domain, cached[0])
             return cached[0]
 
         last_err: Exception | None = None
@@ -94,6 +100,7 @@ class DNSResolverPool:
                 self._cache_set(cache_key, ips)
                 return result
             except Exception as exc:
+                logger.warning("DNS %s 解析 %s 失败: %s", state.ip, domain, exc)
                 self._on_fail(state)
                 last_err = exc
                 continue
@@ -108,6 +115,7 @@ class DNSResolverPool:
         cache_key = f"{domain}:{record_type}"
         cached = self._cache_get(cache_key)
         if cached is not None:
+            logger.debug("缓存命中(resolve_all): %s → %d 条记录", domain, len(cached))
             return cached
 
         last_err: Exception | None = None
@@ -118,6 +126,7 @@ class DNSResolverPool:
                 self._cache_set(cache_key, ips)
                 return ips
             except Exception as exc:
+                logger.warning("DNS %s resolve_all %s 失败: %s", state.ip, domain, exc)
                 self._on_fail(state)
                 last_err = exc
                 continue
@@ -172,7 +181,10 @@ class DNSResolverPool:
                     state.last_health = time.time()
                     if state.consecutive_fails >= self._max_fails:
                         state.enabled = False
+                        logger.warning("DNS %s (%s) 连续失败 %d 次，已隔离", state.ip, state.name, state.consecutive_fails)
                     results[state.ip] = "FAIL"
+        ok_count = sum(1 for v in results.values() if v == "OK")
+        logger.info("健康检查完成: %d/%d 可用", ok_count, len(results))
         return results
 
     def stats(self) -> list[dict]:
@@ -213,13 +225,14 @@ class DNSResolverPool:
             for entry in region_map.get(r, []):
                 if entry.get("enabled", True):
                     self._servers.append(ServerState(entry))
+        logger.info("已加载 %d 台 DNS 服务器（地域: %s）", len(self._servers), ", ".join(regions))
 
     def _select_sequence(self):
         """按策略生成服务器迭代器（fallback 用）"""
         alive = self._get_alive()
         self._try_revive()
         if not alive:
-            return
+            return iter(())
 
         if self._strategy == SelectStrategy.LATENCY_WEIGHTED:
             return self._latency_weighted_order(alive)
@@ -230,8 +243,11 @@ class DNSResolverPool:
 
     @staticmethod
     def _do_resolve(state: ServerState, domain: str, record_type: str, timeout: float) -> list[str]:
-        resolver = dns.resolver.Resolver()
-        resolver.nameservers = [state.ip]
+        # 复用 Resolver 实例，减少重复创建开销
+        if state._resolver is None:
+            state._resolver = dns.resolver.Resolver()
+            state._resolver.nameservers = [state.ip]
+        resolver = state._resolver
         resolver.timeout = timeout
         resolver.lifetime = timeout
         start = time.monotonic()
@@ -262,6 +278,7 @@ class DNSResolverPool:
                 if not s.enabled and (now - s.last_health) > self._revive_after:
                     s.enabled = True
                     s.consecutive_fails = 0
+                    logger.info("DNS %s (%s) 超过复活时间，已重新启用", s.ip, s.name)
 
     def _on_success(self, state: ServerState, ip_count: int) -> None:
         with self._lock:

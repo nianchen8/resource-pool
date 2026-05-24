@@ -25,7 +25,7 @@ classifiers = [
 ]
 
 [project.urls]
-Repository = "https://github.com/your-org/resource-pool"
+Repository = "https://github.com/nianchen8/resource-pool"
 
 [project.optional-dependencies]
 aiohttp = ["aiohttp>=3.9"]

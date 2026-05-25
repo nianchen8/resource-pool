@@ -1,4 +1,4 @@
-# Resource Pool ![version](https://img.shields.io/badge/version-0.7.0-blue)
+# Resource Pool ![version](https://img.shields.io/badge/version-1.0.0-blue)
 
 > 一套可扩展的网络资源池框架，为爬虫工程提供开箱即用的资源调度能力。
 
@@ -210,6 +210,7 @@ orch.health_check_all()
 
 | 能力 | 说明 |
 |------|------|
+| **Header Profile** | 20 组完整请求头 + 自动匹配浏览器/版本号，精准模拟真实浏览器 |
 | **线程安全** | UA 池 ReadWriteLock（读并发 N 倍）、Proxy 池 Lock、DNS 池 16 路缓存分片锁 |
 | **异步支持** | 完整 asyncio 版：AsyncUserAgentPool / AsyncDNSResolverPool / AsyncProxyPool / AsyncPoolOrchestrator |
 | **按需开关** | `thread_safe=False` 关闭所有锁，单线程脚本零开销 |
@@ -362,7 +363,12 @@ resource_pool/
 │   └── stress_test.py              # 极端压力测试
 ├── docs/
 │   ├── EXCEPTIONS.md               # 异常体系文档
+│   ├── PRODUCTION.md               # 生产部署指南（配置/监控/排障/架构图）
 │   └── UPGRADE_PLAN.md             # 升级规划
+├── .github/
+│   └── workflows/
+│       └── test.yml                # CI/CD 多版本矩阵测试
+├── .pre-commit-config.yaml         # ruff pre-commit hooks
 └── tests/                          # 292 个测试
 ```
 
@@ -399,6 +405,13 @@ class CookiePool(ResourcePool):
 ---
 
 ## 更新日志
+
+### v1.0.0 (2026-05-26)
+
+- 🚀 **Header Profile 自动匹配**：`get_headers()` 根据 UA 的浏览器+版本号自动选择最接近的 Profile 组
+- 📝 **生产部署指南**：`docs/PRODUCTION.md` — TOML 配置模板 + Prometheus 监控 + 排障 Q&A + 架构图
+- 🔧 **CI/CD 质量门禁**：`.github/workflows/test.yml` 多版本矩阵测试 (3.10-3.13) + `.pre-commit-config.yaml` ruff hooks
+- 🛡️ **Python 3.13 free-threaded 兼容标注**：latency_ms 写入处加锁，兼容无 GIL 模式
 
 ### v0.7.0 (2026-05-26)
 

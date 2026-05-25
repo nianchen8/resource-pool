@@ -309,6 +309,133 @@ def get_available_profiles() -> tuple[str, ...]:
         return tuple(_HEADER_PROFILES.keys())
 
 
+# ── OS → 平台短名映射（用于 Profile 自动匹配）────────────────────────
+_OS_TO_PLATFORM: dict[str, str] = {
+    "windows": "win",
+    "macos": "mac",
+    "linux": "linux",
+    "android": "android",
+    "ios": "iphone",  # 默认映射到 iPhone，iPad 由 UA 特征判断
+}
+
+
+# 预解析 Profile 键的 (browser, version_str, platform) 元数据缓存
+_profile_key_cache: dict[str, tuple[str, str, str]] | None = None
+
+
+def _parse_profile_key(key: str) -> tuple[str, str, str]:
+    """解析 Profile 键名为 (browser, version_str, platform)
+
+    示例：
+        "chrome_131_win"  → ("chrome", "131", "win")
+        "safari_18_1_mac" → ("safari", "18_1", "mac")
+        "firefox_133_win" → ("firefox", "133", "win")
+    """
+    parts = key.split("_")
+    # 最少需要 browser_version_platform 三段
+    if len(parts) < 3:
+        return ("", "", "")
+
+    platform = parts[-1]
+    # 尝试检测 safari 版本格式：safari_{major}_{minor}_{platform}
+    browser = parts[0]
+    if browser == "safari" and len(parts) >= 4:
+        version = f"{parts[1]}_{parts[2]}"
+    else:
+        # chrome_131_win / firefox_133_win / edge_131_win
+        version = parts[1] if len(parts) >= 3 else ""
+
+    return (browser, version, platform)
+
+
+def _build_profile_key_cache() -> dict[str, tuple[str, str, str]]:
+    """构建 Profile 键解析缓存"""
+    global _profile_key_cache
+    if _profile_key_cache is None:
+        with _PROFILE_LOCK:
+            _profile_key_cache = {
+                k: _parse_profile_key(k) for k in _HEADER_PROFILES
+            }
+    return _profile_key_cache
+
+
+def _invalidate_profile_cache() -> None:
+    """Profile 注册/修改后使缓存失效"""
+    global _profile_key_cache
+    _profile_key_cache = None
+
+
+def match_profile(browser: str, os: str, version: int, ua: str = "") -> str | None:
+    """根据浏览器/操作系统/版本号自动匹配最佳 Header Profile
+
+    匹配优先级：
+    1. 同浏览器 + 同平台 + 完全同版本
+    2. 同浏览器 + 同平台 + 最接近的较低版本
+    3. 同浏览器 + 同平台 + 最接近版本（不分高低）
+    4. 同浏览器 + 任意平台 + 最接近版本
+    5. 无匹配返回 None
+
+    Args:
+        browser: 浏览器名（chrome/firefox/safari/edge）
+        os: 操作系统名（windows/macos/linux/android/ios）
+        version: 主版本号
+        ua: 完整 UA 字符串（用于 iPad 检测）
+
+    Returns:
+        匹配的 Profile 键名，或无匹配时返回 None
+    """
+    platform = _OS_TO_PLATFORM.get(os, "")
+    if not platform:
+        return None
+
+    # iPad 特殊处理：iOS 设备但有 iPad 特征
+    if os == "ios" and ua and "ipad" in ua.lower():
+        platform = "ipad"
+
+    cache = _build_profile_key_cache()
+
+    # 1. 精确匹配：同浏览器 + 同平台
+    candidates: list[tuple[str, int, str]] = []  # (key, parsed_version, platform)
+    for key, (b, v_str, p) in cache.items():
+        if b != browser or p != platform:
+            continue
+        try:
+            v_num = int(v_str.split("_")[0])  # 取主版本号
+        except (ValueError, IndexError):
+            continue
+        candidates.append((key, v_num, p))
+        if v_num == version:
+            return key  # 精确匹配，立即返回
+
+    # 2. 同平台内最近似匹配
+    if candidates:
+        # 找最接近的较低版本
+        lower = [(k, v) for k, v, _ in candidates if v < version]
+        if lower:
+            lower.sort(key=lambda x: x[1], reverse=True)
+            return lower[0][0]
+        # 没有较低版本，找最接近的（最近的较高版本）
+        candidates.sort(key=lambda x: abs(x[1] - version))
+        return candidates[0][0]
+
+    # 3. 跨平台 fallback：同浏览器的任意版本
+    cross: list[tuple[str, int]] = []
+    for key, (b, v_str, _p) in cache.items():
+        if b != browser:
+            continue
+        try:
+            v_num = int(v_str.split("_")[0])
+        except (ValueError, IndexError):
+            continue
+        cross.append((key, v_num))
+
+    if cross:
+        cross.sort(key=lambda x: abs(x[1] - version))
+        return cross[0][0]
+
+    return None
+
+
 # 注意：AVAILABLE_PROFILES 为 import-time 快照，不反映运行时通过
 # UserAgentPool.register_profile() 动态注册的 profile。
 # 请优先使用 get_available_profiles() 获取最新列表。

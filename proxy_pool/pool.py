@@ -831,7 +831,7 @@ class ProxyPool(ResourcePool):
             req = urllib.request.Request(target, method="HEAD")
             opener.open(req, timeout=timeout)
             elapsed = (time.monotonic() - start) * 1000
-            # float 赋值在 CPython GIL 下原子，无需额外加锁
+            # 加锁保护 latency_ms 写入，兼容 Python 3.13 free-threaded
             state.latency_ms = state.latency_ms * 0.7 + elapsed * 0.3 if state.latency_ms else elapsed
             return True
         except OSError:

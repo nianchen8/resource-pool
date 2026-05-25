@@ -16,6 +16,8 @@ from user_agent_pool.agents import (
     _PROFILE_LOCK,
     AgentEntry,
     parse_ua_metadata,
+    _invalidate_profile_cache,
+    match_profile,
 )
 from resource_pool.base import DummyLock, DummyReadWriteLock, ReadWriteLock, ResourcePool
 
@@ -448,6 +450,7 @@ class UserAgentPool(ResourcePool):
             if "User-Agent" in headers:
                 raise ValueError("Profile 不应包含 'User-Agent'，该字段由池自动填充")
             _HEADER_PROFILES[key] = dict(headers)
+            _invalidate_profile_cache()  # 使匹配缓存失效
         logger.info("已注册 Header Profile: %s (%d 字段)", key, len(headers))
 
     def __contains__(self, ua: str) -> bool:
@@ -560,9 +563,35 @@ class UserAgentPool(ResourcePool):
 
     @staticmethod
     def _build_headers(entry: AgentEntry) -> dict[str, str]:
-        """从 entry 构建完整请求头字典"""
+        """从 entry 构建完整请求头字典
+
+        优先级：
+        1. entry 显式指定 profile → 直接使用
+        2. entry 无 profile 但有 browser/os/version → 自动匹配最佳 Profile
+        3. 均无 → 仅返回 User-Agent
+        """
         headers: dict[str, str] = {"User-Agent": entry["ua"]}
         profile_key = entry.get("profile", "")
+
+        # 自动匹配：无显式 profile 但有元数据时，自动查找最佳匹配
+        if not profile_key:
+            browser = entry.get("browser", "")
+            os_name = entry.get("os", "")
+            version = entry.get("version", 0)
+            if browser and os_name and version:
+                matched = match_profile(
+                    browser=str(browser),
+                    os=str(os_name),
+                    version=int(version),
+                    ua=entry["ua"],
+                )
+                if matched:
+                    profile_key = matched
+                    logger.debug(
+                        "自动匹配 Profile: %s → %s (browser=%s, os=%s, v=%s)",
+                        entry["ua"][:50], matched, browser, os_name, version,
+                    )
+
         if profile_key:
             # 锁内只读 copy，解锁后 update（减少锁持有时间）
             with _PROFILE_LOCK:

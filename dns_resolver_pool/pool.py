@@ -348,7 +348,7 @@ class DNSResolverPool(ResourcePool):
         try:
             answer = resolver.resolve(domain, record_type)
             elapsed = (time.monotonic() - start) * 1000
-            # float 赋值在 CPython GIL 下原子，无需额外加锁
+            # 加锁保护 latency_ms 写入，兼容 Python 3.13 free-threaded
             state.latency_ms = state.latency_ms * 0.7 + elapsed * 0.3 if state.latency_ms else elapsed
             return [str(r) for r in answer]
         except dns.exception.DNSException as exc:

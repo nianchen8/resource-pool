@@ -72,6 +72,35 @@ class ProxyState:
         """唯一标识"""
         return f"{self.scheme}://{self.host}:{self.port}"
 
+    @property
+    def score(self) -> float:
+        """代理综合评分（0-100）
+
+        评分维度：
+        - 响应时间（40%）：延迟越低分越高
+        - 成功率（40%）：success / (success + fail)
+        - 稳定性（20%）：连续失败越多扣分越多
+        """
+        total_requests = self.success_count + self.fail_count
+        if total_requests == 0:
+            return 50.0  # 新代理初始分
+
+        if self.latency_ms <= 0:
+            latency_score = 100.0
+        else:
+            latency_score = max(0.0, 100.0 * (1.0 - self.latency_ms / 5000.0))
+
+        success_rate = self.success_count / total_requests
+        success_score = success_rate * 100.0
+
+        stability_penalty = min(100.0, self.consecutive_fails * 25.0)
+        stability_score = max(0.0, 100.0 - stability_penalty)
+
+        return round(
+            latency_score * 0.4 + success_score * 0.4 + stability_score * 0.2,
+            1,
+        )
+
 
 class ProxyPool(ResourcePool):
     """线程安全的代理资源池
@@ -94,6 +123,8 @@ class ProxyPool(ResourcePool):
         max_consecutive_fails: int = 3,
         revive_after: int = 120,
         thread_safe: bool = True,
+        min_alive: int = 0,
+        auto_refill_url: str = "",
     ) -> None:
         self._proxies: list[ProxyState] = []
         self._strategy: ProxyStrategy | StrategyProtocol = strategy
@@ -103,6 +134,10 @@ class ProxyPool(ResourcePool):
         self._lock = threading.Lock() if thread_safe else DummyLock()
         self._rr_index = 0
         self._last_revive_check: float = 0.0
+        # 自动维护配置
+        self._min_alive = min_alive
+        self._auto_refill_url = auto_refill_url
+        self._last_auto_maintain: float = 0.0
 
     # ── 公开 API ─────────────────────────────────────────────────────
 
@@ -468,6 +503,68 @@ class ProxyPool(ResourcePool):
         ok_count = sum(1 for v in results.values() if v == "OK")
         logger.info("代理健康检查完成: %d/%d 可用", ok_count, len(results))
         return results
+
+    def scores(self) -> list[dict]:
+        """返回所有代理评分（按分数降序），含脱敏 URL"""
+        with self._lock:
+            scored = [
+                {
+                    "proxy": s.masked_url,
+                    "score": s.score,
+                    "latency_ms": round(s.latency_ms, 1),
+                    "success": s.success_count,
+                    "fail": s.fail_count,
+                    "enabled": s.enabled,
+                }
+                for s in self._proxies
+            ]
+        scored.sort(key=lambda x: x["score"], reverse=True)
+        return scored
+
+    def auto_maintain(self, timeout: float = 10.0) -> dict:
+        """自动维护：评分淘汰低分代理 + 低于 min_alive 阈值自动补充
+
+        Returns:
+            {"removed": int, "refilled": int, "alive": int}
+        """
+        result: dict = {"removed": 0, "refilled": 0, "alive": 0}
+        now = time.time()
+
+        # 防抖：60 秒内不重复执行
+        with self._lock:
+            if now - self._last_auto_maintain < 60:
+                result["alive"] = len([s for s in self._proxies if s.enabled])
+                return result
+            self._last_auto_maintain = now
+
+        # 1. 淘汰评分过低的代理（<10 分且至少完成过 3 次请求）
+        with self._lock:
+            to_remove: list[int] = []
+            for i, s in enumerate(self._proxies):
+                total = s.success_count + s.fail_count
+                if total >= 3 and s.score < 10.0:
+                    to_remove.append(i)
+            for i in reversed(to_remove):
+                removed = self._proxies.pop(i)
+                logger.info(
+                    "自动淘汰低分代理 %s (score=%.1f)",
+                    removed.masked_url, removed.score,
+                )
+                result["removed"] += 1
+
+            alive = len([s for s in self._proxies if s.enabled])
+            result["alive"] = alive
+
+        # 2. 低于阈值自动补充
+        if self._min_alive > 0 and alive < self._min_alive and self._auto_refill_url:
+            try:
+                refilled = self.load_from_url(self._auto_refill_url, timeout=timeout)
+                result["refilled"] = refilled
+                result["alive"] = alive + refilled
+            except (OSError, ValueError) as e:
+                logger.warning("自动补充代理失败: %s", e)
+
+        return result
 
     def stats(self) -> list[dict]:
         """返回所有代理运行时状态（密码已脱敏）"""

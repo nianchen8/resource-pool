@@ -17,7 +17,7 @@
         pass
 """
 
-from user_agent_pool.pool import UserAgentPool, UAReserve, UAStrategy
+from user_agent_pool.pool import UserAgentPool, UAReserve, UAStrategy, CATEGORY_ALL
 from user_agent_pool.exceptions import PoolExhaustedException, InvalidAgentException
 from user_agent_pool.agents import VALID_CATEGORIES, AVAILABLE_PROFILES, get_available_profiles
 
@@ -28,6 +28,7 @@ __all__ = [
     "UserAgentPool",
     "UAReserve",
     "UAStrategy",
+    "CATEGORY_ALL",
     "PoolExhaustedException",
     "InvalidAgentException",
     "VALID_CATEGORIES",

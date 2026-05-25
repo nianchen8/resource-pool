@@ -15,6 +15,119 @@ class DummyLock:
         pass
 
 
+class ReadWriteLock:
+    """读写锁 —— 读多写少场景的性能优化
+
+    多个读者可同时持有锁，写者独占。写者优先（避免写饥饿）。
+
+    使用示例::
+
+        rwlock = ReadWriteLock()
+
+        # 读操作（多线程可并发）
+        with rwlock.read():
+            data = shared_list.copy()
+
+        # 写操作（独占）
+        with rwlock.write():
+            shared_list.append(item)
+
+    适用场景：
+    - UA 池：get/get_headers 高频读，add/remove 低频写
+    - DNS 缓存：resolve 读缓存，_cache_set 写缓存
+    - 代理池：get/get_alive 高频读，add_proxy/mark_failed 中频写
+    """
+
+    class _ReadContext:
+        """读锁上下文管理器"""
+        __slots__ = ("_owner",)
+
+        def __init__(self, owner: "ReadWriteLock") -> None:
+            self._owner = owner
+
+        def __enter__(self) -> "ReadWriteLock._ReadContext":
+            self._owner._acquire_read()
+            return self
+
+        def __exit__(self, *args: object) -> None:
+            self._owner._release_read()
+
+    class _WriteContext:
+        """写锁上下文管理器"""
+        __slots__ = ("_owner",)
+
+        def __init__(self, owner: "ReadWriteLock") -> None:
+            self._owner = owner
+
+        def __enter__(self) -> "ReadWriteLock._WriteContext":
+            self._owner._acquire_write()
+            return self
+
+        def __exit__(self, *args: object) -> None:
+            self._owner._release_write()
+
+    def __init__(self) -> None:
+        self._cond = threading.Condition(threading.Lock())
+        self._readers: int = 0
+        self._writers_waiting: int = 0
+        self._writer_active: bool = False
+
+    def read(self) -> "ReadWriteLock._ReadContext":
+        """获取读锁上下文管理器"""
+        return ReadWriteLock._ReadContext(self)
+
+    def write(self) -> "ReadWriteLock._WriteContext":
+        """获取写锁上下文管理器"""
+        return ReadWriteLock._WriteContext(self)
+
+    def _acquire_read(self) -> None:
+        with self._cond:
+            # 写者优先：有写者等待或写者活跃时，读者等待
+            while self._writer_active or self._writers_waiting > 0:
+                self._cond.wait()
+            self._readers += 1
+
+    def _release_read(self) -> None:
+        with self._cond:
+            self._readers -= 1
+            if self._readers == 0:
+                self._cond.notify_all()
+
+    def _acquire_write(self) -> None:
+        with self._cond:
+            self._writers_waiting += 1
+            try:
+                while self._writer_active or self._readers > 0:
+                    self._cond.wait()
+                self._writer_active = True
+            finally:
+                self._writers_waiting -= 1
+
+    def _release_write(self) -> None:
+        with self._cond:
+            self._writer_active = False
+            self._cond.notify_all()
+
+
+class DummyReadWriteLock:
+    """空操作读写锁 —— thread_safe=False 时替代 ReadWriteLock，零开销"""
+
+    class _NoopContext:
+        def __enter__(self) -> "DummyReadWriteLock._NoopContext":
+            return self
+        def __exit__(self, *args: object) -> None:
+            pass
+
+    def __init__(self) -> None:
+        self._ctx = DummyReadWriteLock._NoopContext()
+
+    def read(self) -> "DummyReadWriteLock._NoopContext":
+        return self._ctx
+
+    def write(self) -> "DummyReadWriteLock._NoopContext":
+        return self._ctx
+
+
 class ResourcePool(ABC):
     """所有资源池的抽象基类
 

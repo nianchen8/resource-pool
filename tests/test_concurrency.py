@@ -84,7 +84,7 @@ class TestUAConcurrency:
         # count 应与实际长度一致
         stats_result = pool.count()
         stats: dict[str, int] = stats_result if isinstance(stats_result, dict) else {"desktop": stats_result}  # type: ignore[assignment]
-        with pool._lock:
+        with pool._lock.read():
             actual = len(pool._agents.get("desktop", []))
         assert stats.get("desktop") == actual, f"count={stats.get('desktop')} 实际={actual}（不一致）"
 

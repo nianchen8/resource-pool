@@ -79,6 +79,8 @@ class DNSResolverPool(ResourcePool):
         print(pool.stats())
     """
 
+    _CACHE_SHARDS: int = 16  # 缓存分段数，按域名首字符哈希分片
+
     def __init__(
         self,
         regions: tuple[str, ...] = ("domestic", "overseas"),
@@ -101,6 +103,11 @@ class DNSResolverPool(ResourcePool):
         self._set_strategy(strategy)
         self._thread_safe = thread_safe
         self._lock = threading.Lock() if thread_safe else DummyLock()
+        # 缓存分片锁：按域名首字符哈希到 16 个独立锁，减少缓存读写争用
+        self._cache_locks: list[threading.Lock | DummyLock] = [
+            threading.Lock() if thread_safe else DummyLock()
+            for _ in range(self._CACHE_SHARDS)
+        ]
         self._rr_index = 0
         self._last_revive_check: float = 0.0
         self._load_defaults(regions)
@@ -250,10 +257,16 @@ class DNSResolverPool(ResourcePool):
             raise PoolExhaustedException("DNS 服务器", "策略迭代器异常终止")
 
     def clear_cache(self) -> None:
-        """清空 DNS 解析缓存"""
-        with self._lock:
+        """清空 DNS 解析缓存（线程安全，获取所有分片锁）"""
+        # 按顺序获取所有分片锁，避免死锁
+        for lock in self._cache_locks:
+            lock.acquire()
+        try:
             self._cache.clear()
             self._cache_order.clear()
+        finally:
+            for lock in self._cache_locks:
+                lock.release()
 
     def close(self) -> None:
         """释放线程本地 Resolver 引用
@@ -414,10 +427,16 @@ class DNSResolverPool(ResourcePool):
         random.shuffle(shuffled)
         return iter(shuffled)
 
-    # ── 缓存 ─────────────────────────────────────────────────────────
+    # ── 缓存（分片锁）────────────────────────────────────────────────
+
+    @staticmethod
+    def _cache_shard(key: str) -> int:
+        """按域名首字符哈希到分片索引（0.._CACHE_SHARDS-1）"""
+        return ord(key[0]) % DNSResolverPool._CACHE_SHARDS if key else 0
 
     def _cache_get(self, key: str) -> list[str] | None:
-        with self._lock:
+        lock = self._cache_locks[self._cache_shard(key)]
+        with lock:
             entry = self._cache.get(key)
             if entry is None:
                 return None
@@ -433,7 +452,8 @@ class DNSResolverPool(ResourcePool):
             return ips
 
     def _cache_set(self, key: str, ips: list[str]) -> None:
-        with self._lock:
+        lock = self._cache_locks[self._cache_shard(key)]
+        with lock:
             # 防御：如果另一线程已缓存此 key，不覆盖（保留先写入的结果）
             if key in self._cache:
                 return

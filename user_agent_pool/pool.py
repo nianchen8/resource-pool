@@ -1,6 +1,8 @@
 """User-Agent 资源池核心逻辑"""
 
+import json
 import logging
+import os
 import random
 import threading
 from enum import Enum
@@ -14,7 +16,7 @@ from user_agent_pool.agents import (
     _PROFILE_LOCK,
     AgentEntry,
 )
-from resource_pool.base import DummyLock, ResourcePool
+from resource_pool.base import DummyLock, DummyReadWriteLock, ReadWriteLock, ResourcePool
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +25,10 @@ class UAStrategy(Enum):
     """UA 选取策略"""
     WEIGHTED = "weighted"
     UNIFORM = "uniform"
+
+
+# 常量
+CATEGORY_ALL: str = "all"  # 表示所有分类的特殊值
 
 
 class UserAgentPool(ResourcePool):
@@ -54,7 +60,7 @@ class UserAgentPool(ResourcePool):
         self._strategy = strategy
         self._init_defaults()
         self._thread_safe = thread_safe
-        self._lock = threading.Lock() if thread_safe else DummyLock()
+        self._lock = ReadWriteLock() if thread_safe else DummyReadWriteLock()
 
     # ── 初始化 ───────────────────────────────────────────────────────
 
@@ -79,7 +85,7 @@ class UserAgentPool(ResourcePool):
 
     # ── 公开 API ─────────────────────────────────────────────────────
 
-    def get(self, category: str = "all", weighted: bool | None = None,
+    def get(self, category: str = CATEGORY_ALL, weighted: bool | None = None,
             exclude: set[str] | None = None) -> str:
         """从池中获取一个 User-Agent 字符串
 
@@ -105,11 +111,11 @@ class UserAgentPool(ResourcePool):
             return self._weighted_choice(candidates)
         return random.choice(candidates)["ua"]
 
-    def get_all(self, category: str = "all", exclude: set[str] | None = None) -> list[str]:
+    def get_all(self, category: str = CATEGORY_ALL, exclude: set[str] | None = None) -> list[str]:
         """获取该分类下所有 UA 字符串（不修改池）"""
         return [entry["ua"] for entry in self._pick_candidates(category, exclude)]
 
-    def get_headers(self, category: str = "all", weighted: bool | None = None,
+    def get_headers(self, category: str = CATEGORY_ALL, weighted: bool | None = None,
                     exclude: set[str] | None = None) -> dict[str, str]:
         """获取完整的请求头 Profile（包含 User-Agent + 配套请求头）
 
@@ -160,9 +166,139 @@ class UserAgentPool(ResourcePool):
         entry: AgentEntry = {"ua": ua.strip(), "weight": max(1, weight)}
         if profile:
             entry["profile"] = profile
-        with self._lock:
+        with self._lock.write():
             self._agents.setdefault(category, []).append(entry)
         logger.debug("UA 已添加: %s → 分类 '%s'", ua[:50], category)
+
+    def load_from_file(self, path: str) -> int:
+        """从 JSON 或 CSV 文件批量导入 User-Agent
+
+        支持的格式：
+
+        **JSON（推荐）**::
+
+            [
+                {"ua": "Mozilla/5.0 ...", "category": "desktop", "weight": 5, "profile": "chrome_120"},
+                {"ua": "Mozilla/5.0 ...", "category": "mobile", "weight": 3}
+            ]
+
+        **CSV**::
+
+            ua,category,weight,profile
+            "Mozilla/5.0 ...",desktop,5,chrome_120
+            "Mozilla/5.0 ...",mobile,3,
+
+        CSV 首行为表头，字段名不区分大小写。
+        只需 ``ua`` 和 ``category`` 两列，``weight`` 和 ``profile`` 可选。
+
+        Args:
+            path: JSON 或 CSV 文件路径
+
+        Returns:
+            成功导入的 UA 数量
+
+        Raises:
+            FileNotFoundError: 文件不存在
+            ValueError: 文件格式无法识别或内容为空
+        """
+        if not os.path.isfile(path):
+            raise FileNotFoundError(f"UA 文件不存在: {path}")
+
+        ext = os.path.splitext(path)[1].lower()
+        if ext == ".json":
+            entries = self._parse_json_file(path)
+        elif ext == ".csv":
+            entries = self._parse_csv_file(path)
+        else:
+            raise ValueError(
+                f"不支持的文件格式 '{ext}'，仅支持 .json 和 .csv"
+            )
+
+        if not entries:
+            raise ValueError(f"文件中未解析到任何有效 UA 条目: {path}")
+
+        added = 0
+        skipped = 0
+        for entry in entries:
+            try:
+                self.add(
+                    ua=entry["ua"],
+                    category=entry.get("category", "desktop"),
+                    weight=entry.get("weight", 5),
+                    profile=entry.get("profile"),
+                )
+                added += 1
+            except (ValueError, InvalidAgentException) as e:
+                logger.warning("跳过无效 UA 条目: %s", e)
+                skipped += 1
+
+        logger.info(
+            "从文件加载 UA 完成: %d 个导入, %d 个跳过 (文件: %s)",
+            added, skipped, path,
+        )
+        return added
+
+    @staticmethod
+    def _parse_json_file(path: str) -> list[dict[str, object]]:
+        """解析 JSON 文件，返回条目列表"""
+        with open(path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        if isinstance(data, dict):
+            # 支持 {"user_agents": [...]} 或 {"data": [...]} 结构
+            for key in ("user_agents", "data", "agents", "ua_list"):
+                if key in data and isinstance(data[key], list):
+                    data = data[key]
+                    break
+            else:
+                # 尝试将单个对象转为列表
+                if "ua" in data:
+                    data = [data]
+        if not isinstance(data, list):
+            raise ValueError("JSON 顶层应为数组或包含数组的对象")
+        # 过滤掉非 dict 元素
+        return [e for e in data if isinstance(e, dict) and "ua" in e]
+
+    @staticmethod
+    def _parse_csv_file(path: str) -> list[dict[str, object]]:
+        """解析 CSV 文件，返回条目列表"""
+        import csv
+
+        entries: list[dict[str, object]] = []
+        with open(path, "r", encoding="utf-8-sig") as f:
+            reader = csv.DictReader(f)
+            if reader.fieldnames is None:
+                raise ValueError("CSV 文件缺少表头")
+            # 标准化列名（小写、去空格）
+            field_map: dict[str, str] = {}
+            for fn in reader.fieldnames:
+                key = fn.strip().lower()
+                field_map[key] = fn
+            for row in reader:
+                ua = row.get(field_map.get("ua", "ua"), "").strip()
+                if not ua:
+                    continue
+                category = row.get(
+                    field_map.get("category", "category"), "desktop"
+                ).strip()
+                weight_str = row.get(
+                    field_map.get("weight", "weight"), "5"
+                ).strip()
+                profile = row.get(
+                    field_map.get("profile", "profile"), ""
+                ).strip()
+                try:
+                    weight = int(weight_str) if weight_str else 5
+                except ValueError:
+                    weight = 5
+                entry: dict[str, object] = {
+                    "ua": ua,
+                    "category": category,
+                    "weight": max(1, weight),
+                }
+                if profile:
+                    entry["profile"] = profile
+                entries.append(entry)
+        return entries
 
     def remove(self, ua: str, category: str | None = None) -> int:
         """移除匹配的 UA，返回移除数量
@@ -171,7 +307,7 @@ class UserAgentPool(ResourcePool):
         """
         removed = 0
         cats = [category] if category else list(self._agents.keys())
-        with self._lock:
+        with self._lock.write():
             for cat in cats:
                 if cat not in self._agents:
                     continue
@@ -218,13 +354,13 @@ class UserAgentPool(ResourcePool):
 
     def __contains__(self, ua: str) -> bool:
         """检查 UA 字符串是否在池中"""
-        with self._lock:
+        with self._lock.read():
             for entries in self._agents.values():
                 if any(e["ua"] == ua for e in entries):
                     return True
         return False
 
-    def reserve(self, category: str = "all", weighted: bool | None = None) -> "UAReserve":
+    def reserve(self, category: str = CATEGORY_ALL, weighted: bool | None = None) -> "UAReserve":
         """上下文管理器 —— 取出一个 UA（从池中移除），退出时自动归还
 
         使用::
@@ -250,7 +386,7 @@ class UserAgentPool(ResourcePool):
 
     def remove_one(self, ua: str, category: str) -> bool:
         """从指定分类移除一条匹配的 UA（仅移除第一条），返回是否成功"""
-        with self._lock:
+        with self._lock.write():
             entries = self._agents.get(category, [])
             for i, entry in enumerate(entries):
                 if entry["ua"] == ua:
@@ -263,7 +399,7 @@ class UserAgentPool(ResourcePool):
         
         专供 UAReserve 内部使用，避免直接访问受保护成员。
         """
-        with self._lock:
+        with self._lock.write():
             for cat, entries in self._agents.items():
                 for i, entry in enumerate(entries):
                     if entry["ua"] == ua:
@@ -274,11 +410,11 @@ class UserAgentPool(ResourcePool):
     def _pick_candidates(self, category: str, exclude: set[str] | None = None) -> list[AgentEntry]:
         candidates: list[AgentEntry] = []
         if category == "all":
-            with self._lock:
+            with self._lock.read():
                 for entries in self._agents.values():
                     candidates.extend(entries)
         else:
-            with self._lock:
+            with self._lock.read():
                 candidates = list(self._agents.get(category, []))
         if exclude:
             candidates = [
@@ -312,11 +448,13 @@ class UserAgentPool(ResourcePool):
         headers: dict[str, str] = {"User-Agent": entry["ua"]}
         profile_key = entry.get("profile", "")
         if profile_key:
+            # 锁内只读 copy，解锁后 update（减少锁持有时间）
             with _PROFILE_LOCK:
-                if profile_key in _HEADER_PROFILES:
-                    headers.update(_HEADER_PROFILES[profile_key])
-                else:
-                    logger.warning("Profile '%s' 不存在，仅返回 User-Agent", profile_key)
+                profile_data = _HEADER_PROFILES.get(profile_key)
+            if profile_data is not None:
+                headers.update(profile_data)
+            else:
+                logger.warning("Profile '%s' 不存在，仅返回 User-Agent", profile_key)
         return headers
 
     def __repr__(self) -> str:
@@ -329,7 +467,7 @@ class UserAgentPool(ResourcePool):
 
     def __iter__(self) -> Iterator[str]:
         """迭代所有类别的所有 UA（线程安全快照）"""
-        with self._lock:
+        with self._lock.read():
             snapshot = [
                 e["ua"]
                 for entries in self._agents.values()

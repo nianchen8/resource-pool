@@ -89,6 +89,8 @@ class AsyncDNSResolverPool(AsyncResourcePool):
         ips = await pool.resolve_all("www.example.com")
     """
 
+    _CACHE_SHARDS: int = 16
+
     def __init__(
         self,
         regions: tuple[str, ...] = ("domestic", "overseas"),
@@ -108,6 +110,11 @@ class AsyncDNSResolverPool(AsyncResourcePool):
         self._revive_after = revive_after
         self._strategy = strategy
         self._lock = asyncio.Lock() if thread_safe else AsyncDummyLock()
+        # 缓存分片锁：按域名首字符哈希到 16 个独立锁，减少缓存读写争用
+        self._cache_locks: list[asyncio.Lock | AsyncDummyLock] = [
+            asyncio.Lock() if thread_safe else AsyncDummyLock()
+            for _ in range(self._CACHE_SHARDS)
+        ]
         self._rr_index = 0
         self._last_revive_check: float = 0.0
         self._load_defaults(regions)
@@ -118,7 +125,7 @@ class AsyncDNSResolverPool(AsyncResourcePool):
                       timeout: float = 5.0) -> str:
         """解析域名，返回单个最优 IP"""
         cache_key = f"{domain}:{record_type}"
-        cached = self._cache_get(cache_key)
+        cached = await self._cache_get(cache_key)
         if cached is not None:
             logger.debug("缓存命中: %s → %s", domain, cached[0])
             return cached[0]
@@ -129,7 +136,7 @@ class AsyncDNSResolverPool(AsyncResourcePool):
                 ips = await self._do_resolve(state, domain, record_type, timeout)
                 self._on_success(state, len(ips))
                 result = ips[0]
-                self._cache_set(cache_key, ips)
+                await self._cache_set(cache_key, ips)
                 return result
             except Exception as exc:
                 logger.warning("DNS %s 解析 %s 失败: %s", state.ip, domain, exc)
@@ -146,7 +153,7 @@ class AsyncDNSResolverPool(AsyncResourcePool):
                           timeout: float = 5.0) -> list[str]:
         """解析域名，返回全部 IP 列表"""
         cache_key = f"{domain}:{record_type}"
-        cached = self._cache_get(cache_key)
+        cached = await self._cache_get(cache_key)
         if cached is not None:
             logger.debug("缓存命中(resolve_all): %s → %d 条记录", domain, len(cached))
             return cached
@@ -156,7 +163,7 @@ class AsyncDNSResolverPool(AsyncResourcePool):
             try:
                 ips = await self._do_resolve(state, domain, record_type, timeout)
                 self._on_success(state, len(ips))
-                self._cache_set(cache_key, ips)
+                await self._cache_set(cache_key, ips)
                 return ips
             except Exception as exc:
                 logger.warning("DNS %s resolve_all %s 失败: %s", state.ip, domain, exc)
@@ -259,10 +266,15 @@ class AsyncDNSResolverPool(AsyncResourcePool):
             raise PoolExhaustedException("DNS 服务器", "策略迭代器异常终止")
 
     async def clear_cache(self) -> None:
-        """清空 DNS 解析缓存"""
-        async with self._lock:
+        """清空 DNS 解析缓存（协程安全，获取所有分片锁）"""
+        for lock in self._cache_locks:
+            await lock.acquire()
+        try:
             self._cache.clear()
             self._cache_order.clear()
+        finally:
+            for lock in self._cache_locks:
+                lock.release()
 
     async def close(self) -> None:
         """释放 per-task Resolver 引用"""
@@ -393,31 +405,39 @@ class AsyncDNSResolverPool(AsyncResourcePool):
         random.shuffle(shuffled)
         return iter(shuffled)
 
-    # ── 缓存 ─────────────────────────────────────────────────────────
+    # ── 缓存（分片锁）────────────────────────────────────────────────
 
-    def _cache_get(self, key: str) -> list[str] | None:
-        entry = self._cache.get(key)
-        if entry is None:
-            return None
-        ips, expires = entry
-        if time.time() > expires:
-            del self._cache[key]
-            try:
-                self._cache_order.remove(key)
-            except ValueError:
-                pass
-            return None
-        return ips
+    @staticmethod
+    def _cache_shard(key: str) -> int:
+        return ord(key[0]) % AsyncDNSResolverPool._CACHE_SHARDS if key else 0
 
-    def _cache_set(self, key: str, ips: list[str]) -> None:
-        if key in self._cache:
-            return
-        self._cache[key] = (ips, time.time() + self._cache_ttl)
-        self._cache_order.append(key)
-        while len(self._cache_order) > self._max_cache_size:
-            oldest = self._cache_order.popleft()
-            self._cache.pop(oldest, None)
-            logger.debug("缓存淘汰: %s", oldest)
+    async def _cache_get(self, key: str) -> list[str] | None:
+        lock = self._cache_locks[self._cache_shard(key)]
+        async with lock:
+            entry = self._cache.get(key)
+            if entry is None:
+                return None
+            ips, expires = entry
+            if time.time() > expires:
+                del self._cache[key]
+                try:
+                    self._cache_order.remove(key)
+                except ValueError:
+                    pass
+                return None
+            return ips
+
+    async def _cache_set(self, key: str, ips: list[str]) -> None:
+        lock = self._cache_locks[self._cache_shard(key)]
+        async with lock:
+            if key in self._cache:
+                return
+            self._cache[key] = (ips, time.time() + self._cache_ttl)
+            self._cache_order.append(key)
+            while len(self._cache_order) > self._max_cache_size:
+                oldest = self._cache_order.popleft()
+                self._cache.pop(oldest, None)
+                logger.debug("缓存淘汰: %s", oldest)
 
 
 # ── 自动注册到异步编排器 ──

@@ -178,7 +178,9 @@ class PoolOrchestrator:
         for name, pool in pools_snapshot.items():
             try:
                 combo[name] = PoolOrchestrator._fetch_from_pool(name, pool)
-            except Exception as exc:  # noqa: BLE001
+            except PoolExhaustedError:
+                raise
+            except Exception as exc:
                 logger.error("编排器从 '%s' 获取资源失败: %s", name, exc)
                 raise
         logger.debug("编排器返回组合: %s", {k: str(v)[:60] for k, v in combo.items()})

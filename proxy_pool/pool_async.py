@@ -7,9 +7,12 @@
 """
 
 import asyncio
+import json
 import logging
 import random
 import time
+import urllib.request
+import urllib.error
 
 from proxy_pool.exceptions import PoolExhaustedException
 from proxy_pool.servers import (
@@ -17,6 +20,7 @@ from proxy_pool.servers import (
     VALID_SCHEMES,
     HEALTH_CHECK_URLS,
 )
+from resource_pool.base import StrategyProtocol
 from resource_pool.base_async import AsyncDummyLock, AsyncResourcePool
 from resource_pool.orchestrator_async import AsyncPoolOrchestrator
 
@@ -97,20 +101,29 @@ class AsyncProxyPool(AsyncResourcePool):
 
     def __init__(
         self,
-        strategy: str = ProxyStrategy.LATENCY_WEIGHTED,
+        strategy: str | StrategyProtocol = ProxyStrategy.LATENCY_WEIGHTED,
         max_consecutive_fails: int = 3,
         revive_after: int = 120,
         thread_safe: bool = True,
+        min_alive: int = 0,
+        auto_refill_url: str = "",
     ) -> None:
-        ProxyStrategy._validate(strategy)
+        if isinstance(strategy, str):
+            ProxyStrategy._validate(strategy)
         self._proxies: list[AsyncProxyState] = []
-        self._strategy: str = strategy
+        self._strategy: str | StrategyProtocol = strategy
+        self._strategy_enum: str | None = strategy if isinstance(strategy, str) else None
+        self._strategy_fn: StrategyProtocol | None = strategy if callable(strategy) else None
         self._max_fails = max_consecutive_fails
         self._revive_after = revive_after
         self._thread_safe = thread_safe
         self._lock = asyncio.Lock() if thread_safe else AsyncDummyLock()
         self._rr_index = 0
         self._last_revive_check: float = 0.0
+        # 自动维护配置
+        self._min_alive = min_alive
+        self._auto_refill_url = auto_refill_url
+        self._last_auto_maintain: float = 0.0
 
     # ── 公开 API ─────────────────────────────────────────────────────
 
@@ -243,12 +256,364 @@ class AsyncProxyPool(AsyncResourcePool):
                     return True
         return False
 
+    # ── 评分 ─────────────────────────────────────────────────────────
+
+    async def scores(self) -> list[dict]:
+        """返回所有代理评分（按分数降序），含脱敏 URL（协程安全）"""
+        async with self._lock:
+            scored = [
+                {
+                    "proxy": s.masked_url,
+                    "score": self._calc_score(s),
+                    "latency_ms": round(s.latency_ms, 1),
+                    "success": s.success_count,
+                    "fail": s.fail_count,
+                    "enabled": s.enabled,
+                }
+                for s in self._proxies
+            ]
+        scored.sort(key=lambda x: x["score"], reverse=True)
+        return scored
+
+    @staticmethod
+    def _calc_score(state: AsyncProxyState) -> float:
+        """代理综合评分（0-100）
+
+        评分维度：
+        - 响应时间（40%）：延迟越低分越高
+        - 成功率（40%）：success / (success + fail)
+        - 稳定性（20%）：连续失败越多扣分越多
+        """
+        total_requests = state.success_count + state.fail_count
+        if total_requests == 0:
+            return 50.0
+
+        if state.latency_ms <= 0:
+            latency_score = 100.0
+        else:
+            latency_score = max(0.0, 100.0 * (1.0 - state.latency_ms / 5000.0))
+
+        success_rate = state.success_count / total_requests
+        success_score = success_rate * 100.0
+
+        stability_penalty = min(100.0, state.consecutive_fails * 25.0)
+        stability_score = max(0.0, 100.0 - stability_penalty)
+
+        return round(
+            latency_score * 0.4 + success_score * 0.4 + stability_score * 0.2,
+            1,
+        )
+
+    # ── 加载 / 持久化 ────────────────────────────────────────────────
+
+    async def load_from_url(
+        self,
+        url: str,
+        timeout: float = 10.0,
+        default_scheme: str = "http",
+        headers: dict[str, str] | None = None,
+    ) -> int:
+        """从代理提取 API 链接异步批量加载代理
+
+        使用 asyncio.to_thread 在后台线程执行 HTTP 请求，不阻塞事件循环。
+        解析逻辑复用同步版 ProxyPool 的 _parse_response。
+
+        Args:
+            url: 代理提取 API 链接
+            timeout: 请求超时（秒）
+            default_scheme: 未指定协议时代理的默认 scheme
+            headers: 自定义请求头（如 API Key 鉴权）
+
+        Returns:
+            成功添加的代理数量
+
+        Raises:
+            ValueError: URL 无效或无法解析任何代理
+            OSError: 网络请求失败
+        """
+        from proxy_pool.pool import ProxyPool as SyncProxyPool
+
+        def _fetch() -> bytes:
+            req = urllib.request.Request(url)
+            if headers:
+                for k, v in headers.items():
+                    req.add_header(k, v)
+            try:
+                with urllib.request.urlopen(req, timeout=timeout) as resp:
+                    return resp.read()
+            except urllib.error.URLError as e:
+                raise OSError(f"代理 API 请求失败: {e}") from e
+
+        raw = await asyncio.to_thread(_fetch)
+        body = raw.decode("utf-8", errors="replace").strip()
+
+        entries = SyncProxyPool._parse_response(body, default_scheme)
+        if not entries:
+            raise ValueError(f"未能从响应中解析出任何代理，响应前 200 字符: {body[:200]}")
+
+        added = 0
+        for entry in entries:
+            try:
+                await self.add_proxy(entry)
+                added += 1
+            except ValueError as e:
+                logger.warning("跳过无效代理 %s: %s", entry.get("host", "?"), e)
+
+        logger.info("从 URL 加载代理完成: %d/%d 个入库", added, len(entries))
+        return added
+
+    async def load_from_urls(
+        self,
+        urls: list[str],
+        timeout: float = 10.0,
+        default_scheme: str = "http",
+        headers: dict[str, str] | None = None,
+        max_workers: int = 5,
+    ) -> int:
+        """从多个代理供应商 URL 并发拉取代理，去重合并
+
+        使用 asyncio.to_thread + ThreadPoolExecutor 实现并发拉取。
+
+        Args:
+            urls: 代理提取 API 链接列表
+            timeout: 单次请求超时（秒）
+            default_scheme: 默认代理协议
+            headers: 统一请求头（各 URL 共用）
+            max_workers: 并发线程数
+
+        Returns:
+            成功添加的代理总数
+
+        Raises:
+            ValueError: 所有 URL 均失败或未解析出任何代理
+        """
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+        from proxy_pool.pool import ProxyPool as SyncProxyPool
+
+        all_entries: list[ProxyEntry] = []
+        errors: list[str] = []
+
+        def _fetch_one(u: str) -> list[ProxyEntry]:
+            req = urllib.request.Request(u)
+            if headers:
+                for k, v in headers.items():
+                    req.add_header(k, v)
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                raw = resp.read()
+            body = raw.decode("utf-8", errors="replace").strip()
+            return SyncProxyPool._parse_response(body, default_scheme)
+
+        def _fetch_all() -> tuple[list[ProxyEntry], list[str]]:
+            all_e: list[ProxyEntry] = []
+            errs: list[str] = []
+            with ThreadPoolExecutor(max_workers=min(max_workers, len(urls))) as executor:
+                future_map = {executor.submit(_fetch_one, u): u for u in urls}
+                for future in as_completed(future_map):
+                    u = future_map[future]
+                    try:
+                        entries = future.result()
+                        all_e.extend(entries)
+                        logger.debug("供应商 %s 返回 %d 条代理", u, len(entries))
+                    except Exception as e:
+                        logger.warning("供应商 %s 拉取失败: %s", u, e)
+                        errs.append(f"{u}: {e}")
+            return all_e, errs
+
+        all_entries, errors = await asyncio.to_thread(_fetch_all)
+
+        if not all_entries:
+            raise ValueError(
+                f"所有 {len(urls)} 个供应商均未返回有效代理，错误: {'; '.join(errors[:3])}"
+            )
+
+        # 去重入库
+        added = 0
+        seen: set[str] = {s.key for s in self._proxies}
+        for entry in all_entries:
+            key = f"{entry.get('scheme', default_scheme)}://{entry['host']}:{entry['port']}"
+            if key in seen:
+                continue
+            try:
+                await self.add_proxy(entry)
+                seen.add(key)
+                added += 1
+            except ValueError as e:
+                logger.warning("跳过无效代理 %s: %s", entry.get("host", "?"), e)
+
+        logger.info(
+            "多供应商拉取完成: %d 个 URL, %d 条去重入库, %d 个失败",
+            len(urls), added, len(errors),
+        )
+        return added
+
+    async def save_to_file(self, path: str) -> int:
+        """将代理池状态异步持久化到 JSON 文件
+
+        密码字段明文保存，请确保文件权限安全。
+
+        Args:
+            path: 输出 JSON 文件路径
+
+        Returns:
+            写入的代理数量
+        """
+        async with self._lock:
+            data = [
+                {
+                    "scheme": s.scheme,
+                    "host": s.host,
+                    "port": s.port,
+                    "username": s.username,
+                    "password": s.password,
+                    "region": s.region,
+                    "enabled": s.enabled,
+                    "weight": s.weight,
+                    "latency_ms": round(s.latency_ms, 1),
+                    "success_count": s.success_count,
+                    "fail_count": s.fail_count,
+                    "consecutive_fails": s.consecutive_fails,
+                    "last_used": s.last_used,
+                    "last_health": s.last_health,
+                }
+                for s in self._proxies
+            ]
+
+        import os as _os
+        _os.makedirs(_os.path.dirname(path) or ".", exist_ok=True)
+
+        def _write() -> None:
+            with open(path, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+
+        await asyncio.to_thread(_write)
+        logger.info("代理池已保存到 %s (%d 个代理)", path, len(data))
+        return len(data)
+
+    async def load_from_file(self, path: str) -> int:
+        """从 JSON 文件异步恢复代理池
+
+        Args:
+            path: JSON 文件路径
+
+        Returns:
+            成功恢复的代理数量
+
+        Raises:
+            FileNotFoundError: 文件不存在
+            ValueError: JSON 格式无效
+        """
+        def _read() -> list[dict]:
+            with open(path, "r", encoding="utf-8") as f:
+                return json.load(f)
+
+        data = await asyncio.to_thread(_read)
+        if not isinstance(data, list):
+            raise ValueError("JSON 顶层应为数组")
+
+        added = 0
+        for item in data:
+            if not isinstance(item, dict) or "host" not in item or "port" not in item:
+                continue
+            try:
+                entry: ProxyEntry = {
+                    "host": item["host"],
+                    "port": int(item["port"]),
+                    "scheme": item.get("scheme", "http"),
+                }
+                if item.get("username"):
+                    entry["username"] = item["username"]
+                if item.get("password"):
+                    entry["password"] = item["password"]
+                if item.get("region"):
+                    entry["region"] = item["region"]
+                if "weight" in item:
+                    entry["weight"] = int(item["weight"])
+                if "enabled" in item:
+                    entry["enabled"] = bool(item["enabled"])
+                await self.add_proxy(entry)
+                added += 1
+            except (ValueError, TypeError) as e:
+                logger.warning("跳过无效代理条目: %s", e)
+
+        logger.info("从文件恢复代理池完成: %s (%d 个代理)", path, added)
+        return added
+
+    async def auto_maintain(self, timeout: float = 10.0) -> dict:
+        """自动维护：评分淘汰低分代理 + 低于 min_alive 阈值自动补充
+
+        Returns:
+            {"removed": int, "refilled": int, "alive": int}
+        """
+        result: dict = {"removed": 0, "refilled": 0, "alive": 0}
+        now = time.time()
+
+        async with self._lock:
+            # 防抖：60 秒内不重复执行
+            if now - self._last_auto_maintain < 60:
+                result["alive"] = len([s for s in self._proxies if s.enabled])
+                return result
+            self._last_auto_maintain = now
+
+            # 1. 淘汰评分过低的代理（<10 分且至少完成过 3 次请求）
+            to_remove: list[int] = []
+            for i, s in enumerate(self._proxies):
+                total = s.success_count + s.fail_count
+                if total >= 3 and self._calc_score(s) < 10.0:
+                    to_remove.append(i)
+            for i in reversed(to_remove):
+                removed = self._proxies.pop(i)
+                logger.info(
+                    "自动淘汰低分代理 %s (score=%.1f)",
+                    removed.masked_url, self._calc_score(removed),
+                )
+                result["removed"] += 1
+
+            alive = len([s for s in self._proxies if s.enabled])
+            result["alive"] = alive
+
+        # 2. 低于阈值自动补充（锁外调用 load_from_url）
+        if self._min_alive > 0 and alive < self._min_alive and self._auto_refill_url:
+            try:
+                refilled = await self.load_from_url(self._auto_refill_url, timeout=timeout)
+                result["refilled"] = refilled
+                result["alive"] = alive + refilled
+            except (OSError, ValueError) as e:
+                logger.warning("自动补充代理失败: %s", e)
+
+        return result
+
     # ── 魔术方法 ─────────────────────────────────────────────────────
+
+    @property
+    def strategy(self) -> str | StrategyProtocol:
+        """当前选择策略"""
+        if self._strategy_fn is not None:
+            return self._strategy_fn
+        return self._strategy_enum or self._strategy
+
+    @strategy.setter
+    def strategy(self, value: str | StrategyProtocol) -> None:
+        """运行时切换策略"""
+        if isinstance(value, str):
+            ProxyStrategy._validate(value)
+            self._strategy_enum = value
+            self._strategy_fn = None
+        elif callable(value):
+            self._strategy_enum = None
+            self._strategy_fn = value
+        else:
+            raise TypeError(
+                f"策略必须是 ProxyStrategy 常量或 callable，收到: {type(value).__name__}"
+            )
+        self._strategy = value
 
     def __repr__(self) -> str:
         alive = sum(1 for s in self._proxies if s.enabled)
         total = len(self._proxies)
-        strategy_name = self._strategy
+        if self._strategy_fn is not None:
+            strategy_name = type(self._strategy_fn).__name__
+        else:
+            strategy_name = self._strategy_enum or str(self._strategy)
         return f"AsyncProxyPool(alive={alive}/{total}, strategy={strategy_name})"
 
     def __len__(self) -> int:
@@ -267,18 +632,27 @@ class AsyncProxyPool(AsyncResourcePool):
         if not alive:
             return None
 
-        strat = self._strategy
-        if strat == ProxyStrategy.LATENCY_WEIGHTED:
-            ordered = sorted(
-                alive,
-                key=lambda s: (1.0 if s.latency_ms == 0 else s.latency_ms) / max(s.weight, 1)
-            )
-            return ordered[0]
-        if strat == ProxyStrategy.ROUND_ROBIN:
-            self._rr_index = (self._rr_index + 1) % len(alive)
-            return alive[self._rr_index]
-        if strat == ProxyStrategy.RANDOM:
-            return random.choice(alive)
+        # 优先枚举策略，其次 callable
+        if self._strategy_enum is not None:
+            strat = self._strategy_enum
+            if strat == ProxyStrategy.LATENCY_WEIGHTED:
+                ordered = sorted(
+                    alive,
+                    key=lambda s: (1.0 if s.latency_ms == 0 else s.latency_ms) / max(s.weight, 1)
+                )
+                return ordered[0]
+            if strat == ProxyStrategy.ROUND_ROBIN:
+                self._rr_index = (self._rr_index + 1) % len(alive)
+                return alive[self._rr_index]
+            if strat == ProxyStrategy.RANDOM:
+                return random.choice(alive)
+            return None
+        if self._strategy_fn is not None:
+            it = self._strategy_fn(alive)
+            try:
+                return next(it)
+            except StopIteration:
+                return None
         return None
 
     @staticmethod

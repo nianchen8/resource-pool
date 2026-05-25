@@ -1,4 +1,4 @@
-# Resource Pool ![version](https://img.shields.io/badge/version-1.0.2-blue)
+# Resource Pool ![version](https://img.shields.io/badge/version-1.0.3-blue)
 
 > 一套可扩展的网络资源池框架，为爬虫工程提供开箱即用的资源调度能力。
 
@@ -212,7 +212,7 @@ orch.health_check_all()
 |------|------|
 | **Header Profile** | 20 组完整请求头 + 自动匹配浏览器/版本号，精准模拟真实浏览器 |
 | **线程安全** | UA 池 ReadWriteLock（读并发 N 倍）、Proxy 池 Lock、DNS 池 16 路缓存分片锁 |
-| **异步支持** | 完整 asyncio 版：AsyncUserAgentPool / AsyncDNSResolverPool / AsyncProxyPool / AsyncPoolOrchestrator |
+| **异步支持** | 完整 asyncio 版：AsyncUserAgentPool / AsyncDNSResolverPool / AsyncProxyPool / AsyncPoolOrchestrator，功能与同步版完全对等 |
 | **按需开关** | `thread_safe=False` 关闭所有锁，单线程脚本零开销 |
 | **故障隔离** | 连续失败达阈值自动隔离，到期后试用复活（一次机会） |
 | **策略校验** | `strategy` setter 类型校验，非法值立即抛 `TypeError`，避免静默失效 |
@@ -238,13 +238,15 @@ orch.health_check_all()
 | `remove(ua, category=None) → int` | 移除 UA |
 | `count(category=None) → dict[str,int] \| int` | 统计数量 |
 | `reserve(category, weighted=None) → UAReserve` | 上下文管理器 |
-| `register_profile(key, headers)` | 注册自定义 Header Profile |
+| `register_profile(key, headers)` | 注册自定义 Header Profile（静态方法） |
 | `load_from_file(path) → int` | 从 JSON/CSV 文件批量导入 |
 | `load_from_fakeua(browsers=None, os=None, limit=50) → int` | 从 fake_useragent 导入（可选依赖） |
 
 **分类**: `desktop` / `mobile` / `tablet` / `all`
 
 **策略**: `UAStrategy.WEIGHTED`（默认）/ `UAStrategy.UNIFORM`
+
+> 异步版 `AsyncUserAgentPool` 具有完全相同的 API，并额外支持 `__aiter__` 异步迭代。
 
 ### DNSResolverPool
 
@@ -278,6 +280,8 @@ orch.health_check_all()
 | `stats() → list[dict]` | 运行时状态（凭据已脱敏） |
 
 **选择策略**: `ProxyStrategy.LATENCY_WEIGHTED` / `ROUND_ROBIN` / `RANDOM` — 也支持 callable 自定义
+
+> 异步版 `AsyncProxyPool` 具有等价 API，网络 I/O 通过 `asyncio.to_thread` 异步化，不阻塞事件循环。
 
 ### PoolOrchestrator
 
@@ -405,6 +409,16 @@ class CookiePool(ResourcePool):
 ---
 
 ## 更新日志
+
+### v1.0.3 (2026-05-26)
+
+- 🚀 **AsyncProxyPool 功能补齐**：`StrategyProtocol` callable 策略支持、`scores()` 评分、`load_from_url()`/`load_from_urls()` 异步加载、`save_to_file()`/`load_from_file()` 持久化、`auto_maintain()` 自动维护、`strategy` property
+- 🚀 **AsyncUserAgentPool 功能补齐**：`UAStrategy` 枚举 + `weighted` 参数、`get_all()`、`register_profile()`（委托同步版）、`load_from_file()`、`load_from_fakeua()`、`strategy` property
+- 🛡️ **`__repr__` 锁粒度一致**：`ProxyPool` / `DNSResolverPool` 的 `alive` 和 `total` 统一在持锁下计算
+- 🛡️ **编排器异常完整性**：`PoolOrchestrator.combos()` 区分 `PoolExhaustedError`（显式 raise）与其他异常（ERROR 日志后 raise）
+- 🔧 **CI glob 修复**：`paths-ignore` 中 `"**.md"` → `"**/*.md"`
+- 🔧 **pre-commit 升级**：ruff `v0.11.0` → `v0.11.8`
+- 🧹 **残留清理**：删除 `test_result.txt`
 
 ### v1.0.2 (2026-05-26)
 

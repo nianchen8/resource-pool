@@ -893,8 +893,9 @@ class ProxyPool(ResourcePool):
     # ── 魔术方法 ─────────────────────────────────────────────────────
 
     def __repr__(self) -> str:
-        alive = len(self._get_alive())
-        total = len(self._proxies)
+        with self._lock:
+            alive = len([s for s in self._proxies if s.enabled])
+            total = len(self._proxies)
         if isinstance(self._strategy, ProxyStrategy):
             strategy_name = self._strategy.value
         else:

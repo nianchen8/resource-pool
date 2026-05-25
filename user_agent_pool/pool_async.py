@@ -9,6 +9,7 @@ import logging
 import random
 from typing import AsyncIterator
 
+from user_agent_pool.pool import UAStrategy, UserAgentPool
 from user_agent_pool.agents import (
     DEFAULT_AGENTS,
     VALID_CATEGORIES,
@@ -40,8 +41,10 @@ class AsyncUserAgentPool(AsyncResourcePool):
             ...
     """
 
-    def __init__(self, thread_safe: bool = True) -> None:
+    def __init__(self, strategy: UAStrategy = UAStrategy.WEIGHTED,
+                 thread_safe: bool = True) -> None:
         self._agents: dict[str, list[AgentEntry]] = {}
+        self._strategy: UAStrategy = strategy
         self._init_defaults()
         self._lock = asyncio.Lock() if thread_safe else AsyncDummyLock()
 
@@ -69,14 +72,16 @@ class AsyncUserAgentPool(AsyncResourcePool):
     # ── 公开 API ─────────────────────────────────────────────────────
 
     async def get(self, category: str = "all",
+                  weighted: bool | None = None,
                   exclude: set[str] | None = None,
                   browser: str | None = None,
                   os: str | None = None,
                   min_version: int | None = None) -> str:
-        """获取一个 User-Agent 字符串（加权随机）
+        """获取一个 User-Agent 字符串
 
         Args:
             category: desktop | mobile | tablet | all
+            weighted: True=按权重加权随机；False=均匀随机；None=使用池级默认策略
             exclude: 排除包含这些关键词的 UA
             browser: 限定浏览器（chrome / firefox / safari / edge）
             os: 限定操作系统（windows / macos / linux / android / ios）
@@ -86,9 +91,13 @@ class AsyncUserAgentPool(AsyncResourcePool):
         if not candidates:
             logger.error("UA 池分类 '%s' 已耗尽", category)
             raise PoolExhaustedException(resource_type=category)
-        return self._weighted_choice(candidates)
+        use_weighted = weighted if weighted is not None else (self._strategy == UAStrategy.WEIGHTED)
+        if use_weighted:
+            return self._weighted_choice(candidates)
+        return random.choice(candidates)["ua"]
 
     async def get_headers(self, category: str = "all",
+                          weighted: bool | None = None,
                           exclude: set[str] | None = None,
                           browser: str | None = None,
                           os: str | None = None,
@@ -97,6 +106,7 @@ class AsyncUserAgentPool(AsyncResourcePool):
 
         Args:
             category: desktop | mobile | tablet | all
+            weighted: True=加权；False=均匀；None=使用池级默认策略
             exclude: 排除包含这些关键词的 UA
             browser: 限定浏览器（chrome / firefox / safari / edge）
             os: 限定操作系统（windows / macos / linux / android / ios）
@@ -107,7 +117,11 @@ class AsyncUserAgentPool(AsyncResourcePool):
             logger.error("UA 池分类 '%s' 已耗尽（get_headers）", category)
             raise PoolExhaustedException(resource_type=category)
 
-        entry = self._weighted_pick(candidates)
+        use_weighted = weighted if weighted is not None else (self._strategy == UAStrategy.WEIGHTED)
+        if use_weighted:
+            entry: AgentEntry = self._weighted_pick(candidates)
+        else:
+            entry = random.choice(candidates)
         return self._build_headers(entry)
 
     async def add(self, ua: str, category: str, weight: int = 5,
@@ -170,6 +184,177 @@ class AsyncUserAgentPool(AsyncResourcePool):
                 await do_request(headers={"User-Agent": ua})
         """
         return AsyncUAReserve(self, category)
+
+    async def get_all(self, category: str = "all",
+                      exclude: set[str] | None = None,
+                      browser: str | None = None,
+                      os: str | None = None,
+                      min_version: int | None = None) -> list[str]:
+        """获取该分类下所有 UA 字符串（不修改池）"""
+        return [
+            entry["ua"]
+            for entry in self._pick_candidates(category, exclude, browser, os, min_version)
+        ]
+
+    @staticmethod
+    def register_profile(key: str, headers: dict[str, str]) -> None:
+        """注册自定义 Header Profile（线程安全）
+
+        委托给同步版 UserAgentPool.register_profile()，
+        避免代码重复。同步版已使用 threading.Lock 保证线程安全。
+
+        Args:
+            key: Profile 唯一标识键
+            headers: 请求头字典（不应包含 User-Agent）
+
+        Raises:
+            ValueError: key 已存在或 headers 包含 User-Agent
+        """
+        UserAgentPool.register_profile(key, headers)
+
+    async def load_from_file(self, path: str) -> int:
+        """从 JSON 或 CSV 文件批量异步导入 User-Agent
+
+        解析逻辑复用同步版 UserAgentPool，通过 asyncio.to_thread
+        在后台线程执行文件读取和解析，不阻塞事件循环。
+
+        支持的格式：JSON (*.json) 或 CSV (*.csv)
+
+        Args:
+            path: JSON 或 CSV 文件路径
+
+        Returns:
+            成功导入的 UA 数量
+
+        Raises:
+            FileNotFoundError: 文件不存在
+            ValueError: 文件格式无法识别或内容为空
+        """
+        def _load_sync() -> list[dict[str, object]]:
+            import os as _os
+            if not _os.path.isfile(path):
+                raise FileNotFoundError(f"UA 文件不存在: {path}")
+            ext = _os.path.splitext(path)[1].lower()
+            if ext == ".json":
+                return UserAgentPool._parse_json_file(path)
+            elif ext == ".csv":
+                return UserAgentPool._parse_csv_file(path)
+            else:
+                raise ValueError(
+                    f"不支持的文件格式 '{ext}'，仅支持 .json 和 .csv"
+                )
+
+        entries = await asyncio.to_thread(_load_sync)
+        if not entries:
+            raise ValueError(f"文件中未解析到任何有效 UA 条目: {path}")
+
+        added = 0
+        skipped = 0
+        for entry in entries:
+            try:
+                await self.add(
+                    ua=str(entry["ua"]),
+                    category=str(entry.get("category", "desktop")),
+                    weight=int(entry.get("weight", 5)),
+                    profile=str(entry["profile"]) if entry.get("profile") else None,
+                )
+                added += 1
+            except (ValueError, InvalidAgentException) as e:
+                logger.warning("跳过无效 UA 条目: %s", e)
+                skipped += 1
+
+        logger.info(
+            "从文件加载 UA 完成: %d 个导入, %d 个跳过 (文件: %s)",
+            added, skipped, path,
+        )
+        return added
+
+    async def load_from_fakeua(
+        self,
+        browsers: list[str] | None = None,
+        os_list: list[str] | None = None,
+        limit: int = 50,
+    ) -> int:
+        """从 fake_useragent 库异步批量导入 User-Agent
+
+        通过 asyncio.to_thread 在后台线程执行阻塞的 fake_useragent 调用。
+        需要先安装：``pip install fake-useragent``
+
+        Args:
+            browsers: 限定浏览器类型，如 ["chrome", "firefox"]，None=全部
+            os_list: 限定操作系统，如 ["windows", "macos"]，None=全部
+            limit: 最多导入数量
+
+        Returns:
+            成功导入的 UA 数量
+
+        Raises:
+            ImportError: fake_useragent 未安装
+        """
+        def _import_fakeua() -> list[str]:
+            try:
+                from fake_useragent import UserAgent as FakeUA
+            except ImportError:
+                raise ImportError(
+                    "load_from_fakeua 需要 fake-useragent 库，请执行: pip install fake-useragent"
+                ) from None
+
+            fake_ua = FakeUA(
+                browsers=browsers or ["chrome", "firefox", "safari", "edge"],
+                os=os_list or ["windows", "macos", "linux"],
+            )
+
+            # 收集已有 UA 用于去重
+            seen: set[str] = set()
+            for entries in self._agents.values():
+                for e in entries:
+                    seen.add(e["ua"])
+
+            results: list[str] = []
+            for _ in range(limit * 2):
+                if len(results) >= limit:
+                    break
+                try:
+                    ua_str = fake_ua.random
+                except Exception:
+                    continue
+                if ua_str in seen:
+                    continue
+                seen.add(ua_str)
+                results.append(ua_str)
+            return results
+
+        ua_strings = await asyncio.to_thread(_import_fakeua)
+
+        added = 0
+        for ua_str in ua_strings:
+            try:
+                category = UserAgentPool._guess_category(ua_str)
+                await self.add(ua_str, category)
+                added += 1
+            except (ValueError, InvalidAgentException):
+                continue
+
+        logger.info(
+            "从 fake_useragent 导入完成: %d 个 UA (limit=%d)",
+            added, limit,
+        )
+        return added
+
+    # ── 策略 ─────────────────────────────────────────────────────────
+
+    @property
+    def strategy(self) -> UAStrategy:
+        """池级默认选取策略（get/get_headers 未显式传 weighted 时生效）"""
+        return self._strategy
+
+    @strategy.setter
+    def strategy(self, value: UAStrategy) -> None:
+        if not isinstance(value, UAStrategy):
+            raise TypeError(
+                f"策略必须是 UAStrategy 枚举，收到: {type(value).__name__}"
+            )
+        self._strategy = value
 
     # ── 魔术方法 ─────────────────────────────────────────────────────
 

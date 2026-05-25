@@ -468,8 +468,9 @@ class DNSResolverPool(ResourcePool):
     # ── 魔术方法 ─────────────────────────────────────────────────────
 
     def __repr__(self) -> str:
-        alive = len(self._get_alive())
-        total = len(self._servers)
+        with self._lock:
+            alive = len([s for s in self._servers if s.enabled])
+            total = len(self._servers)
         if self._strategy_enum is not None:
             strategy_name = self._strategy_enum.value
         else:

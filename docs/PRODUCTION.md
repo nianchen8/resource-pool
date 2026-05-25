@@ -1,6 +1,6 @@
 # 生产环境部署指南
 
-> 适用版本：v1.0.0+ | 最后更新：2026-05-26
+> 适用版本：v1.0.3+ | 最后更新：2026-05-26
 
 本指南覆盖 resource-pool 在生产环境中的配置、监控、排障和最佳实践。
 
@@ -72,7 +72,7 @@ enabled = false
 pools = ["ua", "dns", "proxy"]
 ```
 
-### 1.2 工厂函数示例
+### 1.2 工厂函数示例（同步版）
 
 ```python
 import tomllib
@@ -106,6 +106,51 @@ def create_pools_from_config(config_path: str = "config.toml"):
     proxy_pool = ProxyPool(strategy=ProxyStrategy(proxy_cfg.get("strategy", "latency_weighted")))
     if proxy_cfg.get("min_alive"):
         proxy_pool.min_alive = proxy_cfg["min_alive"]
+
+    return ua_pool, dns_pool, proxy_pool
+```
+
+### 1.3 工厂函数示例（异步版）
+
+```python
+import tomllib
+from user_agent_pool.pool_async import AsyncUserAgentPool
+from dns_resolver_pool.pool_async import AsyncDNSResolverPool
+from proxy_pool.pool_async import AsyncProxyPool, ProxyStrategy as AsyncProxyStrategy
+from user_agent_pool.pool import UAStrategy
+from dns_resolver_pool.pool import SelectStrategy
+
+
+async def create_async_pools_from_config(config_path: str = "config.toml"):
+    """从配置文件初始化异步三池"""
+    with open(config_path, "rb") as f:
+        cfg = tomllib.load(f)
+
+    ua_cfg = cfg.get("ua_pool", {})
+    ua_pool = AsyncUserAgentPool(
+        strategy=UAStrategy(ua_cfg.get("strategy", "weighted")),
+        thread_safe=ua_cfg.get("thread_safe", True),
+    )
+
+    dns_cfg = cfg.get("dns_pool", {})
+    dns_pool = AsyncDNSResolverPool(
+        regions=tuple(dns_cfg.get("regions", ["domestic", "overseas"])),
+        strategy=SelectStrategy(dns_cfg.get("strategy", "latency_weighted")),
+        cache_ttl=dns_cfg.get("cache_ttl", 300),
+        max_consecutive_fails=dns_cfg.get("max_consecutive_fails", 3),
+        revive_after=dns_cfg.get("revive_after", 120),
+        thread_safe=dns_cfg.get("thread_safe", True),
+    )
+
+    proxy_cfg = cfg.get("proxy_pool", {})
+    proxy_pool = AsyncProxyPool(
+        strategy=AsyncProxyStrategy.LATENCY_WEIGHTED,
+        max_consecutive_fails=proxy_cfg.get("max_consecutive_fails", 5),
+        revive_after=proxy_cfg.get("revive_after", 300),
+        min_alive=proxy_cfg.get("min_alive", 0),
+        auto_refill_url=proxy_cfg.get("auto_refill_url", ""),
+        thread_safe=proxy_cfg.get("thread_safe", True),
+    )
 
     return ua_pool, dns_pool, proxy_pool
 ```
@@ -283,9 +328,18 @@ graph TB
         DNS_P --> |缓存| DNS_C[LRU 缓存 16路分片]
         DNS_P --> |隔离| DNS_I[连续失败自动隔离]
         
-        P_P --> |策略| P_S[延迟加权 / 轮询 / 随机]
+        P_P --> |策略| P_S[延迟加权 / 轮询 / 随机 / callable]
         P_P --> |评分| P_SC[综合评分系统]
         P_P --> |维护| P_AM[auto_maintain 自动补充]
+    end
+
+    subgraph "异步资源池层（API 完全对等）"
+        AUA_P[AsyncUserAgentPool]
+        ADNS_P[AsyncDNSResolverPool]
+        AP_P[AsyncProxyPool]
+        AUA_P --> |asyncio.to_thread| FS[文件 I/O]
+        ADNS_P --> |dns.asyncresolver| ARES[异步解析]
+        AP_P --> |asyncio.to_thread| HTTP_R2[urllib 后台线程]
     end
 
     subgraph "基础设施"
@@ -319,23 +373,24 @@ graph TB
 ### 4.1 锁层级说明（异步版）
 
 ```
-高层（慢）：automaintain、load_from_url、health_check
+高层（慢）：auto_maintain、load_from_url(s)、load_from_file、save_to_file、health_check
     │  持有时间：秒级，低频
     ▼
-中层：add_proxy、remove_proxy、mark_failed（公共 API 层持 asyncio.Lock）
+中层：add、remove、mark_failed（公共 API 层持 asyncio.Lock）
     │  持有时间：微秒-毫秒级，中频
     ▼
-低层：get、get_dict、resolve（快照模式：持锁选节点 → 释放锁 → 执行 I/O）
+低层：get、get_headers、get_dict、resolve（快照模式：持锁选节点 → 释放锁 → 执行 I/O）
     │  持有时间：微秒级，高频
     ▼
 内部：_pick_one、_get_alive、_try_revive、_on_success（无锁）
     │  由外层公共 API 统一持锁调用，避免 asyncio.Lock 不可重入死锁
     ▼
-无锁：_do_resolve、_probe_proxy（I/O 密集）
+无锁：_do_resolve、_probe_proxy（I/O 密集，asyncio.to_thread 或原生异步 I/O）
 ```
 
 > **设计要点**：异步版 `asyncio.Lock` 不可重入，内部辅助方法不加锁，
-> 由 `get()`/`add_proxy()` 等公共 API 统一获取锁后调用。
+> 由 `get()`/`add()` 等公共 API 统一获取锁后调用。
+> 文件 I/O 和 HTTP 请求通过 `asyncio.to_thread` 在后台线程执行，不阻塞事件循环。
 > `resolve()` 采用快照模式：持锁选取最优 DNS 节点后立即释放，
 > 实际 DNS 查询在锁外进行，避免 I/O 阻塞所有协程。
 

@@ -1,5 +1,6 @@
 """代理资源池 —— 可扩展核心"""
 
+import json
 import logging
 import random
 import socket
@@ -104,6 +105,254 @@ class ProxyPool(ResourcePool):
         self._last_revive_check: float = 0.0
 
     # ── 公开 API ─────────────────────────────────────────────────────
+
+    def load_from_url(
+        self,
+        url: str,
+        timeout: float = 10.0,
+        default_scheme: str = "http",
+        headers: dict[str, str] | None = None,
+    ) -> int:
+        """从代理提取 API 链接批量加载代理
+
+        支持市面上主流代理服务商的返回格式：
+
+        **纯文本**（逐行 ip:port）::
+
+            183.207.226.9:9999
+            120.197.85.171:33965
+
+        **JSON — IP/Port 分离**（携趣、天启、多米）::
+
+            {"code":0, "data": [{"IP": "1.2.3.4", "Port": 8888}]}
+
+        **JSON — proxy_list 数组**（快代理、91VPS）::
+
+            {"code":0, "data": {"proxy_list": ["1.2.3.4:8080"]}}
+
+        **JSON — proxies 数组**（阿布云）::
+
+            {"code":0, "proxies": ["1.2.3.4:8080"]}
+
+        **JSON — 纯数组**（齐云）::
+
+            ["1.2.3.4:8080", "5.6.7.8:3128"]
+
+        也支持带鉴权的代理::
+
+            1.2.3.4:8080:user:pass
+            1.2.3.4:8080@user:pass
+
+        Args:
+            url: 代理提取 API 链接
+            timeout: 请求超时（秒）
+            default_scheme: 未指定协议时代理的默认 scheme
+            headers: 自定义请求头（如 API Key 鉴权）
+
+        Returns:
+            成功添加的代理数量
+
+        Raises:
+            ValueError: URL 无效或无法解析任何代理
+            OSError: 网络请求失败
+        """
+        # 1. 请求 API
+        req = urllib.request.Request(url)
+        if headers:
+            for k, v in headers.items():
+                req.add_header(k, v)
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                raw = resp.read()
+        except urllib.error.URLError as e:
+            raise OSError(f"代理 API 请求失败: {e}") from e
+
+        body = raw.decode("utf-8", errors="replace").strip()
+
+        # 2. 解析代理列表
+        entries = self._parse_response(body, default_scheme)
+        if not entries:
+            raise ValueError(f"未能从响应中解析出任何代理，响应前 200 字符: {body[:200]}")
+
+        # 3. 批量入库
+        added = 0
+        for entry in entries:
+            try:
+                self.add_proxy(entry)
+                added += 1
+            except ValueError as e:
+                logger.warning("跳过无效代理 %s: %s", entry.get("host", "?"), e)
+
+        logger.info("从 URL 加载代理完成: %d/%d 个入库", added, len(entries))
+        return added
+
+    # ── 响应解析 ────────────────────────────────────────────────────
+
+    @staticmethod
+    def _parse_response(body: str, default_scheme: str) -> list[ProxyEntry]:
+        """解析 API 响应，返回 ProxyEntry 列表
+
+        自动检测 JSON / 纯文本格式。
+        """
+        # ── 尝试 JSON ──
+        if body.startswith(("{", "[")):
+            try:
+                data = json.loads(body)
+                entries = ProxyPool._parse_json(data, default_scheme)
+                if entries:
+                    return entries
+            except json.JSONDecodeError:
+                pass
+
+        # ── 纯文本 ──
+        return ProxyPool._parse_text(body, default_scheme)
+
+    @staticmethod
+    def _parse_json(data, default_scheme: str) -> list[ProxyEntry]:
+        """从 JSON 数据中提取代理列表
+
+        按优先级尝试多种已知结构，匹配到就返回。
+        """
+        # 包装：可能套在 data / result 中
+        inner = data
+        if isinstance(data, dict):
+            # 去掉外层 {"code": ..., "success": ..., "msg": ...}
+            for key in ("data", "result"):
+                if key in data and isinstance(data[key], (list, dict)):
+                    inner = data[key]
+                    break
+
+        # ── 结构 1: ["ip:port", ...] — 齐云、快代理纯 JSON ──
+        if isinstance(inner, list) and inner and isinstance(inner[0], str):
+            return [ProxyPool._parse_proxy_str(s, default_scheme) for s in inner]
+
+        # ── 结构 2: [{ip/ip, port}, ...] — 携趣、天启、多米 ──
+        if isinstance(inner, list) and inner and isinstance(inner[0], dict):
+            entries: list[ProxyEntry] = []
+            for item in inner:
+                ip = item.get("IP") or item.get("ip") or item.get("Ip") or ""
+                port = item.get("Port") or item.get("port") or 0
+                if ip and port:
+                    entries.append(ProxyPool._make_entry(
+                        ip, int(port), default_scheme,
+                        item.get("username") or item.get("user") or "",
+                        item.get("password") or item.get("pass") or "",
+                    ))
+            if entries:
+                return entries
+
+        # ── 结构 3: {"proxy_list": [...]} — 快代理 JSON ──
+        if isinstance(inner, dict):
+            for list_key in ("proxy_list", "proxies", "proxy"):
+                plist = inner.get(list_key)
+                if isinstance(plist, list) and plist:
+                    if isinstance(plist[0], str):
+                        return [ProxyPool._parse_proxy_str(s, default_scheme) for s in plist]
+                    if isinstance(plist[0], dict):
+                        entries = []
+                        for item in plist:
+                            ip = item.get("ip") or item.get("IP") or ""
+                            port = item.get("port") or item.get("Port") or 0
+                            if ip and port:
+                                entries.append(ProxyPool._make_entry(
+                                    ip, int(port), default_scheme,
+                                    item.get("username") or "",
+                                    item.get("password") or "",
+                                ))
+                        return entries
+
+            # ── 结构 4: {"IP": "x", "Port": y} 单条 — 兜底 ──
+            if "IP" in inner and "Port" in inner:
+                return [ProxyPool._make_entry(
+                    inner["IP"], int(inner["Port"]), default_scheme,
+                )]
+            if "ip" in inner and "port" in inner:
+                return [ProxyPool._make_entry(
+                    inner["ip"], int(inner["port"]), default_scheme,
+                )]
+
+        return []
+
+    @staticmethod
+    def _parse_text(body: str, default_scheme: str) -> list[ProxyEntry]:
+        """解析纯文本 ip:port 格式
+
+        支持的分隔符：\n、\r\n、空格、|
+        每行格式：ip:port 或 ip:port:user:pass 或 ip:port@user:pass
+        """
+        # 按常见分隔符拆成 token
+        tokens: list[str] = []
+        for line in body.replace("\r\n", "\n").split("\n"):
+            line = line.strip()
+            if not line or line.startswith(("ERROR", "{", "[")):
+                continue
+            # 行内可能用空格或 | 分隔多个代理
+            for token in line.replace("|", " ").split():
+                token = token.strip()
+                # 去掉可能的前缀如 http:// 和尾部逗号
+                token = token.removeprefix("http://").removeprefix("https://")
+                token = token.rstrip(",;")
+                if token and ":" in token:
+                    tokens.append(token)
+
+        entries: list[ProxyEntry] = []
+        seen: set[str] = set()
+        for token in tokens:
+            entry = ProxyPool._parse_proxy_str(token, default_scheme)
+            key = f"{entry.get('scheme', 'http')}://{entry['host']}:{entry['port']}"
+            if key not in seen:
+                seen.add(key)
+                entries.append(entry)
+        return entries
+
+    @staticmethod
+    def _parse_proxy_str(raw: str, default_scheme: str) -> ProxyEntry:
+        """解析单个 ip:port[:user:pass] 字符串
+
+        支持格式：
+        - 1.2.3.4:8080
+        - 1.2.3.4:8080:user:pass
+        - 1.2.3.4:8080@user:pass
+        - user:pass@1.2.3.4:8080
+        """
+        host = ""
+        port = 0
+        username = ""
+        password = ""
+
+        # 格式: user:pass@host:port
+        if "@" in raw:
+            auth_part, host_part = raw.split("@", 1)
+            if ":" in auth_part:
+                parts = auth_part.split(":")
+                username = parts[0]
+                password = ":".join(parts[1:])
+            raw = host_part
+
+        parts = raw.split(":")
+        if len(parts) >= 2:
+            host = parts[0]
+            try:
+                port = int(parts[1])
+            except ValueError:
+                port = 0
+        if not username and len(parts) >= 4:
+            # 格式: host:port:user:pass
+            username = parts[2]
+            password = ":".join(parts[3:])
+
+        return ProxyPool._make_entry(host, port, default_scheme, username, password)
+
+    @staticmethod
+    def _make_entry(host: str, port: int, scheme: str = "http",
+                    username: str = "", password: str = "") -> ProxyEntry:
+        """组装 ProxyEntry"""
+        entry: ProxyEntry = {"host": host, "port": port, "scheme": scheme}
+        if username:
+            entry["username"] = username
+        if password:
+            entry["password"] = password
+        return entry
 
     def get(self, scheme: str | None = None) -> str:
         """获取一个代理 URL

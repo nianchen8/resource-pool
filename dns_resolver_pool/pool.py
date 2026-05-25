@@ -213,6 +213,18 @@ class DNSResolverPool(ResourcePool):
                 for s in self._servers
             ]
 
+    def get_server(self) -> str:
+        """返回当前最优 DNS 服务器的 IP（供编排器调用）"""
+        alive = self._get_alive()
+        self._try_revive()
+        if not alive:
+            raise PoolExhaustedException("DNS 服务器", "无可用 DNS 服务器")
+        it = self._select_sequence()
+        try:
+            return next(it).ip
+        except StopIteration:
+            raise PoolExhaustedException("DNS 服务器", "策略迭代器异常终止")
+
     def clear_cache(self) -> None:
         """清空 DNS 解析缓存"""
         with self._lock:

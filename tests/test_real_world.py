@@ -182,15 +182,17 @@ class TestOrchestratorRealWorld:
     """编排器真实组合测试"""
 
     def test_combo_ua_dns(self):
-        """编排器 UA+DNS：DNS 因需域名会抛 RuntimeError（符合设计）"""
+        """编排器 UA+DNS：DNS 池通过 get_server() 返回最优 DNS 服务器 IP"""
         ua = UserAgentPool()
         dns = DNSResolverPool(regions=("domestic",))
         dns.health_check(timeout=5.0)
 
         orch = PoolOrchestrator(ua=ua, dns=dns)
-        # DNSResolverPool 需域名参数，编排器会明确报错
-        with pytest.raises(RuntimeError, match="resolve"):
-            orch.next()
+        combo = orch.next()
+        assert "ua" in combo
+        assert "User-Agent" in combo["ua"]
+        assert "dns" in combo
+        assert isinstance(combo["dns"], str)  # DNS 服务器 IP
 
     def test_combo_ua_only(self):
         """只有 UA 池的编排器"""

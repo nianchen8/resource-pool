@@ -1,4 +1,0 @@
-dns_resolver_pool
-proxy_pool
-resource_pool
-user_agent_pool

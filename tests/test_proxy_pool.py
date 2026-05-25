@@ -1,5 +1,9 @@
 """代理池测试"""
 
+import json
+import io
+from unittest.mock import patch, MagicMock
+
 import pytest
 from proxy_pool import ProxyPool, ProxyStrategy
 from proxy_pool.exceptions import PoolExhaustedException
@@ -239,3 +243,317 @@ class TestThreadSafeOff:
         pool.add_proxy({"host": "a.com", "port": 80})
         stats = pool.stats()
         assert len(stats) == 1
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# load_from_url 测试
+# ═══════════════════════════════════════════════════════════════════════
+
+
+def _mock_response(body: str, status: int = 200):
+    """构造一个伪造的 urlopen 返回值"""
+    mock = MagicMock()
+    mock.read.return_value = body.encode("utf-8")
+    mock.status = status
+    mock.__enter__.return_value = mock
+    mock.__exit__.return_value = False
+    return mock
+
+
+class TestLoadFromURLText:
+    """纯文本格式"""
+
+    @patch("urllib.request.urlopen")
+    def test_simple_ip_port_per_line(self, mock_urlopen):
+        mock_urlopen.return_value = _mock_response(
+            "1.2.3.4:8080\n5.6.7.8:3128\n9.10.11.12:80"
+        )
+        pool = ProxyPool()
+        count = pool.load_from_url("http://fake.api/proxy")
+        assert count == 3
+        assert len(pool) == 3
+        assert "http://1.2.3.4:8080" in pool
+        assert "http://5.6.7.8:3128" in pool
+        assert "http://9.10.11.12:80" in pool
+
+    @patch("urllib.request.urlopen")
+    def test_crlf_separator(self, mock_urlopen):
+        mock_urlopen.return_value = _mock_response(
+            "1.2.3.4:8080\r\n5.6.7.8:3128"
+        )
+        pool = ProxyPool()
+        count = pool.load_from_url("http://fake.api/proxy")
+        assert count == 2
+        assert len(pool) == 2
+
+    @patch("urllib.request.urlopen")
+    def test_space_separator(self, mock_urlopen):
+        mock_urlopen.return_value = _mock_response(
+            "1.2.3.4:8080 5.6.7.8:3128 9.10.11.12:80"
+        )
+        pool = ProxyPool()
+        count = pool.load_from_url("http://fake.api/proxy")
+        assert count == 3
+
+    @patch("urllib.request.urlopen")
+    def test_pipe_separator(self, mock_urlopen):
+        # 某些代理 API 用 | 分隔（如快代理参数 &sep=4）
+        mock_urlopen.return_value = _mock_response(
+            "1.2.3.4:8080|5.6.7.8:3128|9.10.11.12:80"
+        )
+        pool = ProxyPool()
+        count = pool.load_from_url("http://fake.api/proxy")
+        assert count == 3
+
+    @patch("urllib.request.urlopen")
+    def test_with_auth_colon_format(self, mock_urlopen):
+        # 格式: host:port:user:pass
+        mock_urlopen.return_value = _mock_response(
+            "1.2.3.4:8080:myuser:mypass"
+        )
+        pool = ProxyPool()
+        count = pool.load_from_url("http://fake.api/proxy")
+        assert count == 1
+        url = pool.get()
+        assert "myuser:mypass" in url
+        assert "1.2.3.4:8080" in url
+
+    @patch("urllib.request.urlopen")
+    def test_with_auth_at_format(self, mock_urlopen):
+        # 格式: user:pass@host:port
+        mock_urlopen.return_value = _mock_response(
+            "myuser:mypass@1.2.3.4:8080"
+        )
+        pool = ProxyPool()
+        count = pool.load_from_url("http://fake.api/proxy")
+        assert count == 1
+        url = pool.get()
+        assert "myuser:mypass" in url
+        assert "1.2.3.4:8080" in url
+
+    @patch("urllib.request.urlopen")
+    def test_dedup(self, mock_urlopen):
+        mock_urlopen.return_value = _mock_response(
+            "1.2.3.4:8080\n1.2.3.4:8080\n5.6.7.8:3128"
+        )
+        pool = ProxyPool()
+        count = pool.load_from_url("http://fake.api/proxy")
+        assert count == 2  # 去重
+        assert len(pool) == 2
+
+    @patch("urllib.request.urlopen")
+    def test_strips_http_prefix(self, mock_urlopen):
+        mock_urlopen.return_value = _mock_response(
+            "http://1.2.3.4:8080\nhttps://5.6.7.8:3128"
+        )
+        pool = ProxyPool()
+        count = pool.load_from_url("http://fake.api/proxy")
+        assert count == 2
+        # 都应变成 http://host:port（由 default_scheme 决定）
+        assert "http://1.2.3.4:8080" in pool
+        assert "http://5.6.7.8:3128" in pool
+
+    @patch("urllib.request.urlopen")
+    def test_default_socks5_scheme(self, mock_urlopen):
+        mock_urlopen.return_value = _mock_response("1.2.3.4:1080")
+        pool = ProxyPool()
+        count = pool.load_from_url(
+            "http://fake.api/proxy", default_scheme="socks5"
+        )
+        assert count == 1
+        url = pool.get()
+        assert url == "socks5://1.2.3.4:1080"
+
+    @patch("urllib.request.urlopen")
+    def test_ignores_error_lines(self, mock_urlopen):
+        mock_urlopen.return_value = _mock_response(
+            "ERROR(-1): 请先添加白名单\n1.2.3.4:8080\n5.6.7.8:3128"
+        )
+        pool = ProxyPool()
+        count = pool.load_from_url("http://fake.api/proxy")
+        assert count == 2
+
+
+class TestLoadFromURLJSON:
+    """JSON 格式"""
+
+    @patch("urllib.request.urlopen")
+    def test_xiequ_format(self, mock_urlopen):
+        """携趣网络 {"code":0, "data":[{"IP":"...", "Port":...}]}"""
+        mock_urlopen.return_value = _mock_response(json.dumps({
+            "code": 0,
+            "success": "true",
+            "msg": "",
+            "data": [
+                {"IP": "168.168.168.168", "Port": 8888},
+                {"IP": "168.168.168.169", "Port": 9999},
+            ],
+        }))
+        pool = ProxyPool()
+        count = pool.load_from_url("http://fake.api/proxy")
+        assert count == 2
+        assert "http://168.168.168.168:8888" in pool
+        assert "http://168.168.168.169:9999" in pool
+
+    @patch("urllib.request.urlopen")
+    def test_tianqi_format(self, mock_urlopen):
+        """天启代理 {"code":200, "data":[{"ip":"...", "port":...}]}"""
+        mock_urlopen.return_value = _mock_response(json.dumps({
+            "code": 200,
+            "data": [
+                {"ip": "58.220.1.10", "port": 3000},
+                {"ip": "121.228.2.35", "port": 8080},
+            ],
+        }))
+        pool = ProxyPool()
+        count = pool.load_from_url("http://fake.api/proxy")
+        assert count == 2
+        assert "http://58.220.1.10:3000" in pool
+
+    @patch("urllib.request.urlopen")
+    def test_duomi_format(self, mock_urlopen):
+        """多米HTTP {"code":200, "data":[{"ip":"...", "port":..., "endtime":"..."}]}"""
+        mock_urlopen.return_value = _mock_response(json.dumps({
+            "code": 200,
+            "msg": "成功",
+            "data": [
+                {"ip": "117.107.100.70", "port": 22001, "endtime": "2026-05-26"},
+            ],
+            "num": 1,
+        }))
+        pool = ProxyPool()
+        count = pool.load_from_url("http://fake.api/proxy")
+        assert count == 1
+        assert "http://117.107.100.70:22001" in pool
+
+    @patch("urllib.request.urlopen")
+    def test_kuaidaili_proxy_list(self, mock_urlopen):
+        """快代理 {"code":0, "data":{"proxy_list":["ip:port", ...]}}"""
+        mock_urlopen.return_value = _mock_response(json.dumps({
+            "code": 0,
+            "msg": "成功",
+            "data": {
+                "count": 3,
+                "proxy_list": [
+                    "183.207.226.9:9999",
+                    "120.197.85.171:33965",
+                    "118.194.217.134:80",
+                ],
+            },
+        }))
+        pool = ProxyPool()
+        count = pool.load_from_url("http://fake.api/proxy")
+        assert count == 3
+        assert "http://183.207.226.9:9999" in pool
+
+    @patch("urllib.request.urlopen")
+    def test_abuyun_proxies(self, mock_urlopen):
+        """阿布云 {"code":0, "proxies":["ip:port", ...]}"""
+        mock_urlopen.return_value = _mock_response(json.dumps({
+            "code": 0,
+            "proxies": [
+                "1.2.3.4:8080",
+                "5.6.7.8:3128",
+            ],
+            "expire": 180,
+        }))
+        pool = ProxyPool()
+        count = pool.load_from_url("http://fake.api/proxy")
+        assert count == 2
+
+    @patch("urllib.request.urlopen")
+    def test_pure_array_format(self, mock_urlopen):
+        """齐云代理 ["ip:port", ...]"""
+        mock_urlopen.return_value = _mock_response(json.dumps([
+            "112.194.89.86:12917",
+            "49.74.14.234:32917",
+            "113.237.231.185:23299",
+        ]))
+        pool = ProxyPool()
+        count = pool.load_from_url("http://fake.api/proxy")
+        assert count == 3
+
+    @patch("urllib.request.urlopen")
+    def test_result_key_instead_of_data(self, mock_urlopen):
+        """有些 API 用 result 而不是 data"""
+        mock_urlopen.return_value = _mock_response(json.dumps({
+            "code": 0,
+            "result": [{"ip": "1.2.3.4", "port": 8080}],
+        }))
+        pool = ProxyPool()
+        count = pool.load_from_url("http://fake.api/proxy")
+        assert count == 1
+
+    @patch("urllib.request.urlopen")
+    def test_single_proxy_object(self, mock_urlopen):
+        """单个代理对象 {"IP": "...", "Port": ...}"""
+        mock_urlopen.return_value = _mock_response(json.dumps({
+            "IP": "4.3.2.1",
+            "Port": 9999,
+        }))
+        pool = ProxyPool()
+        count = pool.load_from_url("http://fake.api/proxy")
+        assert count == 1
+        assert "http://4.3.2.1:9999" in pool
+
+    @patch("urllib.request.urlopen")
+    def test_nested_proxy_list_dict_items(self, mock_urlopen):
+        """proxy_list 中是 dict 而非字符串"""
+        mock_urlopen.return_value = _mock_response(json.dumps({
+            "code": 0,
+            "data": {
+                "proxy_list": [
+                    {"ip": "1.1.1.1", "port": 80},
+                    {"ip": "2.2.2.2", "port": 443},
+                ],
+            },
+        }))
+        pool = ProxyPool()
+        count = pool.load_from_url("http://fake.api/proxy")
+        assert count == 2
+
+
+class TestLoadFromURLErrors:
+    """异常情况"""
+
+    @patch("urllib.request.urlopen")
+    def test_empty_response_raises(self, mock_urlopen):
+        mock_urlopen.return_value = _mock_response("")
+        pool = ProxyPool()
+        with pytest.raises(ValueError, match="未能从响应中解析出任何代理"):
+            pool.load_from_url("http://fake.api/proxy")
+
+    @patch("urllib.request.urlopen")
+    def test_invalid_json_no_proxies(self, mock_urlopen):
+        mock_urlopen.return_value = _mock_response(json.dumps({
+            "code": -1,
+            "msg": "请先添加白名单",
+            "data": "",
+        }))
+        pool = ProxyPool()
+        with pytest.raises(ValueError, match="未能从响应中解析出任何代理"):
+            pool.load_from_url("http://fake.api/proxy")
+
+    @patch("urllib.request.urlopen")
+    def test_skips_invalid_entries(self, mock_urlopen):
+        """无效条目被跳过，但有效条目仍入库"""
+        mock_urlopen.return_value = _mock_response(json.dumps({
+            "code": 0,
+            "data": [
+                {"ip": "1.2.3.4", "port": 8080},
+                {"ip": "", "port": 80},           # 无 IP，跳过
+                {"ip": "5.6.7.8", "port": 0},      # port=0，跳过
+                {"ip": "9.10.11.12", "port": 443},
+            ],
+        }))
+        pool = ProxyPool()
+        count = pool.load_from_url("http://fake.api/proxy")
+        assert count == 2
+
+    @patch("urllib.request.urlopen")
+    def test_url_request_error_raises_oserror(self, mock_urlopen):
+        import urllib.error
+        mock_urlopen.side_effect = urllib.error.URLError("连接超时")
+        pool = ProxyPool()
+        with pytest.raises(OSError, match="代理 API 请求失败"):
+            pool.load_from_url("http://fake.api/proxy")

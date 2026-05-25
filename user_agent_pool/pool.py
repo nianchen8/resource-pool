@@ -11,6 +11,7 @@ from user_agent_pool.agents import (
     DEFAULT_AGENTS,
     VALID_CATEGORIES,
     _HEADER_PROFILES,
+    _PROFILE_LOCK,
     AgentEntry,
 )
 from resource_pool.base import ResourcePool, _DummyLock
@@ -190,7 +191,7 @@ class UserAgentPool(ResourcePool):
         Raises:
             ValueError: key 已存在
         """
-        with self._lock:
+        with _PROFILE_LOCK:
             if key in _HEADER_PROFILES:
                 raise ValueError(f"Profile '{key}' 已存在")
             if "User-Agent" in headers:
@@ -278,7 +279,7 @@ class UserAgentPool(ResourcePool):
         headers: dict[str, str] = {"User-Agent": entry["ua"]}
         profile_key = entry.get("profile", "")
         if profile_key:
-            with self._lock:
+            with _PROFILE_LOCK:
                 if profile_key in _HEADER_PROFILES:
                     headers.update(_HEADER_PROFILES[profile_key])
                 else:
@@ -317,13 +318,23 @@ class UAReserve:
     def __enter__(self) -> str:
         self.ua = self._pool.get(self._category, self._weighted)
         # 从池中暂存取出（移除一条），避免同一 UA 被并发取到
-        if self._category != "all":
+        if self._category == "all":
+            # category='all' 时需遍历所有分类找到 UA 的真实归属
+            with self._pool._lock:
+                for cat, entries in self._pool._agents.items():
+                    for i, entry in enumerate(entries):
+                        if entry["ua"] == self.ua:
+                            self._category = cat
+                            entries.pop(i)
+                            self._removed = True
+                            return self.ua
+        else:
             self._removed = self._pool._remove_one(self.ua, self._category)
         return self.ua
 
     def __exit__(self, *args: object) -> None:
         """退出时自动归还到池子"""
-        if self.ua and self._removed and self._category != "all":
+        if self.ua and self._removed:
             try:
                 self._pool.add(self.ua, self._category)
             except (ValueError, InvalidAgentException):

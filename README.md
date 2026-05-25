@@ -151,6 +151,10 @@ proxy_url = pool.get(scheme="socks5")          # 按协议筛选
 proxies = pool.get_dict()                      # {"http": "...", "https": "..."}
 requests.get(url, proxies=proxies)
 
+# 从代理 API 批量加载（支持 9 种主流供应商格式）
+count = pool.load_from_url("http://provider.com/api?key=xxx&count=10")
+print(f"加载了 {count} 个代理")
+
 # stats 输出已自动脱敏
 for s in pool.stats():
     print(f"{s['proxy']} 延迟={s['latency_ms']}ms")  # user:***@host:port
@@ -221,6 +225,7 @@ orch.health_check_all()
 |------|------|
 | `resolve(domain, record_type="A", timeout=5.0) → str` | 解析单个 IP |
 | `resolve_all(domain, record_type="A", timeout=5.0) → list[str]` | 解析全部 IP |
+| `get_server() → str` | 返回当前最优 DNS 服务器 IP（供编排器调用） |
 | `add_server(entry)` / `remove_server(ip)` / `enable_server(ip)` | 服务器管理 |
 | `health_check(timeout=3.0) → dict` | 全量健康检查 |
 | `stats() → list[dict]` | 运行时状态 |
@@ -234,6 +239,7 @@ orch.health_check_all()
 |------|------|
 | `get(scheme=None) → str` | 获取代理 URL |
 | `get_dict(scheme=None) → dict` | requests 兼容的 proxies 字典 |
+| `load_from_url(url, timeout=10, default_scheme="http", headers=None) → int` | 从代理提取 API 批量加载代理（支持 JSON/纯文本/带鉴权格式） |
 | `add_proxy(entry)` / `remove_proxy(host, port, scheme)` / `enable_proxy(...)` | 代理管理 |
 | `health_check(timeout=5.0) → dict` | 含 socket 预检 + HTTP 验证 |
 | `stats() → list[dict]` | 运行时状态（凭据已脱敏） |
@@ -301,12 +307,13 @@ resource_pool/
 │   ├── servers.py                  # ProxyEntry TypedDict
 │   ├── exceptions.py
 │   └── pool.py                     # ProxyPool + ProxyStrategy
-└── tests/                          # 96 个测试
+└── tests/                          # 142 个测试
     ├── test_user_agent_pool.py     # 26 tests
-    ├── test_dns_resolver_pool.py   # 25 tests
-    ├── test_proxy_pool.py          # 29 tests
-    ├── test_orchestrator.py        # 8 tests
-    └── test_concurrency.py         # 7 tests
+    ├── test_dns_resolver_pool.py   # 27 tests
+    ├── test_proxy_pool.py          # 51 tests (含 load_from_url)
+    ├── test_orchestrator.py        # 10 tests
+    ├── test_concurrency.py         # 7 tests
+    └── test_real_world.py          # 23 tests
 ```
 
 ---

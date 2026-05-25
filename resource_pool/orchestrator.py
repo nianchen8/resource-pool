@@ -117,20 +117,17 @@ class PoolOrchestrator:
 
     def _fetch_from_pool(self, name: str, pool: ResourcePool) -> Any:
         """从单个池取资源 —— 按池类型分发"""
-        # ProxyPool
+        # ProxyPool: 返回 proxies 字典
         if hasattr(pool, "get_dict"):
             return pool.get_dict()
-        # UserAgentPool
+        # UserAgentPool: 返回完整 Header Profile
         if hasattr(pool, "get_headers"):
             return pool.get_headers()
         if hasattr(pool, "get"):
             return pool.get()
-        # DNSResolverPool
-        if hasattr(pool, "resolve"):
-            raise RuntimeError(
-                f"'{name}' 是 DNSResolverPool，需调用 resolve(domain) 而非无参获取。"
-                f"请单独调用 orch.next_dns(domain) 或使用 resolve 方法。"
-            )
+        # DNSResolverPool: 返回最优 DNS 服务器 IP
+        if hasattr(pool, "get_server"):
+            return pool.get_server()
         raise RuntimeError(f"'{name}' ({type(pool).__name__}) 无可用的资源获取方法")
 
     def __repr__(self) -> str:

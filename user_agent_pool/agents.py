@@ -1,5 +1,6 @@
 """内置 User-Agent 数据集 —— 包含完整 Header Profile 组"""
 
+import threading
 from typing import TypedDict
 
 
@@ -7,6 +8,10 @@ class AgentEntry(TypedDict, total=False):
     ua: str
     weight: int
     profile: str  # Header Profile 键名
+
+
+# ── 模块级锁 —— 保护 _HEADER_PROFILES 跨实例并发读写 ──
+_PROFILE_LOCK = threading.Lock()
 
 
 # ── Header Profile 组 ────────────────────────────────────────────────

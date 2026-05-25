@@ -1,5 +1,7 @@
 """资源池抽象基类 —— 定义统一接口协议"""
 
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from typing import Any, Iterator
 import threading
@@ -20,7 +22,7 @@ class ResourcePool(ABC):
     框架层可依赖此基类做统一调度（如：遍历所有池做健康检查）。
     """
 
-    _lock: threading.Lock
+    _lock: threading.Lock | _DummyLock
 
     @abstractmethod
     def __len__(self) -> int:

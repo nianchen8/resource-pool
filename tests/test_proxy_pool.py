@@ -5,7 +5,7 @@ from unittest.mock import patch, MagicMock
 
 import pytest
 from proxy_pool import ProxyPool, ProxyStrategy
-from proxy_pool.exceptions import PoolExhaustedException
+from proxy_pool.exceptions import PoolExhaustedException, ProxyUnhealthyException
 
 
 class TestProxyPool:
@@ -556,3 +556,130 @@ class TestLoadFromURLErrors:
         pool = ProxyPool()
         with pytest.raises(OSError, match="代理 API 请求失败"):
             pool.load_from_url("http://fake.api/proxy")
+
+    @patch("urllib.request.urlopen")
+    def test_load_from_url_with_custom_headers(self, mock_urlopen):
+        """load_from_url 传入自定义请求头"""
+        mock_urlopen.return_value = _mock_response("1.2.3.4:8080")
+        pool = ProxyPool()
+        count = pool.load_from_url(
+            "http://fake.api/proxy",
+            headers={"Authorization": "Bearer token123"},
+        )
+        assert count == 1
+        # 验证请求被构造时传入了 header
+        call_req = mock_urlopen.call_args[0][0]
+        assert call_req.get_header("Authorization") == "Bearer token123"
+
+    @patch("urllib.request.urlopen")
+    def test_load_from_url_bad_json_still_fallsback_to_text(self, mock_urlopen):
+        """JSON 解析失败时回退到纯文本解析"""
+        mock_urlopen.return_value = _mock_response(
+            json.dumps({"broken": [1, 2, 3]})
+        )
+        pool = ProxyPool()
+        # JSON 格式但无代理数据 → ValueError
+        with pytest.raises(ValueError, match="未能从响应中解析出任何代理"):
+            pool.load_from_url("http://fake.api/proxy")
+
+    @patch("urllib.request.urlopen")
+    def test_load_from_url_skip_value_error_entries(self, mock_urlopen):
+        """无效条目被跳过（如 port 超过 65535），有效条目仍入库"""
+        # port=70000 在 _parse_proxy_str 中会被置为 0，
+        # 随后 add_proxy 创建 ProxyState 但不会拒绝 port=0，
+        # 这里改用无效 scheme 来验证 skip 逻辑
+        mock_urlopen.return_value = _mock_response(
+            json.dumps({
+                "code": 0,
+                "data": [
+                    {"ip": "", "port": 80},       # 无 IP → skip
+                    {"ip": "5.6.7.8", "port": 0},   # port=0 → skip
+                    {"ip": "9.10.11.12", "port": 443},
+                ],
+            })
+        )
+        pool = ProxyPool()
+        count = pool.load_from_url("http://fake.api/proxy")
+        assert count == 1
+        assert "http://9.10.11.12:443" in pool
+
+    @patch("urllib.request.urlopen")
+    def test_parse_json_single_lowercase_ip_port(self, mock_urlopen):
+        """单条代理对象使用小写 ip/port 字段"""
+        mock_urlopen.return_value = _mock_response(json.dumps({
+            "ip": "99.88.77.66",
+            "port": 5555,
+        }))
+        pool = ProxyPool()
+        count = pool.load_from_url("http://fake.api/proxy")
+        assert count == 1
+        assert "http://99.88.77.66:5555" in pool
+
+
+class TestProxyPoolEdgeCases:
+    """边界场景测试"""
+
+    def test_enable_proxy_nonexistent(self):
+        """enable_proxy 对不存在的代理返回 False"""
+        pool = ProxyPool()
+        assert pool.enable_proxy("9.9.9.9", 80) is False
+
+    def test_strategy_setter_invalid_type(self):
+        """strategy setter 传入非 ProxyStrategy 非 callable 时抛 TypeError"""
+        pool = ProxyPool()
+        with pytest.raises(TypeError, match="策略必须是"):
+            pool.strategy = 12345  # type: ignore[assignment]
+
+    def test_strategy_setter_callable(self):
+        """strategy setter 接受 callable 策略"""
+        pool = ProxyPool()
+        pool.add_proxy({"host": "a.com", "port": 80})
+
+        def first_only(proxies):
+            return iter([proxies[0]])
+
+        pool.strategy = first_only
+        assert pool.get() == "http://a.com:80"
+
+    def test_repr_with_callable_strategy(self):
+        """repr 在 callable 策略时显示类名"""
+        pool = ProxyPool()
+        pool.add_proxy({"host": "x.com", "port": 80})
+
+        def my_strat(proxies):
+            return iter(proxies)
+
+        pool.strategy = my_strat
+        r = repr(pool)
+        assert "function" in r
+
+    def test_mark_failed(self):
+        """mark_failed 对存在的代理返回 True"""
+        pool = ProxyPool()
+        pool.add_proxy({"host": "127.0.0.1", "port": 8080})
+        assert pool.mark_failed("127.0.0.1", 8080) is True
+
+    def test_mark_failed_nonexistent(self):
+        """mark_failed 对不存在的代理返回 False"""
+        pool = ProxyPool()
+        assert pool.mark_failed("0.0.0.0", 80) is False
+
+    def test_mark_failed_triggers_isolation(self):
+        """mark_failed 连续达到阈值后隔离代理"""
+        pool = ProxyPool(max_consecutive_fails=2)
+        pool.add_proxy({"host": "127.0.0.1", "port": 8080})
+        assert pool.mark_failed("127.0.0.1", 8080) is True
+        assert pool.mark_failed("127.0.0.1", 8080) is True
+        # 连续失败 2 次后被隔离
+        assert len(pool) == 0
+
+    def test_proxy_unhealthy_exception(self):
+        """ProxyUnhealthyException 包含 proxy 和 detail"""
+        exc = ProxyUnhealthyException("http://bad.proxy:80", "connection refused")
+        assert "bad.proxy:80" in str(exc)
+        assert "connection refused" in str(exc)
+
+    def test_proxy_unhealthy_exception_no_detail(self):
+        """ProxyUnhealthyException 无 detail"""
+        exc = ProxyUnhealthyException("http://bad.proxy:80")
+        assert "bad.proxy:80" in str(exc)

@@ -225,3 +225,114 @@ class TestThreadSafeOff:
         pool = UserAgentPool(thread_safe=False)
         headers = pool.get_headers("desktop")
         assert "User-Agent" in headers
+
+    def test_get_headers_exhausted_raises(self):
+        """get_headers 在分类耗尽时抛 PoolExhaustedException"""
+        pool = UserAgentPool()
+        for ua in pool.get_all("desktop"):
+            pool.remove(ua, "desktop")
+        with pytest.raises(PoolExhaustedException):
+            pool.get_headers("desktop")
+
+
+class TestUAEdgeCases:
+    """UA 池边界与未覆盖路径测试"""
+
+    def test_register_profile(self):
+        """register_profile 注册自定义 Header Profile"""
+        pool = UserAgentPool()
+        pool.register_profile("custom_test", {
+            "Accept": "text/html",
+            "Accept-Language": "en-US",
+        })
+        # 清空 desktop 后添加带该 profile 的单个 UA，确保 get_headers 命中它
+        for ua in pool.get_all("desktop"):
+            pool.remove(ua, "desktop")
+        pool.add("TestAgent/1.0", "desktop", weight=1, profile="custom_test")
+        headers = pool.get_headers("desktop")
+        assert headers["User-Agent"] == "TestAgent/1.0"
+        assert headers["Accept"] == "text/html"
+
+    def test_register_profile_duplicate_raises(self):
+        """register_profile 注册重复 key 抛 ValueError"""
+        pool = UserAgentPool()
+        pool.register_profile("dup_test", {"X-Custom": "1"})
+        with pytest.raises(ValueError, match="已存在"):
+            pool.register_profile("dup_test", {"X-Other": "2"})
+
+    def test_register_profile_with_ua_raises(self):
+        """register_profile 包含 User-Agent 字段抛 ValueError"""
+        pool = UserAgentPool()
+        with pytest.raises(ValueError, match="不应包含 'User-Agent'"):
+            pool.register_profile("bad_profile", {
+                "User-Agent": "BadAgent/1.0",
+                "Accept": "text/html",
+            })
+
+    def test_contains(self):
+        """__contains__ 检查 UA 是否在池中"""
+        pool = UserAgentPool()
+        ua = pool.get("desktop")
+        assert ua in pool
+        assert "NonexistentAgent/99.9" not in pool
+
+    def test_strategy_setter_invalid_type(self):
+        """strategy setter 传入非 UAStrategy 枚举抛 TypeError"""
+        from user_agent_pool import UAStrategy
+        pool = UserAgentPool()
+        with pytest.raises(TypeError, match="策略必须是 UAStrategy"):
+            pool.strategy = "WEIGHTED"  # type: ignore[assignment]
+
+    def test_reserve_all_category_restore(self):
+        """reserve('all') 从池中取出并归还"""
+        pool = UserAgentPool()
+        before = len(pool)
+        with pool.reserve("all") as ua:
+            assert isinstance(ua, str)
+            # 'all' 分类取出后会减少 1（实际代码 remove_from_all_categories 遍历所有分类）
+        after = len(pool)
+        assert after == before
+
+    def test_remove_one_nonexistent(self):
+        """remove_one 对不存在的 UA 返回 False"""
+        pool = UserAgentPool()
+        assert pool.remove_one("NonexistentUA/99.0", "desktop") is False
+
+    def test_remove_from_all_categories_nonexistent(self):
+        """remove_from_all_categories 对不存在的 UA 返回 ('', False)"""
+        pool = UserAgentPool()
+        cat, ok = pool.remove_from_all_categories("NonexistentUA/99.0")
+        assert ok is False
+        assert cat == ""
+
+    def test_weighted_pick_zero_total_weight(self):
+        """所有条目权重为 0 时仍能选出一个"""
+        pool = UserAgentPool()
+        # 清空 desktop
+        for ua in pool.get_all("desktop"):
+            pool.remove(ua, "desktop")
+        # 添加两个权重为 0 的条目
+        pool.add("ZeroA/1.0", "desktop", weight=0)
+        pool.add("ZeroB/1.0", "desktop", weight=0)
+        # 即使权重为 0 也应能选出一个
+        ua = pool.get("desktop")
+        assert ua in ("ZeroA/1.0", "ZeroB/1.0")
+
+    def test_get_headers_no_profile(self):
+        """UA 无关联 profile 时 get_headers 仅返回 User-Agent"""
+        pool = UserAgentPool()
+        # 清空 desktop 后添加不带 profile 的 UA
+        for ua in pool.get_all("desktop"):
+            pool.remove(ua, "desktop")
+        pool.add("PlainAgent/1.0", "desktop", weight=5)
+        headers = pool.get_headers("desktop")
+        assert headers["User-Agent"] == "PlainAgent/1.0"
+        # 不带 profile 只返回 User-Agent
+        assert len(headers) == 1
+
+    def test_get_headers_with_weighted_strategy(self):
+        """get_headers 使用池级加权策略"""
+        from user_agent_pool import UAStrategy
+        pool = UserAgentPool(strategy=UAStrategy.WEIGHTED)
+        headers = pool.get_headers("desktop")
+        assert "User-Agent" in headers

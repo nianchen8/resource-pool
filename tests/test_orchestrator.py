@@ -1,10 +1,46 @@
 """编排器测试"""
 
+from typing import Any
+
 import pytest
 from user_agent_pool import UserAgentPool
 from proxy_pool import ProxyPool
 
+from resource_pool.base import ResourcePool
+from resource_pool.exceptions import PoolExhaustedError
 from resource_pool.orchestrator import PoolOrchestrator
+
+
+# ── 用于 _fetch_from_pool 分派测试的 Mock 池 ──────────────────────────
+
+class _PoolWithGetOnly(ResourcePool):
+    """仅实现 get() 的池"""
+    def __init__(self):
+        self._data = ["res_a", "res_b"]
+    def get(self) -> str:
+        return self._data.pop(0) if self._data else "fallback"
+    def __len__(self) -> int:
+        return len(self._data)
+    def __repr__(self) -> str:
+        return "_PoolWithGetOnly()"
+
+
+class _PoolWithGetServer(ResourcePool):
+    """仅实现 get_server() 的池"""
+    def get_server(self) -> str:
+        return "8.8.8.8"
+    def __len__(self) -> int:
+        return 1
+    def __repr__(self) -> str:
+        return "_PoolWithGetServer()"
+
+
+class _PoolNoMethod(ResourcePool):
+    """不实现任何资源获取方法"""
+    def __len__(self) -> int:
+        return 0
+    def __repr__(self) -> str:
+        return "_PoolNoMethod()"
 
 
 class TestOrchestrator:
@@ -99,3 +135,58 @@ class TestOrchestrator:
         r = repr(orch)
         assert "PoolOrchestrator" in r
         assert "ua" in r
+
+    # ── 以下测试主要覆盖 _fetch_from_pool 分派 & combos 异常路径 ──────
+
+    def test_fetch_from_pool_with_get_only(self):
+        """_fetch_from_pool: 池只有 get() 时走 get 分派"""
+        pool = _PoolWithGetOnly()
+        result = PoolOrchestrator._fetch_from_pool("test", pool)
+        assert result == "res_a"
+
+    def test_fetch_from_pool_with_get_server(self):
+        """_fetch_from_pool: 池只有 get_server() 时走 get_server 分派"""
+        pool = _PoolWithGetServer()
+        result = PoolOrchestrator._fetch_from_pool("dns", pool)
+        assert result == "8.8.8.8"
+
+    def test_fetch_from_pool_no_method_raises(self):
+        """_fetch_from_pool: 池没有任何可获取方法时抛 RuntimeError"""
+        pool = _PoolNoMethod()
+        with pytest.raises(RuntimeError, match="无可用的资源获取方法"):
+            PoolOrchestrator._fetch_from_pool("bad", pool)
+
+    def test_next_error_propagation(self):
+        """next() 在 _fetch_from_pool 失败时应传播异常"""
+        pool = _PoolNoMethod()
+        orch = PoolOrchestrator(test=pool)
+        with pytest.raises(RuntimeError, match="无可用的资源获取方法"):
+            orch.next()
+
+    def test_combos_stops_on_pool_exhausted(self):
+        """combos() 在 PoolExhaustedError 时终止迭代"""
+        class _ExhaustedPool(ResourcePool):
+            def get(self) -> str:
+                raise PoolExhaustedError("模拟耗尽")
+            def __len__(self) -> int:
+                return 0
+            def __repr__(self) -> str:
+                return "_ExhaustedPool()"
+
+        orch = PoolOrchestrator(p=_ExhaustedPool())
+        combos = list(orch.combos(limit=10))
+        assert len(combos) == 0
+
+    def test_combos_stops_on_unknown_exception(self):
+        """combos() 在非预期异常时终止迭代"""
+        class _ErrorPool(ResourcePool):
+            def get(self) -> str:
+                raise OSError("模拟致命异常")
+            def __len__(self) -> int:
+                return 0
+            def __repr__(self) -> str:
+                return "_ErrorPool()"
+
+        orch = PoolOrchestrator(p=_ErrorPool())
+        combos = list(orch.combos(limit=10))
+        assert len(combos) == 0

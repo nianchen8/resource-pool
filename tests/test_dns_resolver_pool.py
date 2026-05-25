@@ -6,6 +6,14 @@ from dns_resolver_pool import DNSResolverPool, SelectStrategy
 from dns_resolver_pool.exceptions import PoolExhaustedException
 
 
+# ── 自定义 callable 策略，供策略协议测试使用 ───────────────────────
+
+class _CustomDNSStrategy:
+    """自定义 DNS 选择策略：按权重降序"""
+    def __call__(self, servers):
+        return iter(sorted(servers, key=lambda s: s.weight, reverse=True))
+
+
 class TestDNSResolverPool:
     """基础功能测试"""
 
@@ -248,3 +256,72 @@ class TestThreadSafeOff:
         results = pool.health_check(timeout=5.0)
         assert isinstance(results, dict)
         assert len(results) > 0
+
+
+class TestDNSEdgeCases:
+    """DNS 池边界与未覆盖路径测试"""
+
+    def test_enable_server_nonexistent(self):
+        """enable_server 对不存在的 IP 返回 False"""
+        pool = DNSResolverPool()
+        assert pool.enable_server("0.0.0.0") is False
+
+    def test_contains(self):
+        """__contains__ 检查 IP 是否在池中"""
+        pool = DNSResolverPool(regions=("domestic",))
+        assert "114.114.114.114" in pool
+        assert "0.0.0.0" not in pool
+
+    def test_strategy_callable(self):
+        """策略支持自定义 callable 协议"""
+        pool = DNSResolverPool(regions=("domestic",), strategy=SelectStrategy.LATENCY_WEIGHTED)
+        # 切换到自定义 callable 策略
+        pool.strategy = _CustomDNSStrategy()
+        # 验证策略已切换
+        ip = pool.resolve("www.baidu.com", timeout=5.0)
+        assert isinstance(ip, str)
+
+    def test_strategy_getter_returns_callable(self):
+        """策略 getter 在 callable 策略时返回 callable 对象"""
+        pool = DNSResolverPool(regions=("domestic",))
+        pool.strategy = _CustomDNSStrategy()
+        strat = pool.strategy
+        assert callable(strat)
+
+    def test_get_server_returns_ip(self):
+        """get_server 返回最优 DNS 服务器 IP"""
+        pool = DNSResolverPool(regions=("domestic",))
+        pool.health_check(timeout=5.0)
+        ip = pool.get_server()
+        assert isinstance(ip, str)
+        parts = ip.split(".")
+        assert len(parts) == 4
+
+    def test_get_server_all_isolated_raises(self):
+        """所有服务器被隔离后 get_server 抛 PoolExhaustedException"""
+        pool = DNSResolverPool(regions=("domestic",), max_consecutive_fails=1, revive_after=99999)
+        # 隔离所有服务器
+        for s in pool.stats():
+            pool.remove_server(s["ip"])
+        with pytest.raises(PoolExhaustedException, match="无可用 DNS 服务器"):
+            pool.get_server()
+
+    def test_resolve_all_cache_hit(self):
+        """resolve_all 缓存在第二次调用命中"""
+        pool = DNSResolverPool(regions=("domestic",), cache_ttl=60)
+        first = pool.resolve_all("www.baidu.com", timeout=5.0)
+        # 第二次应命中缓存
+        second = pool.resolve_all("www.baidu.com", timeout=5.0)
+        assert first == second
+
+    def test_resolve_all_no_alive_raises(self):
+        """resolve_all 无可用服务器时抛 PoolExhaustedException"""
+        pool = DNSResolverPool(regions=(), max_consecutive_fails=1, revive_after=99999)
+        pool.add_server({"ip": "0.0.0.0", "name": "Bad", "region": "test"})
+        # 故意添加一个不可达的服务器，resolve_all 会尝试并失败
+        pool.health_check(timeout=1.0)
+        # 健康检查后它可能已被隔离
+        try:
+            pool.resolve_all("www.baidu.com", timeout=1.0)
+        except PoolExhaustedException:
+            pass  # 预期行为

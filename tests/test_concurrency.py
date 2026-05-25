@@ -2,7 +2,6 @@
 
 import threading
 import time
-import pytest
 
 from user_agent_pool import UserAgentPool
 from user_agent_pool.exceptions import PoolExhaustedException
@@ -83,23 +82,27 @@ class TestUAConcurrency:
             t.join()
 
         # count 应与实际长度一致
-        stats = pool.count()
+        stats_result = pool.count()
+        stats: dict[str, int] = stats_result if isinstance(stats_result, dict) else {"desktop": stats_result}  # type: ignore[assignment]
         with pool._lock:
             actual = len(pool._agents.get("desktop", []))
-        assert stats["desktop"] == actual, f"count={stats['desktop']} 实际={actual}（不一致）"
+        assert stats.get("desktop") == actual, f"count={stats.get('desktop')} 实际={actual}（不一致）"
 
     def test_concurrent_reserve_restores_correctly(self):
         """大量线程 reserve 后数量应恢复原值"""
         pool = UserAgentPool()
-        before = pool.count()["desktop"]
-        restore_errors: list[int] = []
+        count_result = pool.count("desktop")
+        before: int = count_result if isinstance(count_result, int) else count_result.get("desktop", 0)  # type: ignore[union-attr]
+        errors: list[Exception] = []
 
         def worker():
             try:
-                with pool.reserve("desktop") as ua:
+                with pool.reserve("desktop") as _ua:
                     time.sleep(0.01)  # 模拟使用
             except PoolExhaustedException:
                 pass
+            except Exception as e:
+                errors.append(e)
 
         threads = [threading.Thread(target=worker) for _ in range(min(N_THREADS, before))]
         for t in threads:
@@ -107,7 +110,8 @@ class TestUAConcurrency:
         for t in threads:
             t.join()
 
-        after = pool.count()["desktop"]
+        after_result = pool.count("desktop")
+        after: int = after_result if isinstance(after_result, int) else after_result.get("desktop", 0)  # type: ignore[union-attr]
         assert after == before, f"reserve 后数量: before={before} after={after}"
 
 
@@ -150,8 +154,10 @@ class TestDNSConcurrency:
         def resolver():
             try:
                 pool.resolve("www.baidu.com", timeout=5.0)
-            except Exception:
+            except PoolExhaustedException:
                 pass
+            except Exception as e:
+                stats_errors.append(e)
 
         def stat_collector():
             for _ in range(10):

@@ -40,7 +40,7 @@ class TestOrchestrator:
         ua = UserAgentPool()
         orch = PoolOrchestrator(ua=ua)
         with pytest.raises(TypeError, match="必须实现 ResourcePool 协议"):
-            orch.register("bad", object())
+            orch.register("bad", object())  # type: ignore[arg-type]
 
     def test_next_returns_combo(self):
         ua = UserAgentPool()

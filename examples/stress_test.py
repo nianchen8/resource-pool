@@ -13,7 +13,6 @@ import sys
 import threading
 import time
 import random
-import traceback
 from datetime import datetime
 from collections import Counter
 
@@ -65,6 +64,30 @@ def hr() -> None:
     print(f"  {'─' * 56}", flush=True)
 
 
+def _concurrent_test(worker_fn, thread_count: int) -> tuple[list[str], float]:
+    """并发测试辅助：在 thread_count 个线程中执行 worker_fn。
+
+    自动捕获异常并计时，返回（错误列表, 耗时秒数）。
+    """
+    errors: list[str] = []
+    lock = threading.Lock()
+
+    def _wrapped() -> None:
+        try:
+            worker_fn()
+        except Exception as err:
+            with lock:
+                errors.append(str(err))
+
+    threads = [threading.Thread(target=_wrapped) for _ in range(thread_count)]
+    start = time.perf_counter()
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+    return errors, time.perf_counter() - start
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # 1. UserAgentPool 极端测试
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -81,17 +104,18 @@ def test_ua_extreme() -> int:
     log(f"   初始 desktop 数量: {init_count}")
 
     drained: list[str] = []
-    for i in range(init_count):
+    # pool.count() 返回 dict[str, int] | int，需要安全提取
+    init_count_int: int = init_count["desktop"] if isinstance(init_count, dict) else init_count
+    for i in range(init_count_int):
         # get() 不消耗池中数量，reserve() 才会临时取出
-        with pool.reserve("desktop") as ua:
-            drained.append(ua)
-            # reserve 期间数量 -1（每次 with 内只少当前这一个）
-            assert pool.count("desktop") == init_count - 1, \
-                f"reserve 期间期望 {init_count - 1}，实际 {pool.count('desktop')}"
+        with pool.reserve("desktop"):
+            # reserve 期间，数量 -1（每次 with 内只少当前这一个）
+            assert pool.count("desktop") == init_count_int - 1, \
+                f"reserve 期间期望 {init_count_int - 1}，实际 {pool.count('desktop')}"
         # 退出 with 后自动归还
-        assert pool.count("desktop") == init_count, \
-            f"归还后期望 {init_count}，实际 {pool.count('desktop')}"
-    log(f"   已依次 reserve {len(drained)}/{init_count} 个，全部自动归还，池中仍为: {pool.count('desktop')}")
+        assert pool.count("desktop") == init_count_int, \
+            f"归还后期望 {init_count_int}，实际 {pool.count('desktop')}"
+    log(f"   已依次 reserve {len(drained)}/{init_count_int} 个，全部自动归还，池中仍为: {pool.count('desktop')}")
 
     # 多线程同时 reserve，超过池容量
     log("   并发 reserve：超量线程争抢")
@@ -102,16 +126,16 @@ def test_ua_extreme() -> int:
     def reserve_race() -> None:
         nonlocal reserved_count
         try:
-            with pool.reserve("desktop") as ua:
+            with pool.reserve("desktop"):
                 with reserve_lock:
                     reserved_count += 1
         except PoolExhaustedError:
             pass  # 抢不到正常
-        except Exception as e:
+        except Exception as err:
             with reserve_lock:
-                reserve_errors.append(str(e))
+                reserve_errors.append(str(err))
 
-    threads = [threading.Thread(target=reserve_race) for _ in range(init_count + 5)]
+    threads = [threading.Thread(target=reserve_race) for _ in range(init_count_int + 5)]
     for t in threads:
         t.start()
     for t in threads:
@@ -215,28 +239,27 @@ def test_ua_extreme() -> int:
     pool5 = UserAgentPool()
     chaos_errors: list[str] = []
     chaos_lock = threading.Lock()
-    stop_flag = threading.Event()
 
     def adder() -> None:
-        for i in range(30):
+        for idx in range(30):
             try:
                 pool5.add(
-                    f"Mozilla/5.0 ChaosAdder{i}",
+                    f"Mozilla/5.0 ChaosAdder{idx}",
                     category="desktop",
                     weight=1,
                 )
-            except Exception as e:
+            except Exception as err:
                 with chaos_lock:
-                    chaos_errors.append(f"adder: {e}")
+                    chaos_errors.append(f"adder: {err}")
             time.sleep(0.001)
 
     def remover() -> None:
-        for i in range(15):
+        for idx in range(15):
             try:
-                pool5.remove(f"Mozilla/5.0 ChaosAdder{i}")
-            except Exception as e:
+                pool5.remove(f"Mozilla/5.0 ChaosAdder{idx}")
+            except Exception as err:
                 with chaos_lock:
-                    chaos_errors.append(f"remover: {e}")
+                    chaos_errors.append(f"remover: {err}")
             time.sleep(0.002)
 
     def getter() -> None:
@@ -245,9 +268,9 @@ def test_ua_extreme() -> int:
                 pool5.get("desktop")
             except PoolExhaustedError:
                 pass  # 正常
-            except Exception as e:
+            except Exception as err:
                 with chaos_lock:
-                    chaos_errors.append(f"getter: {e}")
+                    chaos_errors.append(f"getter: {err}")
 
     t1 = threading.Thread(target=adder)
     t2 = threading.Thread(target=remover)
@@ -313,23 +336,10 @@ def test_dns_extreme() -> int:
     sub("2.3 并发缓存竞争：20 线程同时解析 baidu.com")
     pool3 = DNSResolverPool(regions=("domestic",), cache_ttl=60)
     pool3.health_check(timeout=5.0)
-    concurrent_errors: list[str] = []
-    err_lock = threading.Lock()
-
     def resolve_worker() -> None:
-        try:
-            pool3.resolve("www.baidu.com", timeout=5.0)
-        except Exception as e:
-            with err_lock:
-                concurrent_errors.append(f"{type(e).__name__}: {e}")
+        pool3.resolve("www.baidu.com", timeout=5.0)
 
-    threads = [threading.Thread(target=resolve_worker) for _ in range(20)]
-    start = time.perf_counter()
-    for t in threads:
-        t.start()
-    for t in threads:
-        t.join()
-    elapsed = time.perf_counter() - start
+    concurrent_errors, elapsed = _concurrent_test(resolve_worker, 20)
 
     log(f"   20 线程并发解析耗时: {elapsed:.2f}s")
     if concurrent_errors:
@@ -351,13 +361,13 @@ def test_dns_extreme() -> int:
     cleared = threading.Event()
 
     def resolver_with_cache_killer() -> None:
-        for i in range(10):
+        for idx in range(10):
             try:
                 pool4.resolve("www.baidu.com", timeout=5.0)
-            except Exception as e:
+            except Exception as err:
                 with cache_lock:
-                    cache_errors.append(f"{type(e).__name__}: {e}")
-            if i == 3:
+                    cache_errors.append(f"{type(err).__name__}: {err}")
+            if idx == 3:
                 pool4.clear_cache()
                 cleared.set()
             time.sleep(0.01)
@@ -409,9 +419,9 @@ def test_dns_extreme() -> int:
             try:
                 pool6.strategy = random.choice(strategies)
                 pool6.resolve("www.baidu.com", timeout=5.0)
-            except Exception as e:
+            except Exception as err:
                 with s_lock:
-                    strategy_errors.append(str(e))
+                    strategy_errors.append(str(err))
 
     threads = [threading.Thread(target=strategy_switcher) for _ in range(3)]
     for t in threads:
@@ -537,31 +547,31 @@ def test_proxy_extreme() -> int:
     p_lock = threading.Lock()
 
     def proxy_adder() -> None:
-        for i in range(20):
+        for idx in range(20):
             try:
-                pool4.add_proxy({"host": f"new{i}.local", "port": 9000 + i})
-            except Exception as e:
+                pool4.add_proxy({"host": f"new{idx}.local", "port": 9000 + idx})
+            except Exception as err:
                 with p_lock:
-                    proxy_errors.append(str(e))
+                    proxy_errors.append(str(err))
 
     def proxy_getter() -> None:
         for _ in range(50):
             try:
-                url = pool4.get()
-                _ = url
+                proxy_url = pool4.get()
+                _ = proxy_url
             except PoolExhaustedError:
                 pass
-            except Exception as e:
+            except Exception as err:
                 with p_lock:
-                    proxy_errors.append(str(e))
+                    proxy_errors.append(str(err))
 
     def proxy_remover() -> None:
-        for i in range(5):
+        for idx in range(5):
             try:
-                pool4.remove_proxy(f"p{i}.local", 8080 + i)
-            except Exception as e:
+                pool4.remove_proxy(f"p{idx}.local", 8080 + idx)
+            except Exception as err:
                 with p_lock:
-                    proxy_errors.append(str(e))
+                    proxy_errors.append(str(err))
 
     threads = [
         threading.Thread(target=proxy_adder),
@@ -705,9 +715,6 @@ def test_stress_combo() -> int:
     for i in range(5):
         proxy.add_proxy({"host": f"p{i}.local", "port": 8000 + i})
 
-    combo_errors: list[str] = []
-    c_lock = threading.Lock()
-
     def multi_pool_worker() -> None:
         for _ in range(50):
             try:
@@ -716,18 +723,8 @@ def test_stress_combo() -> int:
                 proxy.get()
             except PoolExhaustedError:
                 pass
-            except Exception as e:
-                with c_lock:
-                    combo_errors.append(f"{type(e).__name__}: {e}")
 
-    threads = [threading.Thread(target=multi_pool_worker) for _ in range(8)]
-    start = time.perf_counter()
-    for t in threads:
-        t.start()
-    for t in threads:
-        t.join()
-    elapsed = time.perf_counter() - start
-    total_ops = 8 * 50 * 3  # 8 threads × 50 loops × 3 calls
+    combo_errors, elapsed = _concurrent_test(multi_pool_worker, 8)
     log(f"   8 线程 × 150 操作 = 1200 次调用，耗时 {elapsed:.2f}s")
 
     if combo_errors:
@@ -768,24 +765,11 @@ def test_stress_combo() -> int:
     dns2.health_check(timeout=5.0)
     dns2.resolve("www.baidu.com", timeout=5.0)
 
-    bomb_errors: list[str] = []
-    b_lock = threading.Lock()
-
     def bomb_worker() -> None:
         for _ in range(5):
-            try:
-                dns2.resolve("www.baidu.com", timeout=5.0)
-            except Exception as e:
-                with b_lock:
-                    bomb_errors.append(str(e))
+            dns2.resolve("www.baidu.com", timeout=5.0)
 
-    threads = [threading.Thread(target=bomb_worker) for _ in range(100)]
-    start = time.perf_counter()
-    for t in threads:
-        t.start()
-    for t in threads:
-        t.join()
-    elapsed = time.perf_counter() - start
+    bomb_errors, elapsed = _concurrent_test(bomb_worker, 100)
 
     log(f"   100 线程 × 5 次 = 500 次解析，耗时 {elapsed:.2f}s")
     if bomb_errors:
@@ -813,14 +797,14 @@ def main() -> None:
 
     start_time = time.perf_counter()
 
-    results: dict[str, int] = {}
-
-    # 逐项执行
-    results["UA 极端"] = test_ua_extreme()
-    results["DNS 极端"] = test_dns_extreme()
-    results["Proxy 极端"] = test_proxy_extreme()
-    results["Orchestrator 极端"] = test_orchestrator_extreme()
-    results["综合压力"] = test_stress_combo()
+    # 逐项执行（字典字面量保证左到右求值顺序）
+    results: dict[str, int] = {
+        "UA 极端": test_ua_extreme(),
+        "DNS 极端": test_dns_extreme(),
+        "Proxy 极端": test_proxy_extreme(),
+        "Orchestrator 极端": test_orchestrator_extreme(),
+        "综合压力": test_stress_combo(),
+    }
 
     total_elapsed = time.perf_counter() - start_time
 

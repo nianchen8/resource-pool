@@ -6,7 +6,6 @@ import pytest
 from resource_pool import (
     UserAgentPool, DNSResolverPool,
     UAStrategy, SelectStrategy, PoolOrchestrator,
-    PoolExhaustedError, ResourceUnhealthyError,
 )
 
 
@@ -74,7 +73,7 @@ class TestDNSRealWorld:
             pool.resolve("www.baidu.com", timeout=5.0)
             latencies.append(round((time.monotonic() - start) * 1000))
         # 至少有不同延迟值（说明用了不同服务器）
-        assert len(set(latencies)) >= 2 or len(latencies) >= 6
+        assert len(set(latencies)) >= 2, f"延迟值差异不足: {set(latencies)}"
 
     def test_close_releases_resources(self):
         """close() 不抛异常"""
@@ -140,9 +139,9 @@ class TestUARealWorld:
         """reserve 取出后归还"""
         pool = UserAgentPool()
         before = pool.count("desktop")
-        with pool.reserve("desktop") as ua:
-            # 取出期间数量 -1
-            assert pool.count("desktop") == before - 1
+        with pool.reserve("desktop") as _ua:  # 不需要使用取出的UA，只验证数量变化
+            # 取出期间，数量 -1
+            assert pool.count("desktop") == before - 1  # type: ignore[operator]
         # 退出后恢复
         assert pool.count("desktop") == before
 

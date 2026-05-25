@@ -10,13 +10,13 @@ import urllib.request
 import urllib.error
 from enum import Enum
 
-from proxy_pool.exceptions import PoolExhaustedException, ProxyUnhealthyException
+from proxy_pool.exceptions import PoolExhaustedException
 from proxy_pool.servers import (
     ProxyEntry,
     VALID_SCHEMES,
     HEALTH_CHECK_URLS,
 )
-from resource_pool.base import ResourcePool, StrategyProtocol, _DummyLock
+from resource_pool.base import DummyLock, ResourcePool, StrategyProtocol
 
 logger = logging.getLogger(__name__)
 
@@ -90,17 +90,17 @@ class ProxyPool(ResourcePool):
 
     def __init__(
         self,
-        strategy: ProxyStrategy = ProxyStrategy.LATENCY_WEIGHTED,
+        strategy: ProxyStrategy | StrategyProtocol = ProxyStrategy.LATENCY_WEIGHTED,
         max_consecutive_fails: int = 3,
         revive_after: int = 120,
         thread_safe: bool = True,
     ) -> None:
         self._proxies: list[ProxyState] = []
-        self._strategy = strategy
+        self._strategy: ProxyStrategy | StrategyProtocol = strategy
         self._max_fails = max_consecutive_fails
         self._revive_after = revive_after
         self._thread_safe = thread_safe
-        self._lock = threading.Lock() if thread_safe else _DummyLock()
+        self._lock = threading.Lock() if thread_safe else DummyLock()
         self._rr_index = 0
         self._last_revive_check: float = 0.0
 
@@ -281,7 +281,7 @@ class ProxyPool(ResourcePool):
         每行格式：ip:port 或 ip:port:user:pass 或 ip:port@user:pass
         """
         # 按常见分隔符拆成 token
-        tokens: list[str] = []
+        tokens: list[tuple[str, str | None]] = []
         for line in body.replace("\r\n", "\n").split("\n"):
             line = line.strip()
             if not line or line.startswith(("ERROR", "{", "[")):
@@ -289,17 +289,24 @@ class ProxyPool(ResourcePool):
             # 行内可能用空格或 | 分隔多个代理
             for token in line.replace("|", " ").split():
                 token = token.strip()
-                # 去掉可能的前缀如 http:// 和尾部逗号
-                token = token.removeprefix("http://").removeprefix("https://")
+                # 检测并保留 URL 前缀中的 scheme，避免 default_scheme 覆盖
+                detected_scheme: str | None = None
+                if token.startswith("https://"):
+                    detected_scheme = "https"
+                    token = token.removeprefix("https://")
+                elif token.startswith("http://"):
+                    detected_scheme = "http"  # noqa: S105
+                    token = token.removeprefix("http://")
                 token = token.rstrip(",;")
                 if token and ":" in token:
-                    tokens.append(token)
+                    tokens.append((token, detected_scheme))
 
         entries: list[ProxyEntry] = []
         seen: set[str] = set()
-        for token in tokens:
-            entry = ProxyPool._parse_proxy_str(token, default_scheme)
-            key = f"{entry.get('scheme', 'http')}://{entry['host']}:{entry['port']}"
+        for token, scheme_override in tokens:
+            scheme = scheme_override if scheme_override else default_scheme
+            entry = ProxyPool._parse_proxy_str(token, scheme)
+            key = f"{entry.get('scheme', scheme)}://{entry['host']}:{entry['port']}"
             if key not in seen:
                 seen.add(key)
                 entries.append(entry)
@@ -334,7 +341,10 @@ class ProxyPool(ResourcePool):
             host = parts[0]
             try:
                 port = int(parts[1])
-            except ValueError:
+                # 校验端口范围：0-65535 外均无效
+                if not 0 < port < 65536:
+                    port = 0
+            except (ValueError, TypeError):
                 port = 0
         if not username and len(parts) >= 4:
             # 格式: host:port:user:pass
@@ -361,26 +371,28 @@ class ProxyPool(ResourcePool):
             scheme: 限定协议 (http/https/socks5)，None=不限
 
         Returns:
-            "http://host:port" 或 "http://user:pass@host:port"
+            ``https://host:port`` 或 ``https://user:pass@host:port``
 
         Raises:
             PoolExhaustedException: 无可用代理
         """
         state = self._pick_one(scheme)
         if state is None:
-            raise PoolExhaustedException("无可用代理")
+            raise PoolExhaustedException(detail="无可用代理")
+        self._on_success(state)
         return state.url
 
     def get_dict(self, scheme: str | None = None) -> dict[str, str]:
         """获取 requests 库兼容的代理字典
 
-        返回格式: {"http": "http://host:port", "https": "http://host:port"}
+        返回格式: ``{"http": "https://host:port", "https": "https://host:port"}``
         适用于: requests.get(url, proxies=pool.get_dict())
         """
         state = self._pick_one(scheme)
         if state is None:
-            raise PoolExhaustedException("无可用代理")
+            raise PoolExhaustedException(detail="无可用代理")
         url = state.url
+        self._on_success(state)
         return {"http": url, "https": url}
 
     def add_proxy(self, entry: ProxyEntry) -> None:
@@ -430,20 +442,29 @@ class ProxyPool(ResourcePool):
     def health_check(self, timeout: float = 5.0) -> dict[str, str]:
         """全量健康检查，返回 {key: 'OK'|'FAIL'}"""
         results: dict[str, str] = {}
-        for state in self._get_alive():
+        with self._lock:
+            snapshot = list(self._proxies)
+        for state in snapshot:
             ok = self._probe_proxy(state, timeout)
             with self._lock:
+                # 重新校验 state 仍在池中且未被其他线程修改
+                if state not in self._proxies:
+                    continue
                 if ok:
-                    state.consecutive_fails = 0
-                    state.last_health = time.time()
-                    results[state.key] = "OK"
+                    # 仅在仍启用时才更新（避免覆盖 mark_failed 的隔离）
+                    if state.enabled:
+                        state.consecutive_fails = 0
+                        results[state.key] = "OK"
+                    else:
+                        # 已被隔离但探测通过，保留隔离状态等待 _try_revive
+                        results[state.key] = "OK(隔离中)"
                 else:
                     state.consecutive_fails += 1
-                    state.last_health = time.time()
                     if state.consecutive_fails >= self._max_fails:
                         state.enabled = False
                         logger.warning("代理 %s 连续失败 %d 次，已隔离", state.key, state.consecutive_fails)
                     results[state.key] = "FAIL"
+                state.last_health = time.time()
         ok_count = sum(1 for v in results.values() if v == "OK")
         logger.info("代理健康检查完成: %d/%d 可用", ok_count, len(results))
         return results
@@ -465,11 +486,13 @@ class ProxyPool(ResourcePool):
             ]
 
     @property
-    def strategy(self) -> ProxyStrategy:
+    def strategy(self) -> ProxyStrategy | StrategyProtocol:
         return self._strategy
 
     @strategy.setter
     def strategy(self, value: ProxyStrategy | StrategyProtocol) -> None:
+        if not isinstance(value, ProxyStrategy) and not callable(value):
+            raise TypeError(f"策略必须是 ProxyStrategy 枚举或 callable，收到: {type(value).__name__}")
         self._strategy = value
 
     def __contains__(self, proxy_key: str) -> bool:
@@ -489,27 +512,32 @@ class ProxyPool(ResourcePool):
             return None
 
         strat = self._strategy
-        if callable(strat) and not isinstance(strat, ProxyStrategy):
+        # 用 isinstance 做枚举身份比对（避免 callable() 类型推断错误）
+        if isinstance(strat, ProxyStrategy):
+            if strat is ProxyStrategy.LATENCY_WEIGHTED:
+                ordered = sorted(
+                    alive,
+                    key=lambda s: (1.0 if s.latency_ms == 0 else s.latency_ms) / max(s.weight, 1)
+                )
+                return ordered[0]
+            if strat is ProxyStrategy.ROUND_ROBIN:
+                with self._lock:
+                    self._rr_index = (self._rr_index + 1) % len(alive)
+                    return alive[self._rr_index]
+            if strat is ProxyStrategy.RANDOM:
+                return random.choice(alive)
+            return None
+        # 自定义 callable 策略
+        if callable(strat):
             it = strat(alive)
             try:
                 return next(it)
             except StopIteration:
                 return None
+        return None
 
-        if strat == ProxyStrategy.LATENCY_WEIGHTED:
-            ordered = sorted(
-                alive,
-                key=lambda s: (1.0 if s.latency_ms == 0 else s.latency_ms) / max(s.weight, 1)
-            )
-            return ordered[0]
-        elif strat == ProxyStrategy.ROUND_ROBIN:
-            with self._lock:
-                self._rr_index = (self._rr_index + 1) % len(alive)
-                return alive[self._rr_index]
-        else:
-            return random.choice(alive)
-
-    def _probe_proxy(self, state: ProxyState, timeout: float) -> bool:
+    @staticmethod
+    def _probe_proxy(state: ProxyState, timeout: float) -> bool:
         """通过代理访问探测 URL，测试连通性
 
         先做 socket 快速预检（排除僵死端口），再走 HTTP 验证。
@@ -537,9 +565,10 @@ class ProxyPool(ResourcePool):
             req = urllib.request.Request(target, method="HEAD")
             opener.open(req, timeout=timeout)
             elapsed = (time.monotonic() - start) * 1000
+            # float 赋值在 CPython GIL 下原子，无需额外加锁
             state.latency_ms = state.latency_ms * 0.7 + elapsed * 0.3 if state.latency_ms else elapsed
             return True
-        except Exception:
+        except OSError:
             return False
 
     def _get_alive(self) -> list[ProxyState]:
@@ -548,10 +577,11 @@ class ProxyPool(ResourcePool):
 
     def _try_revive(self) -> None:
         now = time.time()
-        if now - self._last_revive_check < 30:
-            return
-        self._last_revive_check = now
         with self._lock:
+            # 时间戳检查纳入锁范围，避免多线程重复复活
+            if now - self._last_revive_check < 30:
+                return
+            self._last_revive_check = now
             for s in self._proxies:
                 if not s.enabled and (now - s.last_health) > self._revive_after:
                     s.enabled = True
@@ -560,22 +590,39 @@ class ProxyPool(ResourcePool):
                     logger.info("代理 %s 超过复活时间，已重新启用（试用中）", s.masked_url)
 
     def _on_success(self, state: ProxyState) -> None:
+        """记录一次成功的代理选取（由 get/get_dict 自动调用）"""
         with self._lock:
             state.success_count += 1
             state.consecutive_fails = 0
             state.last_used = time.time()
 
-    def _on_fail(self, state: ProxyState) -> None:
+    def mark_failed(self, host: str, port: int, scheme: str = "http") -> bool:
+        """手动标记代理失败 —— 在请求失败后调用，用于运行时反馈
+
+        返回 True 表示标记成功，False 表示代理不在池中。
+        连续失败达到阈值后会自动隔离。
+
+        使用示例::
+
+            try:
+                resp = requests.get(url, proxies=pool.get_dict(), timeout=5)
+            except requests.RequestException:
+                pool.mark_failed("127.0.0.1", 8080)
+        """
         with self._lock:
-            state.fail_count += 1
-            state.consecutive_fails += 1
-            state.last_used = time.time()
-            if state.consecutive_fails >= self._max_fails:
-                state.enabled = False
-                logger.warning(
-                    "代理 %s 连续失败 %d 次，已隔离",
-                    state.key, state.consecutive_fails,
-                )
+            for s in self._proxies:
+                if s.host == host and s.port == port and s.scheme == scheme:
+                    s.fail_count += 1
+                    s.consecutive_fails += 1
+                    s.last_used = time.time()
+                    if s.consecutive_fails >= self._max_fails:
+                        s.enabled = False
+                        logger.warning(
+                            "代理 %s 连续失败 %d 次，已隔离",
+                            s.key, s.consecutive_fails,
+                        )
+                    return True
+        return False
 
     # ── 魔术方法 ─────────────────────────────────────────────────────
 

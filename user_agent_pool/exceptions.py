@@ -1,13 +1,17 @@
+"""User-Agent 池异常"""
+
 from resource_pool.exceptions import PoolExhaustedError
 
 
 class PoolExhaustedException(PoolExhaustedError):
     """池中无可用的 User-Agent 时抛出"""
 
-    def __init__(self, category: str | None = None):
+    def __init__(self, resource_type: str = "", detail: str = ""):
         msg = "暂无可用 User-Agent"
-        if category:
-            msg = f"分类 '{category}' 下{msg}"
+        if resource_type:
+            msg = f"分类 '{resource_type}' 下{msg}"
+        if detail:
+            msg += f"：{detail}"
         super().__init__(msg)
 
 

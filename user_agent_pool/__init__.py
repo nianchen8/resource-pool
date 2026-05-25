@@ -19,7 +19,7 @@
 
 from user_agent_pool.pool import UserAgentPool, UAReserve, UAStrategy
 from user_agent_pool.exceptions import PoolExhaustedException, InvalidAgentException
-from user_agent_pool.agents import VALID_CATEGORIES, AVAILABLE_PROFILES
+from user_agent_pool.agents import VALID_CATEGORIES, AVAILABLE_PROFILES, get_available_profiles
 
 __all__ = [
     "UserAgentPool",
@@ -29,4 +29,5 @@ __all__ = [
     "InvalidAgentException",
     "VALID_CATEGORIES",
     "AVAILABLE_PROFILES",
+    "get_available_profiles",
 ]

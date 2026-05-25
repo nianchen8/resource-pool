@@ -17,13 +17,10 @@ import json
 import threading
 import time
 import urllib.request
-from collections import Counter
 
 from resource_pool import (
     UserAgentPool,
     DNSResolverPool,
-    PoolOrchestrator,
-    SelectStrategy,
 )
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -176,7 +173,7 @@ def test_concurrency(ua_pool: UserAgentPool) -> bool:
     uas_per_thread: dict[int, list[str]] = {}
     lock = threading.Lock()
 
-    def worker(tid: int) -> None:
+    def worker(thread_id: int) -> None:
         local_uas: list[str] = []
         for _ in range(30):
             try:
@@ -186,9 +183,9 @@ def test_concurrency(ua_pool: UserAgentPool) -> bool:
                 local_uas.append(ua)
             except Exception as e:
                 with lock:
-                    errors.append((tid, str(e)))
+                    errors.append((thread_id, str(e)))
         with lock:
-            uas_per_thread[tid] = local_uas
+            uas_per_thread[thread_id] = local_uas
 
     threads = [threading.Thread(target=worker, args=(i,)) for i in range(10)]
     start = time.perf_counter()
@@ -230,12 +227,12 @@ def main() -> None:
     ok("资源池就绪")
 
     # ── 逐项测试 ──
-    results: dict[str, bool] = {}
-
-    results["UA 轮换"] = test_ua_rotation(ua_pool)
-    results["DNS 缓存"] = test_dns_cache(dns_pool)
-    results["故障隔离"] = test_fault_isolation()
-    results["并发安全"] = test_concurrency(ua_pool)
+    results: dict[str, bool] = {
+        "UA 轮换": test_ua_rotation(ua_pool),
+        "DNS 缓存": test_dns_cache(dns_pool),
+        "故障隔离": test_fault_isolation(),
+        "并发安全": test_concurrency(ua_pool),
+    }
 
     # ── 汇总 ──
     banner("测试汇总")

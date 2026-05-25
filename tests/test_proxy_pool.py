@@ -1,7 +1,6 @@
 """代理池测试"""
 
 import json
-import io
 from unittest.mock import patch, MagicMock
 
 import pytest
@@ -349,9 +348,9 @@ class TestLoadFromURLText:
         pool = ProxyPool()
         count = pool.load_from_url("http://fake.api/proxy")
         assert count == 2
-        # 都应变成 http://host:port（由 default_scheme 决定）
+        # http:// 前缀保持 http scheme；https:// 前缀应保留为 https（修复前会丢失）
         assert "http://1.2.3.4:8080" in pool
-        assert "http://5.6.7.8:3128" in pool
+        assert "https://5.6.7.8:3128" in pool
 
     @patch("urllib.request.urlopen")
     def test_default_socks5_scheme(self, mock_urlopen):

@@ -1,4 +1,4 @@
-# Resource Pool
+# Resource Pool ![version](https://img.shields.io/badge/version-0.5.1-blue)
 
 > 一套可扩展的网络资源池框架，为爬虫工程提供开箱即用的资源调度能力。
 
@@ -192,6 +192,7 @@ orch.health_check_all()
 | **线程安全** | 全部池 `threading.Lock` 保护，DNS 池 `threading.local` 每线程独立 Resolver |
 | **按需开关** | `thread_safe=False` 关闭所有锁 + thread-local，单线程脚本零开销 |
 | **故障隔离** | 连续失败达阈值自动隔离，到期后试用复活（一次机会） |
+| **策略校验** | `strategy` setter 类型校验，非法值立即抛 `TypeError`，避免静默失效 |
 | **可插拔策略** | `StrategyProtocol` —— 传入 callable 即可自定义选择策略 |
 | **统一异常** | `PoolExhaustedError` / `ResourceUnhealthyError` 一把捕获 |
 | **惰性导入** | `from resource_pool import X` 按需加载，不拖慢启动 |
@@ -242,6 +243,7 @@ orch.health_check_all()
 | `load_from_url(url, timeout=10, default_scheme="http", headers=None) → int` | 从代理提取 API 批量加载代理（支持 JSON/纯文本/带鉴权格式） |
 | `add_proxy(entry)` / `remove_proxy(host, port, scheme)` / `enable_proxy(...)` | 代理管理 |
 | `health_check(timeout=5.0) → dict` | 含 socket 预检 + HTTP 验证 |
+| `mark_failed(host, port, scheme="http") → bool` | 手动标记代理失败（请求异常后调用），连续失败达阈值自动隔离 |
 | `stats() → list[dict]` | 运行时状态（凭据已脱敏） |
 
 **选择策略**: `ProxyStrategy.LATENCY_WEIGHTED` / `ROUND_ROBIN` / `RANDOM` — 也支持 callable 自定义
@@ -270,6 +272,11 @@ except ResourceUnhealthyError:
     print("单台 DNS 挂了但已自动隔离")  # 不影响其他服务器
 ```
 
+编排器 `combos()` 在池耗尽时记录 WARNING 日志后优雅终止；
+其他异常记录 ERROR 日志后终止，不再静默丢弃。
+
+> 详见 [EXCEPTIONS.md](docs/EXCEPTIONS.md) 异常体系文档与代码审查报告。
+
 ---
 
 ## 高并发建议
@@ -294,7 +301,7 @@ resource_pool/
 │   └── orchestrator.py             # 编排器
 ├── user_agent_pool/
 │   ├── __init__.py
-│   ├── agents.py                   # 22 UA + 22 Header Profile 组
+│   ├── agents.py                   # 22 UA + 20 Header Profile 组
 │   ├── exceptions.py
 │   └── pool.py                     # UserAgentPool + UAStrategy
 ├── dns_resolver_pool/
@@ -307,13 +314,9 @@ resource_pool/
 │   ├── servers.py                  # ProxyEntry TypedDict
 │   ├── exceptions.py
 │   └── pool.py                     # ProxyPool + ProxyStrategy
+├── docs/
+│   └── EXCEPTIONS.md               # 异常体系文档 + 代码审查报告
 └── tests/                          # 142 个测试
-    ├── test_user_agent_pool.py     # 26 tests
-    ├── test_dns_resolver_pool.py   # 27 tests
-    ├── test_proxy_pool.py          # 51 tests (含 load_from_url)
-    ├── test_orchestrator.py        # 10 tests
-    ├── test_concurrency.py         # 7 tests
-    └── test_real_world.py          # 23 tests
 ```
 
 ---
@@ -345,6 +348,28 @@ class CookiePool(ResourcePool):
     def __repr__(self): ...
     def get(self, domain): ...
 ```
+
+---
+
+## 更新日志
+
+### v0.5.1 (2026-05-25)
+
+- 🛡️ 修复 ProxyPool / DNSResolverPool `_try_revive` 竞态条件
+- 🛡️ `PoolOrchestrator.combos()` 区分 PoolExhaustedError 与非预期异常，不再静默终止
+- 🛡️ `PoolOrchestrator.__repr__` 加锁，保证线程安全一致性
+- 🛡️ `UserAgentPool._init_defaults` 移除双重 `cast` hack
+- 🛡️ DNSResolverPool 构造函数类型标注支持 `StrategyProtocol`
+- 🛡️ `strategy` setter 添加类型校验，非法值抛 `TypeError`
+- 📝 `user_agent_pool/exceptions.py` 补充模块文档字符串
+- 📝 `AVAILABLE_PROFILES` 标记为导入时快照，引导使用 `get_available_profiles()`
+- 📝 `ResourcePool` 基类添加 `__init_subclass__` 钩子和 `_lock` 初始化文档
+
+### v0.5.0 (2026-05-25)
+
+- 🎉 首次公开发布：User-Agent 池 + DNS 解析器池 + 代理池 + 编排器
+- 完整的异常继承体系（统一捕获 + 精确捕获）
+- 线程安全、故障隔离、可插拔策略、惰性导入
 
 ---
 

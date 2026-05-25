@@ -244,4 +244,18 @@ DEFAULT_AGENTS: dict[str, list[AgentEntry]] = {
 
 VALID_CATEGORIES = ("desktop", "mobile", "tablet", "all")
 
-AVAILABLE_PROFILES: tuple[str, ...] = tuple(_HEADER_PROFILES.keys())
+
+def get_available_profiles() -> tuple[str, ...]:
+    """返回当前所有可用的 Header Profile 键名（含运行时动态注册的）
+
+    与旧版 AVAILABLE_PROFILES 不同，此函数始终反映 _HEADER_PROFILES 的最新状态，
+    包含通过 UserAgentPool.register_profile() 动态注册的 profile。
+    """
+    with _PROFILE_LOCK:
+        return tuple(_HEADER_PROFILES.keys())
+
+
+# 注意：AVAILABLE_PROFILES 为 import-time 快照，不反映运行时通过
+# UserAgentPool.register_profile() 动态注册的 profile。
+# 请优先使用 get_available_profiles() 获取最新列表。
+AVAILABLE_PROFILES: tuple[str, ...] = get_available_profiles()

@@ -4,7 +4,8 @@ import threading
 import logging
 from typing import Any, Iterator
 
-from resource_pool.base import ResourcePool, _DummyLock
+from resource_pool.base import DummyLock, ResourcePool
+from resource_pool.exceptions import PoolExhaustedError
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +37,7 @@ class PoolOrchestrator:
         if not pools:
             raise ValueError("至少需要注册一个资源池")
         self._pools: dict[str, ResourcePool] = pools
-        self._lock = threading.Lock() if thread_safe else _DummyLock()
+        self._lock = threading.Lock() if thread_safe else DummyLock()
 
     # ── 池管理 ───────────────────────────────────────────────────────
 
@@ -65,7 +66,7 @@ class PoolOrchestrator:
         """获取一组组合资源（每池各取一个最优）
 
         Returns:
-            {"ua": "Mozilla/5.0...", "dns_ip": "8.8.8.8", "proxy": "http://..."}
+            ``{"ua": "Mozilla/5.0...", "dns_ip": "8.8.8.8", "proxy": "http://..."}``
 
         Raises:
             RuntimeError: 某个池已耗尽且无法 fallback
@@ -75,8 +76,8 @@ class PoolOrchestrator:
             pools_snapshot = dict(self._pools)
         for name, pool in pools_snapshot.items():
             try:
-                combo[name] = self._fetch_from_pool(name, pool)
-            except Exception as exc:
+                combo[name] = PoolOrchestrator._fetch_from_pool(name, pool)
+            except Exception as exc:  # noqa: BLE001
                 logger.error("编排器从 '%s' 获取资源失败: %s", name, exc)
                 raise
         logger.debug("编排器返回组合: %s", {k: str(v)[:60] for k, v in combo.items()})
@@ -96,7 +97,13 @@ class PoolOrchestrator:
             try:
                 yield self.next()
                 count += 1
-            except Exception:
+            except (KeyboardInterrupt, SystemExit):
+                raise
+            except PoolExhaustedError:
+                logger.warning("编排器迭代终止：资源池已耗尽")
+                break
+            except Exception:  # noqa: BLE001
+                logger.error("编排器迭代发生未预期异常，终止迭代", exc_info=True)
                 break
 
     # ── 健康检查 ─────────────────────────────────────────────────────
@@ -115,8 +122,18 @@ class PoolOrchestrator:
 
     # ── 内部 ─────────────────────────────────────────────────────────
 
-    def _fetch_from_pool(self, name: str, pool: ResourcePool) -> Any:
-        """从单个池取资源 —— 按池类型分发"""
+    @staticmethod
+    def _fetch_from_pool(name: str, pool: ResourcePool) -> Any:
+        """从单个池取资源 —— 按池类型分发
+
+        分发优先级（由高到低）：
+        1. get_dict()  → ProxyPool（返回 proxies 字典）
+        2. get_headers() → UserAgentPool（返回完整 Header Profile）
+        3. get()        → 通用兜底（返回 UA 字符串等）
+        4. get_server() → DNSResolverPool（返回最优 DNS IP）
+
+        自定义池若同时实现多个方法，上层方法优先。
+        """
         # ProxyPool: 返回 proxies 字典
         if hasattr(pool, "get_dict"):
             return pool.get_dict()
@@ -131,5 +148,6 @@ class PoolOrchestrator:
         raise RuntimeError(f"'{name}' ({type(pool).__name__}) 无可用的资源获取方法")
 
     def __repr__(self) -> str:
-        names = ", ".join(self._pools.keys())
+        with self._lock:
+            names = ", ".join(self._pools.keys())
         return f"PoolOrchestrator({names})"

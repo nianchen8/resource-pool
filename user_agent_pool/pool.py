@@ -14,7 +14,7 @@ from user_agent_pool.agents import (
     _PROFILE_LOCK,
     AgentEntry,
 )
-from resource_pool.base import ResourcePool, _DummyLock
+from resource_pool.base import DummyLock, ResourcePool
 
 logger = logging.getLogger(__name__)
 
@@ -54,17 +54,28 @@ class UserAgentPool(ResourcePool):
         self._strategy = strategy
         self._init_defaults()
         self._thread_safe = thread_safe
-        self._lock = threading.Lock() if thread_safe else _DummyLock()
+        self._lock = threading.Lock() if thread_safe else DummyLock()
 
     # ── 初始化 ───────────────────────────────────────────────────────
 
     def _init_defaults(self) -> None:
         """从 agents.py 导入内置数据集"""
         for cat in ("desktop", "mobile", "tablet"):
-            self._agents[cat] = [entry.copy() for entry in DEFAULT_AGENTS[cat]]
+            self._agents[cat] = [
+                self._copy_agent_entry(entry)
+                for entry in DEFAULT_AGENTS[cat]
+            ]
         total = sum(len(v) for v in self._agents.values())
         logger.info("已加载 %d 个 User-Agent（desktop=%d, mobile=%d, tablet=%d）",
                     total, len(self._agents["desktop"]), len(self._agents["mobile"]), len(self._agents["tablet"]))
+
+    @staticmethod
+    def _copy_agent_entry(entry: AgentEntry) -> AgentEntry:
+        """创建 AgentEntry 的浅拷贝（类型安全）"""
+        copied: AgentEntry = {"ua": entry["ua"], "weight": entry.get("weight", 5)}
+        if "profile" in entry:
+            copied["profile"] = entry["profile"]
+        return copied
 
     # ── 公开 API ─────────────────────────────────────────────────────
 
@@ -87,7 +98,7 @@ class UserAgentPool(ResourcePool):
         candidates = self._pick_candidates(category, exclude)
         if not candidates:
             logger.error("UA 池分类 '%s' 已耗尽", category)
-            raise PoolExhaustedException(category)
+            raise PoolExhaustedException(resource_type=category)
 
         use_weighted = weighted if weighted is not None else (self._strategy == UAStrategy.WEIGHTED)
         if use_weighted:
@@ -109,6 +120,7 @@ class UserAgentPool(ResourcePool):
         如果所选 UA 没有关联 profile，则只返回 {"User-Agent": ua}。
 
         Args:
+            category: desktop | mobile | tablet | all
             weighted: True=加权；False=均匀；None=使用池级默认策略
             exclude: 排除包含这些关键词的 UA
 
@@ -118,11 +130,11 @@ class UserAgentPool(ResourcePool):
         candidates = self._pick_candidates(category, exclude)
         if not candidates:
             logger.error("UA 池分类 '%s' 已耗尽（get_headers）", category)
-            raise PoolExhaustedException(category)
+            raise PoolExhaustedException(resource_type=category)
 
         use_weighted = weighted if weighted is not None else (self._strategy == UAStrategy.WEIGHTED)
         if use_weighted:
-            entry = self._weighted_pick(candidates)
+            entry: AgentEntry = self._weighted_pick(candidates)
         else:
             entry = random.choice(candidates)
         return self._build_headers(entry)
@@ -182,14 +194,19 @@ class UserAgentPool(ResourcePool):
             return len(self._agents.get(category, []))
         return {c: len(v) for c, v in self._agents.items()}
 
-    def register_profile(self, key: str, headers: dict[str, str]) -> None:
+    @staticmethod
+    def register_profile(key: str, headers: dict[str, str]) -> None:
         """注册自定义 Header Profile（线程安全）
 
         注册后可在 add() 时通过 profile=key 引用，
         也可在 agents._HEADER_PROFILES 中直接添加。
 
+        Args:
+            key: Profile 唯一标识键
+            headers: 请求头字典（不应包含 User-Agent）
+
         Raises:
-            ValueError: key 已存在
+            ValueError: key 已存在或 headers 包含 User-Agent
         """
         with _PROFILE_LOCK:
             if key in _HEADER_PROFILES:
@@ -225,11 +242,13 @@ class UserAgentPool(ResourcePool):
 
     @strategy.setter
     def strategy(self, value: UAStrategy) -> None:
+        if not isinstance(value, UAStrategy):
+            raise TypeError(f"策略必须是 UAStrategy 枚举，收到: {type(value).__name__}")
         self._strategy = value
 
     # ── 内部方法 ─────────────────────────────────────────────────────
 
-    def _remove_one(self, ua: str, category: str) -> bool:
+    def remove_one(self, ua: str, category: str) -> bool:
         """从指定分类移除一条匹配的 UA（仅移除第一条），返回是否成功"""
         with self._lock:
             entries = self._agents.get(category, [])
@@ -239,9 +258,22 @@ class UserAgentPool(ResourcePool):
                     return True
         return False
 
+    def remove_from_all_categories(self, ua: str) -> tuple[str, bool]:
+        """从所有分类中查找并移除指定 UA，返回 (实际分类, 是否成功)
+        
+        专供 UAReserve 内部使用，避免直接访问受保护成员。
+        """
+        with self._lock:
+            for cat, entries in self._agents.items():
+                for i, entry in enumerate(entries):
+                    if entry["ua"] == ua:
+                        entries.pop(i)
+                        return cat, True
+        return "", False
+
     def _pick_candidates(self, category: str, exclude: set[str] | None = None) -> list[AgentEntry]:
+        candidates: list[AgentEntry] = []
         if category == "all":
-            candidates: list[AgentEntry] = []
             with self._lock:
                 for entries in self._agents.values():
                     candidates.extend(entries)
@@ -274,7 +306,8 @@ class UserAgentPool(ResourcePool):
         """加权随机选择 UA 字符串"""
         return UserAgentPool._weighted_pick(entries)["ua"]
 
-    def _build_headers(self, entry: AgentEntry) -> dict[str, str]:
+    @staticmethod
+    def _build_headers(entry: AgentEntry) -> dict[str, str]:
         """从 entry 构建完整请求头字典"""
         headers: dict[str, str] = {"User-Agent": entry["ua"]}
         profile_key = entry.get("profile", "")
@@ -306,7 +339,13 @@ class UserAgentPool(ResourcePool):
 
 
 class UAReserve:
-    """UA 暂存器 —— 上下文管理器，取出时从池中移除，退出时归还"""
+    """UA 暂存器 —— 上下文管理器，取出时从池中移除，退出时归还
+
+    注意：高并发场景下，get() 与 remove 之间存在 TOCTOU（Time-Of-Check to Time-Of-Use）竞态窗口。
+    当并发线程数超过池容量时，可能有少数 UA 无法被正确归还。
+    此时被"泄漏"的 UA 将在 with 退出时 silently 跳过归还（不抛异常）。
+    如需严格保证，建议控制并发度 ≤ 池容量，或使用独立池实例。
+    """
 
     def __init__(self, pool: UserAgentPool, category: str, weighted: bool) -> None:
         self._pool = pool
@@ -320,16 +359,11 @@ class UAReserve:
         # 从池中暂存取出（移除一条），避免同一 UA 被并发取到
         if self._category == "all":
             # category='all' 时需遍历所有分类找到 UA 的真实归属
-            with self._pool._lock:
-                for cat, entries in self._pool._agents.items():
-                    for i, entry in enumerate(entries):
-                        if entry["ua"] == self.ua:
-                            self._category = cat
-                            entries.pop(i)
-                            self._removed = True
-                            return self.ua
+            real_category, self._removed = self._pool.remove_from_all_categories(self.ua)
+            if self._removed:
+                self._category = real_category
         else:
-            self._removed = self._pool._remove_one(self.ua, self._category)
+            self._removed = self._pool.remove_one(self.ua, self._category)
         return self.ua
 
     def __exit__(self, *args: object) -> None:

@@ -3,8 +3,7 @@
 import pytest
 
 from dns_resolver_pool import DNSResolverPool, SelectStrategy
-from dns_resolver_pool.exceptions import PoolExhaustedException, ResourceUnhealthyException
-from dns_resolver_pool.servers import ServerEntry
+from dns_resolver_pool.exceptions import PoolExhaustedException
 
 
 class TestDNSResolverPool:

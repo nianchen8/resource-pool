@@ -13,6 +13,7 @@ class TestUserAgentPool:
         pool = UserAgentPool()
         assert len(pool) > 0
         stats = pool.count()
+        assert isinstance(stats, dict)  # type: ignore[unreachable]
         assert stats["desktop"] == 10
         assert stats["mobile"] == 8
         assert stats["tablet"] == 4
@@ -59,9 +60,13 @@ class TestUserAgentPool:
 
     def test_add_ua(self):
         pool = UserAgentPool()
-        before = pool.count()["desktop"]
+        stats_before = pool.count()
+        assert isinstance(stats_before, dict)
+        before = stats_before["desktop"]
         pool.add("MyBot/1.0", "desktop", weight=3)
-        after = pool.count()["desktop"]
+        stats_after = pool.count()
+        assert isinstance(stats_after, dict)
+        after = stats_after["desktop"]
         assert after == before + 1
 
     def test_add_with_profile(self):
@@ -104,8 +109,9 @@ class TestUserAgentPool:
     def test_count(self):
         pool = UserAgentPool()
         stats = pool.count()
-        assert set(stats.keys()) == {"desktop", "mobile", "tablet"}
-        assert all(v > 0 for v in stats.values())
+        assert isinstance(stats, dict)
+        assert set(stats.keys()) == {"desktop", "mobile", "tablet"}  # type: ignore[union-attr]
+        assert all(v > 0 for v in stats.values())  # type: ignore[union-attr]
 
     def test_count_specific_category(self):
         pool = UserAgentPool()
@@ -115,7 +121,9 @@ class TestUserAgentPool:
 
     def test_len(self):
         pool = UserAgentPool()
-        assert len(pool) == sum(pool.count().values())
+        stats = pool.count()
+        assert isinstance(stats, dict)
+        assert len(pool) == sum(stats.values())
 
     def test_iter(self):
         pool = UserAgentPool()
@@ -148,12 +156,18 @@ class TestUAReserve:
 
     def test_reserve_removes_then_restores(self):
         pool = UserAgentPool()
-        before = pool.count()["desktop"]
-        with pool.reserve("desktop") as ua:
+        stats_before = pool.count()
+        assert isinstance(stats_before, dict)
+        before = stats_before["desktop"]
+        with pool.reserve("desktop") as _ua:  # 不需要使用取出的UA，只验证数量变化
             # 取出后数量应减少 1
-            assert pool.count()["desktop"] == before - 1
+            stats_during = pool.count()
+            assert isinstance(stats_during, dict)
+            assert stats_during["desktop"] == before - 1
         # 退出后数量应恢复
-        assert pool.count()["desktop"] == before
+        stats_after = pool.count()
+        assert isinstance(stats_after, dict)
+        assert stats_after["desktop"] == before
 
     def test_reserve_all_category(self):
         pool = UserAgentPool()
@@ -203,7 +217,8 @@ class TestThreadSafeOff:
     def test_count_works(self):
         pool = UserAgentPool(thread_safe=False)
         stats = pool.count()
-        assert "desktop" in stats
+        assert isinstance(stats, dict)
+        assert "desktop" in stats  # type: ignore[operator]
         assert isinstance(pool.count("mobile"), int)
 
     def test_get_headers_works(self):

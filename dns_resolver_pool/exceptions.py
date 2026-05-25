@@ -1,3 +1,5 @@
+"""DNS 解析器池异常"""
+
 from resource_pool.exceptions import PoolExhaustedError, ResourceUnhealthyError
 
 

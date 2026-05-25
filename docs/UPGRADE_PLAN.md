@@ -109,6 +109,115 @@
 
 ---
 
+## 🟢 第二阶段工作报告 —— 编排器抽象 + 异步支持（已完成）
+
+> **执行日期**：2026-05-25
+> **执行人**：Qoder AI Agent
+> **交付给**：下一个 Agent 接龙
+
+### 工作摘要
+
+本阶段完成了两项核心升级：
+1. **编排器抽象彻底化**（UPGRADE_PLAN 3.1/3.3 + 9.2）：`_fetch_from_pool` 从脆弱的 `hasattr` 探测改为 `isinstance` + 注册表精确分派
+2. **异步支持**（UPGRADE_PLAN 1.1-1.6）：创建完整的 asyncio 版本三池 + AsyncPoolOrchestrator
+
+### 完成内容
+
+#### 1. 编排器分派重构（3.1 / 3.3 / 9.2）
+
+**orchestrator.py** 核心变更：
+
+- 新增 `_DISPATCH: dict[type, str]` 注册表类变量
+- 新增 `register_dispatch(pool_type, method_name)` 类方法，支持自定义池注册
+- `_fetch_from_pool` 改为两级分派：① `isinstance` 精确匹配注册表 → ② `hasattr` 兜底（向后兼容）
+- 内置池（ProxyPool/UserAgentPool/DNSResolverPool）在各子包 `__init__.py` 中自动注册
+
+**测试新增**（test_orchestrator.py）：
+
+- `register_dispatch` 注册后分派正确
+- 注册表优先级高于 `hasattr` 探测
+- 非法参数校验（非 type、空方法名）
+
+#### 2. 异步基础层（1.1 / 1.5）
+
+**新建文件**：
+
+| 文件 | 说明 |
+|------|------|
+| `resource_pool/base_async.py` | `AsyncResourcePool` ABC + `AsyncDummyLock` |
+| `resource_pool/orchestrator_async.py` | `AsyncPoolOrchestrator` + 注册表机制 |
+
+#### 3. 异步 UA 池（1.4）
+
+**新建** `user_agent_pool/pool_async.py`：
+
+- `AsyncUserAgentPool`：`asyncio.Lock` 替代 `threading.Lock`
+- `AsyncUAReserve`：`async with` 上下文管理器
+- 支持 `__aiter__` 异步迭代
+- 所有 API 保持与同步版一致
+
+#### 4. 异步 DNS 池（1.2）
+
+**新建** `dns_resolver_pool/pool_async.py`：
+
+- `AsyncDNSResolverPool`：使用 `dns.asyncresolver` 实现真正的异步 DNS 查询
+- `AsyncServerState`：`contextvars.ContextVar` 替代 `threading.local()` 实现 per-Task 隔离
+- 异步健康检查、缓存、故障隔离、定时复活
+
+#### 5. 异步 Proxy 池（1.3）
+
+**新建** `proxy_pool/pool_async.py`：
+
+- `AsyncProxyPool`：使用 `asyncio.Lock` + `aiohttp`（可选依赖）实现异步代理探测
+- socket 预检使用 `asyncio.open_connection`
+- aiohttp 未安装时回退到仅 socket 预检
+
+#### 6. 异步测试（1.6）
+
+**新建** `tests/test_async.py`：**61 个测试**，覆盖：
+
+- AsyncUserAgentPool：14 测试（获取、分类、headers、add/remove、reserve、aiter、thread_safe_off）
+- AsyncDNSResolverPool：12 测试（resolve、resolve_all、缓存、增删、健康检查、stats、close）
+- AsyncProxyPool：12 测试（get、get_dict、mark_failed、exhausted、健康检查）
+- AsyncPoolOrchestrator：11 测试（组合获取、combos 迭代、注册/注销、dispatch 验证）
+- AsyncDummyLock：2 测试
+- 并发：3 测试（10 协程并发获取、并发暂存、编排器并发）
+
+### 关键指标
+
+| 指标 | 第二阶段前 | 第二阶段后 | 变化 |
+|------|:--:|:--:|:--:|
+| 测试用例数 | 200 | **261** | +61 (+31%) |
+| 新增源文件 | — | **6** | base_async / orchestrator_async / 3×pool_async / test_async |
+| 异步支持 | 无 | **完整** | 三池 + 编排器全异步化 |
+| 分派机制 | hasattr 探测 | **isinstance + 注册表** | 确定性分派 |
+
+### 文件变更清单
+
+| 文件 | 操作 | 说明 |
+|------|:--:|------|
+| `resource_pool/orchestrator.py` | 修改 | +注册表机制 + isinstance 分派 |
+| `resource_pool/base_async.py` | **新建** | AsyncResourcePool ABC + AsyncDummyLock |
+| `resource_pool/orchestrator_async.py` | **新建** | AsyncPoolOrchestrator |
+| `user_agent_pool/pool_async.py` | **新建** | AsyncUserAgentPool + AsyncUAReserve |
+| `dns_resolver_pool/pool_async.py` | **新建** | AsyncDNSResolverPool + ContextVar |
+| `proxy_pool/pool_async.py` | **新建** | AsyncProxyPool + aiohttp 延迟导入 |
+| `proxy_pool/__init__.py` | 修改 | 注册 ProxyPool → get_dict 分派 |
+| `user_agent_pool/__init__.py` | 修改 | 注册 UserAgentPool → get_headers 分派 |
+| `dns_resolver_pool/__init__.py` | 修改 | 注册 DNSResolverPool → get_server 分派 |
+| `tests/test_orchestrator.py` | 修改 | +4 register_dispatch 测试 |
+| `tests/test_async.py` | **新建** | +61 异步全流程测试 |
+| `docs/UPGRADE_PLAN.md` | 修改 | 添加本阶段工作报告 |
+
+### 对后续 Agent 的建议
+
+1. **下一步推荐 P0.2 高并发锁优化**（2.1-2.4）：读写锁、分片锁、基准压力测试报告
+2. **也可推进 P1 功能深化**：UA 数据库扩充（4.1-4.4）、代理生命周期管理（5.1-5.5）
+3. **异步示例待补充**：UPGRADE_PLAN 8.2/8.3（httpx 异步集成、aiohttp 并发爬虫示例）
+4. **PyPI 发布**：当前 v0.5.0 → 建议升级至 v0.6.0 并发布
+
+---
+
 ## 项目现状总览
 
 | 维度 | 当前评分 | 目标评分 | 说明 |
@@ -144,12 +253,12 @@ resource_pool/
 
 **具体步骤**：
 
-- [ ] **1.1** 创建 `AsyncResourcePool` 抽象基类，使用 `asyncio.Lock` 替代 `threading.Lock`
-- [ ] **1.2** DNS 池适配：`threading.local()` → `contextvars.ContextVar`，Resolver 改用 `dns.asyncresolver`
-- [ ] **1.3** 代理池适配：`urllib.request` → `aiohttp`，`socket.create_connection` → `asyncio.open_connection`
-- [ ] **1.4** UA 池适配：将 `threading.Lock` 替换为 `asyncio.Lock`，`UAReserve` 改为 `async with` 上下文管理器
-- [ ] **1.5** 创建 `AsyncPoolOrchestrator`，`next()` → `async next()`，`combos()` → `async for`
-- [ ] **1.6** 同步/异步两套接口共存，用户按需选择
+- [x] **1.1** 创建 `AsyncResourcePool` 抽象基类，使用 `asyncio.Lock` 替代 `threading.Lock`
+- [x] **1.2** DNS 池适配：`threading.local()` → `contextvars.ContextVar`，Resolver 改用 `dns.asyncresolver`
+- [x] **1.3** 代理池适配：`urllib.request` → `aiohttp`，`socket.create_connection` → `asyncio.open_connection`
+- [x] **1.4** UA 池适配：将 `threading.Lock` 替换为 `asyncio.Lock`，`UAReserve` 改为 `async with` 上下文管理器
+- [x] **1.5** 创建 `AsyncPoolOrchestrator`，`next()` → `async next()`，`combos()` → `async for`
+- [x] **1.6** 同步/异步两套接口共存，用户按需选择
 
 ### 2. 高并发锁优化
 
@@ -168,7 +277,7 @@ resource_pool/
 
 **方案**：
 
-- [ ] **3.1** 将 `hasattr` 分派改为注册表机制：
+- [x] **3.1** 将 `hasattr` 分派改为注册表机制：
 
 ```python
 class PoolOrchestrator:
@@ -180,7 +289,7 @@ class PoolOrchestrator:
 ```
 
 - [ ] **3.2** `combo()` 从固定字典改为 `NamedTuple` 或 `dataclass`，支持 N 种资源自由组合
-- [ ] **3.3** `_fetch_from_pool` 使用 `isinstance` 精确匹配替代 `hasattr` 模糊探测
+- [x] **3.3** `_fetch_from_pool` 使用 `isinstance` 精确匹配替代 `hasattr` 模糊探测
 
 ---
 
@@ -269,7 +378,7 @@ auto_refill_url = "..." # 新增：自动补充的 API
 **方案**：
 
 - [ ] **9.1** `"all"` → 常量 `CATEGORY_ALL`
-- [ ] **9.2** _fetch_from_pool 改用 isinstance 分派
+- [x] **9.2** _fetch_from_pool 改用 isinstance 分派
 - [ ] **9.3** Profile 锁粒度优化：`_PROFILE_LOCK` 内只读 copy，解锁后 update
 - [ ] **9.4** 考虑 Python 3.13 free-threaded 兼容性，将注释"GIL 下原子"处的赋值改为显式加锁（可选）
 

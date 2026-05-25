@@ -190,3 +190,48 @@ class TestOrchestrator:
         orch = PoolOrchestrator(p=_ErrorPool())
         combos = list(orch.combos(limit=10))
         assert len(combos) == 0
+
+    # ── register_dispatch 测试 ─────────────────────────────────────
+
+    def test_register_dispatch_basic(self):
+        """register_dispatch 注册后 _fetch_from_pool 走 isinstance 分派"""
+        class _CustomPool(ResourcePool):
+            def fetch(self) -> str:
+                return "custom_result"
+            def get(self) -> str:
+                return "should_not_be_called"
+            def __len__(self) -> int:
+                return 1
+            def __repr__(self) -> str:
+                return "_CustomPool()"
+
+        PoolOrchestrator.register_dispatch(_CustomPool, "fetch")
+        result = PoolOrchestrator._fetch_from_pool("custom", _CustomPool())
+        assert result == "custom_result"
+
+    def test_register_dispatch_priority_over_hasattr(self):
+        """注册表匹配优先于 hasattr 探测"""
+        class _AmbiguousPool(ResourcePool):
+            def get_dict(self) -> str:
+                return "dict"
+            def get(self) -> str:
+                return "single"
+            def __len__(self) -> int:
+                return 1
+            def __repr__(self) -> str:
+                return "_AmbiguousPool()"
+
+        # 注册为 get，但池也实现了 get_dict
+        PoolOrchestrator.register_dispatch(_AmbiguousPool, "get")
+        result = PoolOrchestrator._fetch_from_pool("amb", _AmbiguousPool())
+        assert result == "single"  # 走注册表，不是 hasattr 的 get_dict
+
+    def test_register_dispatch_invalid_type(self):
+        """register_dispatch 非 type 参数抛 TypeError"""
+        with pytest.raises(TypeError, match="pool_type 必须是类型"):
+            PoolOrchestrator.register_dispatch("not_a_type", "method")  # type: ignore[arg-type]
+
+    def test_register_dispatch_invalid_method_name(self):
+        """register_dispatch 空/非字符串 method_name 抛 TypeError"""
+        with pytest.raises(TypeError, match="method_name 必须是非空字符串"):
+            PoolOrchestrator.register_dispatch(_PoolNoMethod, "")

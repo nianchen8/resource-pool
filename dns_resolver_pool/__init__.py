@@ -21,6 +21,9 @@
 from dns_resolver_pool.pool import DNSResolverPool, SelectStrategy
 from dns_resolver_pool.exceptions import PoolExhaustedException, ResourceUnhealthyException
 
+from resource_pool.orchestrator import PoolOrchestrator
+PoolOrchestrator.register_dispatch(DNSResolverPool, "get_server")
+
 __all__ = [
     "DNSResolverPool",
     "SelectStrategy",

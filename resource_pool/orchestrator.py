@@ -25,7 +25,38 @@ class PoolOrchestrator:
         # 或迭代：
         for combo in orch.combos():
             requests.get(url, headers={"User-Agent": combo["ua"]})
+
+    自定义池分派::
+
+        如果自定义池实现了特殊的资源获取方法，可注册到分派表：
+
+            PoolOrchestrator.register_dispatch(MyCustomPool, "fetch_resource")
     """
+
+    # ── 分派注册表：池类型 → 资源获取方法名 ─────────────────────────
+    _DISPATCH: dict[type, str] = {}
+
+    @classmethod
+    def register_dispatch(cls, pool_type: type, method_name: str) -> None:
+        """注册资源池类型的分派方法。
+
+        编排器的 _fetch_from_pool 优先使用 isinstance 精确匹配注册表，
+        未匹配到才回退到 hasattr 探测（向后兼容）。
+
+        Args:
+            pool_type: 资源池类型（如 ProxyPool）
+            method_name: 资源获取方法名（如 "get_dict"）
+
+        使用示例::
+
+            PoolOrchestrator.register_dispatch(MyCustomPool, "fetch_resource")
+        """
+        if not isinstance(pool_type, type):
+            raise TypeError(f"pool_type 必须是类型，收到: {type(pool_type).__name__}")
+        if not isinstance(method_name, str) or not method_name:
+            raise TypeError(f"method_name 必须是非空字符串，收到: {method_name!r}")
+        cls._DISPATCH[pool_type] = method_name
+        logger.debug("已注册分派: %s → %s()", pool_type.__name__, method_name)
 
     def __init__(self, thread_safe: bool = True, **pools: ResourcePool) -> None:
         """注册资源池
@@ -124,25 +155,29 @@ class PoolOrchestrator:
 
     @staticmethod
     def _fetch_from_pool(name: str, pool: ResourcePool) -> Any:
-        """从单个池取资源 —— 按池类型分发
+        """从单个池取资源 —— 优先 isinstance 精确分派，hasattr 兜底
 
-        分发优先级（由高到低）：
-        1. get_dict()  → ProxyPool（返回 proxies 字典）
-        2. get_headers() → UserAgentPool（返回完整 Header Profile）
-        3. get()        → 通用兜底（返回 UA 字符串等）
-        4. get_server() → DNSResolverPool（返回最优 DNS IP）
+        分派优先级：
+        1. isinstance 匹配注册表（_DISPATCH）—— 确定性、无歧义
+        2. hasattr 探测（向后兼容）—— 自定义池未注册时自动探测
 
-        自定义池若同时实现多个方法，上层方法优先。
+        内置池注册关系（由各子包 __init__.py 自动注册）：
+        - ProxyPool      → get_dict()
+        - UserAgentPool  → get_headers()
+        - DNSResolverPool → get_server()
         """
-        # ProxyPool: 返回 proxies 字典
+        # ── 1. isinstance 精确分派 ──
+        for pool_type, method_name in PoolOrchestrator._DISPATCH.items():
+            if isinstance(pool, pool_type):
+                return getattr(pool, method_name)()
+
+        # ── 2. hasattr 兜底（向后兼容，未来版本将移除） ──
         if hasattr(pool, "get_dict"):
             return pool.get_dict()
-        # UserAgentPool: 返回完整 Header Profile
         if hasattr(pool, "get_headers"):
             return pool.get_headers()
         if hasattr(pool, "get"):
             return pool.get()
-        # DNSResolverPool: 返回最优 DNS 服务器 IP
         if hasattr(pool, "get_server"):
             return pool.get_server()
         raise RuntimeError(f"'{name}' ({type(pool).__name__}) 无可用的资源获取方法")

@@ -18,6 +18,9 @@
 from proxy_pool.pool import ProxyPool, ProxyStrategy
 from proxy_pool.exceptions import PoolExhaustedException, ProxyUnhealthyException
 
+from resource_pool.orchestrator import PoolOrchestrator
+PoolOrchestrator.register_dispatch(ProxyPool, "get_dict")
+
 __all__ = [
     "ProxyPool",
     "ProxyStrategy",

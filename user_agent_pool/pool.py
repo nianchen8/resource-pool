@@ -4,7 +4,6 @@ import json
 import logging
 import os
 import random
-import threading
 from enum import Enum
 from typing import Iterator
 
@@ -19,7 +18,7 @@ from user_agent_pool.agents import (
     _invalidate_profile_cache,
     match_profile,
 )
-from resource_pool.base import DummyLock, DummyReadWriteLock, ReadWriteLock, ResourcePool
+from resource_pool.base import DummyReadWriteLock, ReadWriteLock, ResourcePool
 
 logger = logging.getLogger(__name__)
 

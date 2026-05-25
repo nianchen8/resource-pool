@@ -1,7 +1,5 @@
 """编排器测试"""
 
-from typing import Any
-
 import pytest
 from user_agent_pool import UserAgentPool
 from proxy_pool import ProxyPool

@@ -278,7 +278,6 @@ class TestUAEdgeCases:
 
     def test_strategy_setter_invalid_type(self):
         """strategy setter 传入非 UAStrategy 枚举抛 TypeError"""
-        from user_agent_pool import UAStrategy
         pool = UserAgentPool()
         with pytest.raises(TypeError, match="策略必须是 UAStrategy"):
             pool.strategy = "WEIGHTED"  # type: ignore[assignment]

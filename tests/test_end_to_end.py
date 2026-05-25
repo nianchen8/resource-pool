@@ -12,7 +12,7 @@ import pytest
 
 from resource_pool import (
     UserAgentPool, DNSResolverPool, ProxyPool,
-    SelectStrategy, ProxyStrategy, PoolOrchestrator,
+    SelectStrategy, PoolOrchestrator,
     PoolExhaustedError,
 )
 from user_agent_pool.exceptions import PoolExhaustedException as UAPoolExhausted

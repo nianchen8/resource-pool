@@ -1,4 +1,4 @@
-# Resource Pool ![version](https://img.shields.io/badge/version-1.0.0-blue)
+# Resource Pool ![version](https://img.shields.io/badge/version-1.0.1-blue)
 
 > 一套可扩展的网络资源池框架，为爬虫工程提供开箱即用的资源调度能力。
 
@@ -405,6 +405,14 @@ class CookiePool(ResourcePool):
 ---
 
 ## 更新日志
+
+### v1.0.1 (2026-05-26)
+
+- 🛡️ **异步池并发安全加固**：`AsyncProxyPool` 6 个方法改为 `async def` + `asyncio.Lock` 保护
+- 🛡️ **AsyncDNSResolverPool 策略对称**：添加 `StrategyProtocol` 支持，与同步版 API 对齐
+- 🛡️ **AsyncUserAgentPool 功能补齐**：添加 `browser`/`os`/`min_version` 细粒度筛选 + `_build_headers` 自动 Profile 匹配
+- 🛡️ **可观测性提升**：`_parse_response` 中 `JSONDecodeError` 添加 debug 日志
+- 📝 **文档更新**：UPGRADE_PLAN 第六阶段报告、PRODUCTION 异步锁层级说明
 
 ### v1.0.0 (2026-05-26)
 

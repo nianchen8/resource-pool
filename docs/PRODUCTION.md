@@ -1,6 +1,6 @@
 # 生产环境部署指南
 
-> 适用版本：v0.7.0+ | 最后更新：2026-05-26
+> 适用版本：v1.0.0+ | 最后更新：2026-05-26
 
 本指南覆盖 resource-pool 在生产环境中的配置、监控、排障和最佳实践。
 
@@ -316,7 +316,30 @@ graph TB
     P_P --> SOCKET
 ```
 
-### 4.1 锁层级说明
+### 4.1 锁层级说明（异步版）
+
+```
+高层（慢）：automaintain、load_from_url、health_check
+    │  持有时间：秒级，低频
+    ▼
+中层：add_proxy、remove_proxy、mark_failed（公共 API 层持 asyncio.Lock）
+    │  持有时间：微秒-毫秒级，中频
+    ▼
+低层：get、get_dict、resolve（快照模式：持锁选节点 → 释放锁 → 执行 I/O）
+    │  持有时间：微秒级，高频
+    ▼
+内部：_pick_one、_get_alive、_try_revive、_on_success（无锁）
+    │  由外层公共 API 统一持锁调用，避免 asyncio.Lock 不可重入死锁
+    ▼
+无锁：_do_resolve、_probe_proxy（I/O 密集）
+```
+
+> **设计要点**：异步版 `asyncio.Lock` 不可重入，内部辅助方法不加锁，
+> 由 `get()`/`add_proxy()` 等公共 API 统一获取锁后调用。
+> `resolve()` 采用快照模式：持锁选取最优 DNS 节点后立即释放，
+> 实际 DNS 查询在锁外进行，避免 I/O 阻塞所有协程。
+
+### 4.2 锁层级说明（同步版）
 
 ```
 高层（慢）：automaintain、load_from_url、health_check

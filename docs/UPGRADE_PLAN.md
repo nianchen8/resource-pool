@@ -450,6 +450,103 @@
 
 ---
 
+## 🟢 第六阶段工作报告 —— 深度审查修复与并发安全加固（已完成）
+
+> **执行日期**：2026-05-26
+> **执行人**：Qoder AI Agent
+> **交付给**：下一个 Agent 接龙
+
+### 工作摘要
+
+基于全量深度代码审查（39 文件、274 测试）发现的 13 项问题，
+聚焦异步池并发安全修复与 API 对称性补齐。
+
+### 完成内容
+
+#### 1. AsyncProxyPool 并发安全加固
+
+**文件**：`proxy_pool/pool_async.py`（+71/-64 行）
+
+- `get()` / `get_dict()`：整个方法体包裹 `async with self._lock`，原子化选取+成功标记
+- `add_proxy()` / `remove_proxy()` / `enable_proxy()`：从 `def` 改为 `async def`，内部加锁
+- `mark_failed()`：从 `def` 改为 `async def`，防止并发标记竞态
+- `stats()`：加锁读取快照，避免迭代中列表被修改
+- `__repr__` / `__len__`：直接访问 `self._proxies` 代替无锁的 `_get_alive()` 调用
+
+> 关键设计决策：内部方法（`_get_alive`/`_try_revive`/`_pick_one`/`_on_success`）**不加锁**，
+> 由外层公共 API 统一持锁调用。因为 `asyncio.Lock` 不可重入，内层加锁会导致死锁。
+
+#### 2. AsyncDNSResolverPool StrategyProtocol 支持
+
+**文件**：`dns_resolver_pool/pool_async.py`（+47 行）
+
+- 导入 `StrategyProtocol`，`__init__` 类型标注改为 `SelectStrategy | StrategyProtocol`
+- 与同步版 API 对称，支持 callable 自定义策略
+
+#### 3. AsyncUserAgentPool 细粒度筛选补齐
+
+**文件**：`user_agent_pool/pool_async.py`（+113 行）
+
+- `get()` / `get_headers()` 新增 `browser` / `os` / `min_version` 参数
+- `_pick_candidates()` 实现 browser/os/min_version 滤逻辑
+- `_build_headers()` 实现自动 Profile 匹配：无显式 profile 但有元数据时调用 `match_profile()`
+- 导入 `parse_ua_metadata` + `match_profile`
+
+#### 4. 代码清洁与可观测性
+
+**文件**：`resource_pool/base.py`
+- 清理 `__init_subclass__` 中对不存在方法 `_ensure_lock` 的 dead comment
+
+**文件**：`proxy_pool/pool.py`
+- `_parse_response` 中 `json.JSONDecodeError` 静默 `pass` 改为 `logger.debug()` 记录响应前 100 字符
+
+#### 5. 测试适配
+
+**文件**：`tests/test_async.py`（+63 行）
+- 适配 `add_proxy`/`remove_proxy`/`enable_proxy`/`mark_failed` 改为 `async` 后的所有调用
+- 移除 `_make_pool` 同步辅助方法，改为各测试内联 `await pool.add_proxy(...)`
+
+### 关键指标
+
+| 指标 | 第五阶段后 | 第六阶段后 | 变化 |
+|------|:--:|:--:|:--:|
+| 测试用例数 | 274 | **274** | 全部通过 ✅ |
+| Lint 错误 | 0 | **0** | 保持 ✅ |
+| 🟠 中等问题 | 5 | **0** | -5 |
+| 🟡 轻微问题 | 8 | **3**（设计权衡） | -5 |
+| 异步 Proxy API 签名 | 混合同步/异步 | **统一异步** | API 一致性 |
+| 异步 DNS 策略支持 | 仅 SelectStrategy | **SelectStrategy \| StrategyProtocol** | 对称✅ |
+| 异步 UA 筛选 | 仅 category/exclude | **browser/os/min_version** | 对齐同步版✅ |
+
+### 保留的已知权衡
+
+| 条目 | 说明 |
+|------|------|
+| DNS `resolve()` 内部方法无锁 | 持有锁进行网络 I/O 会串行化所有查询，性能代价不可接受 |
+| `_PROFILE_LOCK`(threading.Lock) | 极端短暂 dict 操作，对事件循环阻塞可忽略 |
+| `_cache_set` 先写胜利 | 有意的缓存优化，避免并发重复查询 |
+
+### 文件变更清单
+
+| 文件 | 操作 | 说明 |
+|------|:--:|------|
+| `proxy_pool/pool_async.py` | 修改 | +锁保护，6 个方法改为 async |
+| `dns_resolver_pool/pool_async.py` | 修改 | +StrategyProtocol 支持 |
+| `user_agent_pool/pool_async.py` | 修改 | +细粒度筛选，+Profile 自动匹配 |
+| `resource_pool/base.py` | 修改 | 清理 __init_subclass__ dead comment |
+| `proxy_pool/pool.py` | 修改 | JSONDecodeError 加 debug 日志 |
+| `tests/test_async.py` | 修改 | 适配 async API 变更 |
+| `docs/UPGRADE_PLAN.md` | 修改 | 添加本阶段工作报告 |
+
+### 对后续 Agent 的建议
+
+1. **异步池已达同步版功能对等**：三池异步版 API 与同步版完全对称
+2. **可考虑 PyPI 发布 v1.0.1**：修复版适合作为首个稳定补丁发布
+3. **DNS 策略增强（6.1-6.4）**：低优先级，可按需推进
+4. **社区推广（P3）**：代码质量已达 9.0+，可开始 PyPI 发布与推广
+
+---
+
 ## 项目现状总览
 
 | 维度 | 当前评分 | 目标评分 | 说明 |

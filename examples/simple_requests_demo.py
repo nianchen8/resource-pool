@@ -76,7 +76,7 @@ def demo_thread_safe_off() -> None:
                 headers = {"User-Agent": headers}
 
             _domain = urlparse(url).hostname or "httpbin.org"
-            dns_ip = combo.get("dns_ip", "")
+            dns_ip = combo.get("dns", "")
             proxy_url = combo.get("proxy", "")
 
             logger.info(

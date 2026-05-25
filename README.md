@@ -1,4 +1,4 @@
-# Resource Pool ![version](https://img.shields.io/badge/version-1.0.1-blue)
+# Resource Pool ![version](https://img.shields.io/badge/version-1.0.2-blue)
 
 > 一套可扩展的网络资源池框架，为爬虫工程提供开箱即用的资源调度能力。
 
@@ -369,7 +369,7 @@ resource_pool/
 │   └── workflows/
 │       └── test.yml                # CI/CD 多版本矩阵测试
 ├── .pre-commit-config.yaml         # ruff pre-commit hooks
-└── tests/                          # 292 个测试
+└── tests/                          # 274 个测试
 ```
 
 ---
@@ -405,6 +405,13 @@ class CookiePool(ResourcePool):
 ---
 
 ## 更新日志
+
+### v1.0.2 (2026-05-26)
+
+- 🐛 **异步编排器 PoolCombo 对齐**：`AsyncPoolOrchestrator.next()` 返回 `PoolCombo` 而非 `dict`，与同步版 API 一致
+- 🐛 **异步 UA 池元数据拷贝**：`_init_defaults` 改用 `_copy_agent_entry` 方法，确保 `browser`/`os`/`version` 字段正确拷贝
+- 🐛 **示例代码字段名修复**：`simple_requests_demo.py` 中 `dns_ip` → `dns`，匹配编排器键名
+- 📝 **注释补充**：`AsyncDNSResolverPool._try_revive` 添加 asyncio 原子安全说明
 
 ### v1.0.1 (2026-05-26)
 

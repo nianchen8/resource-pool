@@ -9,6 +9,7 @@ from typing import Any, AsyncIterator
 
 from resource_pool.base_async import AsyncDummyLock, AsyncResourcePool
 from resource_pool.exceptions import PoolExhaustedError
+from resource_pool.orchestrator import PoolCombo
 
 logger = logging.getLogger(__name__)
 
@@ -86,8 +87,12 @@ class AsyncPoolOrchestrator:
 
     # ── 组合获取 ─────────────────────────────────────────────────────
 
-    async def next(self) -> dict[str, Any]:
-        """异步获取一组组合资源（每池各取一个最优）"""
+    async def next(self) -> PoolCombo:
+        """异步获取一组组合资源（每池各取一个最优）
+
+        Returns:
+            ``PoolCombo`` 对象，支持属性访问（``combo.ua``）和字典访问（``combo["ua"]``）
+        """
         combo: dict[str, Any] = {}
         async with self._lock:
             pools_snapshot = dict(self._pools)
@@ -98,16 +103,16 @@ class AsyncPoolOrchestrator:
                 logger.error("异步编排器从 '%s' 获取资源失败: %s", name, exc)
                 raise
         logger.debug("异步编排器返回组合: %s", {k: str(v)[:60] for k, v in combo.items()})
-        return combo
+        return PoolCombo(combo)
 
-    async def combos(self, limit: int | None = None) -> AsyncIterator[dict[str, Any]]:
+    async def combos(self, limit: int | None = None) -> AsyncIterator[PoolCombo]:
         """异步生成组合资源迭代器
 
         Args:
             limit: 最多返回几组，None=无限（需外部停止）
 
         Yields:
-            每池各取一个资源的组合字典
+            PoolCombo 对象（每次迭代每池各取一个资源）
         """
         count = 0
         while limit is None or count < limit:
@@ -183,22 +188,4 @@ class AsyncPoolOrchestrator:
         return f"AsyncPoolOrchestrator({names})"
 
 
-# ── 内置池异步分派注册 ──
-# 延迟导入避免循环依赖，仅在对应子包被导入后生效
-def _register_builtins() -> None:
-    """注册内置异步池的分派方法（惰性调用）"""
-    try:
-        from user_agent_pool.pool_async import AsyncUserAgentPool
-        AsyncPoolOrchestrator.register_dispatch(AsyncUserAgentPool, "get_headers")
-    except ImportError:
-        pass
-    try:
-        from dns_resolver_pool.pool_async import AsyncDNSResolverPool
-        AsyncPoolOrchestrator.register_dispatch(AsyncDNSResolverPool, "get_server")
-    except ImportError:
-        pass
-    try:
-        from proxy_pool.pool_async import AsyncProxyPool
-        AsyncPoolOrchestrator.register_dispatch(AsyncProxyPool, "get_dict")
-    except ImportError:
-        pass
+

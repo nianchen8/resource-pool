@@ -50,12 +50,21 @@ class AsyncUserAgentPool(AsyncResourcePool):
     def _init_defaults(self) -> None:
         for cat in ("desktop", "mobile", "tablet"):
             self._agents[cat] = [
-                {"ua": e["ua"], "weight": e.get("weight", 5), **({"profile": e["profile"]} if "profile" in e else {})}
-                for e in DEFAULT_AGENTS[cat]
+                self._copy_agent_entry(entry)
+                for entry in DEFAULT_AGENTS[cat]
             ]
         total = sum(len(v) for v in self._agents.values())
         logger.info("已加载 %d 个 User-Agent（desktop=%d, mobile=%d, tablet=%d）",
                     total, len(self._agents["desktop"]), len(self._agents["mobile"]), len(self._agents["tablet"]))
+
+    @staticmethod
+    def _copy_agent_entry(entry: AgentEntry) -> AgentEntry:
+        """创建 AgentEntry 的浅拷贝（类型安全），含元数据字段"""
+        copied: AgentEntry = {"ua": entry["ua"], "weight": entry.get("weight", 5)}
+        for key in ("profile", "browser", "os", "version"):
+            if key in entry:
+                copied[key] = entry[key]  # type: ignore[literal-required]
+        return copied
 
     # ── 公开 API ─────────────────────────────────────────────────────
 

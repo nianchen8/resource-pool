@@ -388,12 +388,14 @@ class AsyncDNSResolverPool(AsyncResourcePool):
 
     def _try_revive(self) -> None:
         now = time.time()
+        # 注意：asyncio 单线程下简单属性访问原子安全，此处仅做时间戳防抖
         if now - self._last_revive_check < 30:
             return
         self._last_revive_check = now
         for s in self._servers:
             if not s.enabled and (now - s.last_health) > self._revive_after:
                 s.enabled = True
+                # 只给一次机会：再失败立即重新隔离
                 s.consecutive_fails = max(0, self._max_fails - 1)
                 logger.info("DNS %s (%s) 超过复活时间，已重新启用（试用中）", s.ip, s.name)
 

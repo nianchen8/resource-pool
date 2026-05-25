@@ -8,6 +8,7 @@ import threading
 import time
 import urllib.request
 import urllib.error
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from enum import Enum
 
 from proxy_pool.exceptions import PoolExhaustedException
@@ -219,6 +220,85 @@ class ProxyPool(ResourcePool):
                 logger.warning("跳过无效代理 %s: %s", entry.get("host", "?"), e)
 
         logger.info("从 URL 加载代理完成: %d/%d 个入库", added, len(entries))
+        return added
+
+    def load_from_urls(
+        self,
+        urls: list[str],
+        timeout: float = 10.0,
+        default_scheme: str = "http",
+        headers: dict[str, str] | None = None,
+        max_workers: int = 5,
+    ) -> int:
+        """从多个代理供应商 URL 并发拉取代理，去重合并
+
+        各 URL 独立拉取（失败不影响其他 URL），最终去重入库。
+        典型用法：同时从快代理、携趣、天启等多个供应商获取代理。
+
+        Args:
+            urls: 代理提取 API 链接列表
+            timeout: 单次请求超时（秒）
+            default_scheme: 默认代理协议
+            headers: 统一请求头（各 URL 共用）
+            max_workers: 并发线程数
+
+        Returns:
+            成功添加的代理总数
+
+        Raises:
+            ValueError: 所有 URL 均失败或未解析出任何代理
+        """
+        all_entries: list[ProxyEntry] = []
+        errors: list[str] = []
+
+        def _fetch_one(url: str) -> list[ProxyEntry]:
+            """拉取单个 URL 并解析，返回 ProxyEntry 列表"""
+            req = urllib.request.Request(url)
+            if headers:
+                for k, v in headers.items():
+                    req.add_header(k, v)
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                raw = resp.read()
+            body = raw.decode("utf-8", errors="replace").strip()
+            return self._parse_response(body, default_scheme)
+
+        with ThreadPoolExecutor(max_workers=min(max_workers, len(urls))) as executor:
+            future_map = {executor.submit(_fetch_one, url): url for url in urls}
+            for future in as_completed(future_map):
+                url = future_map[future]
+                try:
+                    entries = future.result()
+                    all_entries.extend(entries)
+                    logger.debug("供应商 %s 返回 %d 条代理", url, len(entries))
+                except Exception as e:
+                    logger.warning("供应商 %s 拉取失败: %s", url, e)
+                    errors.append(f"{url}: {e}")
+
+        if not all_entries:
+            raise ValueError(
+                f"所有 {len(urls)} 个供应商均未返回有效代理，错误: {'; '.join(errors[:3])}"
+            )
+
+        # 去重入库
+        added = 0
+        seen: set[str] = set()
+        with self._lock:
+            seen = {s.key for s in self._proxies}
+        for entry in all_entries:
+            key = f"{entry.get('scheme', default_scheme)}://{entry['host']}:{entry['port']}"
+            if key in seen:
+                continue
+            try:
+                self.add_proxy(entry)
+                seen.add(key)
+                added += 1
+            except ValueError as e:
+                logger.warning("跳过无效代理 %s: %s", entry.get("host", "?"), e)
+
+        logger.info(
+            "多供应商拉取完成: %d 个 URL, %d 条去重入库, %d 个失败",
+            len(urls), added, len(errors),
+        )
         return added
 
     # ── 响应解析 ────────────────────────────────────────────────────
@@ -520,6 +600,95 @@ class ProxyPool(ResourcePool):
             ]
         scored.sort(key=lambda x: x["score"], reverse=True)
         return scored
+
+    def save_to_file(self, path: str) -> int:
+        """将代理池状态持久化到 JSON 文件
+
+        保存内容包括代理地址、鉴权信息、运行时统计（延迟、成功率等），
+        重启后可通过 load_from_file 恢复。密码字段明文保存，请确保文件权限安全。
+
+        Args:
+            path: 输出 JSON 文件路径
+
+        Returns:
+            写入的代理数量
+        """
+        import os as _os
+
+        _os.makedirs(_os.path.dirname(path) or ".", exist_ok=True)
+        with self._lock:
+            data = [
+                {
+                    "scheme": s.scheme,
+                    "host": s.host,
+                    "port": s.port,
+                    "username": s.username,
+                    "password": s.password,
+                    "region": s.region,
+                    "enabled": s.enabled,
+                    "weight": s.weight,
+                    "latency_ms": round(s.latency_ms, 1),
+                    "success_count": s.success_count,
+                    "fail_count": s.fail_count,
+                    "consecutive_fails": s.consecutive_fails,
+                    "last_used": s.last_used,
+                    "last_health": s.last_health,
+                }
+                for s in self._proxies
+            ]
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+        logger.info("代理池已保存到 %s (%d 个代理)", path, len(data))
+        return len(data)
+
+    def load_from_file(self, path: str) -> int:
+        """从 JSON 文件恢复代理池
+
+        支持 save_to_file 输出的格式，也兼容简化格式
+        ``[{"host":"...","port":8080}]``。
+
+        Args:
+            path: JSON 文件路径
+
+        Returns:
+            成功恢复的代理数量
+
+        Raises:
+            FileNotFoundError: 文件不存在
+            ValueError: JSON 格式无效
+        """
+        with open(path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        if not isinstance(data, list):
+            raise ValueError("JSON 顶层应为数组")
+
+        added = 0
+        for item in data:
+            if not isinstance(item, dict) or "host" not in item or "port" not in item:
+                continue
+            try:
+                entry: ProxyEntry = {
+                    "host": item["host"],
+                    "port": int(item["port"]),
+                    "scheme": item.get("scheme", "http"),
+                }
+                if item.get("username"):
+                    entry["username"] = item["username"]
+                if item.get("password"):
+                    entry["password"] = item["password"]
+                if item.get("region"):
+                    entry["region"] = item["region"]
+                if "weight" in item:
+                    entry["weight"] = int(item["weight"])
+                if "enabled" in item:
+                    entry["enabled"] = bool(item["enabled"])
+                self.add_proxy(entry)
+                added += 1
+            except (ValueError, TypeError) as e:
+                logger.warning("跳过无效代理条目: %s", e)
+
+        logger.info("从文件恢复代理池完成: %s (%d 个代理)", path, added)
+        return added
 
     def auto_maintain(self, timeout: float = 10.0) -> dict:
         """自动维护：评分淘汰低分代理 + 低于 min_alive 阈值自动补充

@@ -1,5 +1,6 @@
 """内置 User-Agent 数据集 —— 包含完整 Header Profile 组"""
 
+import re
 import threading
 from typing import TypedDict
 
@@ -8,6 +9,9 @@ class AgentEntry(TypedDict, total=False):
     ua: str
     weight: int
     profile: str  # Header Profile 键名
+    browser: str  # chrome / firefox / safari / edge
+    os: str       # windows / macos / linux / android / ios
+    version: int  # 主版本号（如 131）
 
 
 # ── 模块级锁 —— 保护 _HEADER_PROFILES 跨实例并发读写 ──
@@ -243,6 +247,56 @@ DEFAULT_AGENTS: dict[str, list[AgentEntry]] = {
 }
 
 VALID_CATEGORIES = ("desktop", "mobile", "tablet", "all")
+
+# ── UA 元数据解析 ────────────────────────────────────────────────────
+# 用于从 UA 字符串中提取浏览器、操作系统和版本号，支持细粒度筛选
+
+_BROWSER_PATTERNS: list[tuple[str, re.Pattern]] = [
+    ("edge", re.compile(r"Edg(?:e)?/(\d+)", re.I)),
+    ("chrome", re.compile(r"Chrome/(\d+)", re.I)),
+    ("firefox", re.compile(r"Firefox/(\d+)", re.I)),
+    ("safari", re.compile(r"Version/(\d+)\.\d+.*Safari/", re.I)),
+]
+
+_OS_PATTERNS: list[tuple[str, re.Pattern]] = [
+    ("windows", re.compile(r"Windows NT \d+\.\d+", re.I)),
+    ("macos", re.compile(r"Mac OS X \d+[._]\d+", re.I)),
+    ("linux", re.compile(r"Linux(?!.*Android)", re.I)),
+    ("android", re.compile(r"Android \d+", re.I)),
+    ("ios", re.compile(r"iPhone OS \d+[._]\d+|CPU (?:iPhone )?OS \d+[._]\d+", re.I)),
+]
+
+
+def parse_ua_metadata(ua: str) -> dict[str, object]:
+    """从 User-Agent 字符串提取浏览器、操作系统和版本号
+
+    Returns:
+        {"browser": "chrome", "os": "windows", "version": 131}
+        无法识别时返回空 dict
+    """
+    result: dict[str, object] = {}
+
+    # 提取浏览器和版本
+    for browser_name, pattern in _BROWSER_PATTERNS:
+        m = pattern.search(ua)
+        if m:
+            result["browser"] = browser_name
+            try:
+                result["version"] = int(m.group(1))
+            except (ValueError, IndexError):
+                pass
+            break
+
+    # 提取操作系统
+    for os_name, pattern in _OS_PATTERNS:
+        if pattern.search(ua):
+            result["os"] = os_name
+            # iPad 特征：包含 iPad 字符串
+            if os_name == "ios" and "iPad" in ua:
+                pass  # 仍标记为 ios
+            break
+
+    return result
 
 
 def get_available_profiles() -> tuple[str, ...]:

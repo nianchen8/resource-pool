@@ -1,8 +1,8 @@
-# Resource Pool ![version](https://img.shields.io/badge/version-0.5.1-blue)
+# Resource Pool ![version](https://img.shields.io/badge/version-0.7.0-blue)
 
 > 一套可扩展的网络资源池框架，为爬虫工程提供开箱即用的资源调度能力。
 
-**爬虫三件套**：User-Agent 池 + DNS 解析器池 + 代理池，内置编排器一键协同。
+**爬虫三件套**：User-Agent 池 + DNS 解析器池 + 代理池，内置编排器一键协同。支持同步/异步双模。
 
 ---
 
@@ -10,8 +10,8 @@
 
 | 资源类型 | 无池状态 | 有池效果 |
 |---------|---------|---------|
-| User-Agent | 固定一个，高频请求秒被识别 | 22 个 UA 按设备分类加权随机 + 完整 Header Profile 组，模拟真实浏览器 |
-| DNS 解析 | 单点 DNS 频次过高被限流 | 14 台 DNS 轮换解析 + 延迟排序 + 故障隔离 + LRU 缓存 + 自动复活 |
+| User-Agent | 固定一个，高频请求秒被识别 | 22+ 个 UA 按设备分类加权随机 + 完整 Header Profile 组 + 支持 fake_useragent 批量导入 + 浏览器/OS/版本号细粒度筛选 |
+| DNS 解析 | 单点 DNS 频次过高被限流 | 14 台 DNS 轮换解析 + 延迟排序 + 故障隔离 + LRU 缓存（16路分片锁）+ 自动复活 |
 | 代理 | 单代理被封全部瘫痪 | HTTP/HTTPS/SOCKS5 代理池，健康检查 + 故障隔离 + 凭据脱敏 |
 
 ---
@@ -49,7 +49,7 @@ proxy.health_check()
 # 编排器一键拿全套
 orch = PoolOrchestrator(ua=ua, dns=dns, proxy=proxy)
 combo = orch.next()
-# → {"ua": {"User-Agent": "...", "Accept": "..."}, "dns_ip": "8.8.8.8", "proxy": {"http": "...", "https": "..."}}
+# → PoolCombo 对象，支持属性访问 combo.ua 和字典访问 combo["ua"]
 
 requests.get(url, headers=combo["ua"], proxies=combo["proxy"])
 ```
@@ -69,6 +69,11 @@ pool = UserAgentPool(strategy=UAStrategy.WEIGHTED)  # 默认加权随机
 ua = pool.get("desktop")                             # 加权随机
 ua = pool.get("mobile", weighted=False)              # 均匀随机
 ua = pool.get("desktop", exclude={"Firefox"})        # 排除特定关键词
+ua = pool.get(browser="chrome", os="windows", min_version=120)  # 细粒度筛选
+
+# 批量导入
+pool.load_from_file("ua_list.json")                  # JSON/CSV 导入
+pool.load_from_fakeua(limit=100)                     # 从 fake_useragent 导入（可选依赖）
 
 # 完整 Header Profile（推荐反爬场景）
 headers = pool.get_headers("desktop")
@@ -155,6 +160,20 @@ requests.get(url, proxies=proxies)
 count = pool.load_from_url("http://provider.com/api?key=xxx&count=10")
 print(f"加载了 {count} 个代理")
 
+# 多供应商并发拉取 + 去重
+count = pool.load_from_urls([
+    "http://provider1.com/api",
+    "http://provider2.com/api",
+])
+
+# 代理评分 + 自动维护
+scores = pool.scores()                               # 按评分降序
+result = pool.auto_maintain()                         # 淘汰低分 + 自动补充
+
+# 持久化
+pool.save_to_file("proxy_backup.json")               # 保存完整状态
+pool.load_from_file("proxy_backup.json")             # 重启后恢复
+
 # stats 输出已自动脱敏
 for s in pool.stats():
     print(f"{s['proxy']} 延迟={s['latency_ms']}ms")  # user:***@host:port
@@ -163,13 +182,15 @@ for s in pool.stats():
 ### 编排器
 
 ```python
-from resource_pool import PoolOrchestrator
+from resource_pool import PoolOrchestrator, PoolCombo
 
 orch = PoolOrchestrator(ua=ua_pool, dns=dns_pool, proxy=proxy_pool)
 
-# 一次拿全套
+# 一次拿全套 —— 返回 PoolCombo（属性 + 字典双访问）
 combo = orch.next()
-# → {"ua": {"User-Agent": "...", ...}, "dns_ip": "...", "proxy": {"http": "...", "https": "..."}}
+print(combo.ua)          # 属性访问
+print(combo["dns_ip"])   # 字典访问
+headers = {**combo}      # 解包为普通 dict
 
 # 迭代获取
 for combo in orch.combos(limit=100):
@@ -189,11 +210,13 @@ orch.health_check_all()
 
 | 能力 | 说明 |
 |------|------|
-| **线程安全** | 全部池 `threading.Lock` 保护，DNS 池 `threading.local` 每线程独立 Resolver |
-| **按需开关** | `thread_safe=False` 关闭所有锁 + thread-local，单线程脚本零开销 |
+| **线程安全** | UA 池 ReadWriteLock（读并发 N 倍）、Proxy 池 Lock、DNS 池 16 路缓存分片锁 |
+| **异步支持** | 完整 asyncio 版：AsyncUserAgentPool / AsyncDNSResolverPool / AsyncProxyPool / AsyncPoolOrchestrator |
+| **按需开关** | `thread_safe=False` 关闭所有锁，单线程脚本零开销 |
 | **故障隔离** | 连续失败达阈值自动隔离，到期后试用复活（一次机会） |
 | **策略校验** | `strategy` setter 类型校验，非法值立即抛 `TypeError`，避免静默失效 |
 | **可插拔策略** | `StrategyProtocol` —— 传入 callable 即可自定义选择策略 |
+| **编排器注册表** | `isinstance` 精确分派 + `register_dispatch` 扩展，告别 `hasattr` 探测 |
 | **统一异常** | `PoolExhaustedError` / `ResourceUnhealthyError` 一把捕获 |
 | **惰性导入** | `from resource_pool import X` 按需加载，不拖慢启动 |
 | **凭据脱敏** | 代理 stats 输出 `user:***@host`，杜绝日志泄露 |
@@ -207,14 +230,16 @@ orch.health_check_all()
 
 | 方法 | 说明 |
 |------|------|
-| `get(category="all", weighted=None, exclude=None) → str` | 获取 UA。weighted=None 使用池级策略 |
-| `get_headers(category="all", weighted=None, exclude=None) → dict` | 完整 Header Profile |
-| `get_all(category="all", exclude=None) → list[str]` | 全部 UA 列表 |
-| `add(ua, category, weight=5, profile=None)` | 添加 UA |
+| `get(category="all", weighted=None, exclude=None, browser=None, os=None, min_version=None) → str` | 获取 UA。支持细粒度筛选 |
+| `get_headers(category="all", weighted=None, exclude=None, browser=None, os=None, min_version=None) → dict` | 完整 Header Profile |
+| `get_all(category="all", exclude=None, browser=None, os=None, min_version=None) → list[str]` | 全部 UA 列表 |
+| `add(ua, category, weight=5, profile=None)` | 添加 UA（自动检测浏览器/OS/版本） |
 | `remove(ua, category=None) → int` | 移除 UA |
 | `count(category=None) → dict[str,int] \| int` | 统计数量 |
 | `reserve(category, weighted=None) → UAReserve` | 上下文管理器 |
 | `register_profile(key, headers)` | 注册自定义 Header Profile |
+| `load_from_file(path) → int` | 从 JSON/CSV 文件批量导入 |
+| `load_from_fakeua(browsers=None, os=None, limit=50) → int` | 从 fake_useragent 导入（可选依赖） |
 
 **分类**: `desktop` / `mobile` / `tablet` / `all`
 
@@ -240,10 +265,15 @@ orch.health_check_all()
 |------|------|
 | `get(scheme=None) → str` | 获取代理 URL |
 | `get_dict(scheme=None) → dict` | requests 兼容的 proxies 字典 |
-| `load_from_url(url, timeout=10, default_scheme="http", headers=None) → int` | 从代理提取 API 批量加载代理（支持 JSON/纯文本/带鉴权格式） |
+| `load_from_url(url, timeout=10, default_scheme="http", headers=None) → int` | 从代理提取 API 批量加载（支持 JSON/纯文本/带鉴权格式） |
+| `load_from_urls(urls, timeout=10, ...) → int` | 多供应商并发拉取 + 去重合并 |
+| `save_to_file(path) → int` | 持久化到 JSON（含运行时统计） |
+| `load_from_file(path) → int` | 从 JSON 恢复代理池 |
 | `add_proxy(entry)` / `remove_proxy(host, port, scheme)` / `enable_proxy(...)` | 代理管理 |
 | `health_check(timeout=5.0) → dict` | 含 socket 预检 + HTTP 验证 |
-| `mark_failed(host, port, scheme="http") → bool` | 手动标记代理失败（请求异常后调用），连续失败达阈值自动隔离 |
+| `mark_failed(host, port, scheme="http") → bool` | 手动标记代理失败，连续失败达阈值自动隔离 |
+| `scores() → list[dict]` | 代理评分（延迟/成功率/稳定性），按降序排列 |
+| `auto_maintain(timeout=10.0) → dict` | 自动淘汰低分代理 + 低于阈值补充 |
 | `stats() → list[dict]` | 运行时状态（凭据已脱敏） |
 
 **选择策略**: `ProxyStrategy.LATENCY_WEIGHTED` / `ROUND_ROBIN` / `RANDOM` — 也支持 callable 自定义
@@ -252,10 +282,13 @@ orch.health_check_all()
 
 | 方法 | 说明 |
 |------|------|
-| `next() → dict` | 获取一组组合资源 |
-| `combos(limit=None) → Iterator` | 组合资源迭代器 |
+| `next() → PoolCombo` | 获取一组组合资源（属性 + 字典双访问） |
+| `combos(limit=None) → Iterator[PoolCombo]` | 组合资源迭代器 |
 | `register(name, pool)` / `unregister(name)` | 动态管理池 |
 | `health_check_all() → dict` | 健康检查所有池 |
+| `register_dispatch(pool_type, method_name)` | 注册自定义池分派（类方法） |
+
+**PoolCombo** 支持：属性访问 `combo.ua`、字典访问 `combo["ua"]`、解包 `{**combo}`、迭代 `for k, v in combo`
 
 ---
 
@@ -281,7 +314,9 @@ except ResourceUnhealthyError:
 
 ## 高并发建议
 
-- 百级以上并发建议为不同业务线创建独立池实例，减少锁争用
+- UA 池使用 ReadWriteLock，读多写少场景下读并发度从 1 提升至 N（1000 并发 ~111k ops/s）
+- DNS 缓存采用 16 路分片锁，1000 并发下 P99 延迟仅 0.027ms
+- 百级以上并发建议为不同业务线创建独立池实例，进一步减少锁争用
 - 单线程脚本可传 `thread_safe=False` 关闭所有锁开销
 - DNS 池配合缓存命中率可大幅降低锁持有时间
 - 编排器内部 `_fetch_from_pool` 在锁外执行，并发友好
@@ -296,27 +331,39 @@ resource_pool/
 ├── pyproject.toml
 ├── resource_pool/                  # 统一入口 + 框架层
 │   ├── __init__.py                 # 惰性导入 + __all__
-│   ├── base.py                     # ResourcePool ABC + StrategyProtocol
+│   ├── base.py                     # ResourcePool ABC + StrategyProtocol + ReadWriteLock
+│   ├── base_async.py               # AsyncResourcePool ABC + AsyncReadWriteLock
 │   ├── exceptions.py               # 公共异常基类
-│   └── orchestrator.py             # 编排器
+│   ├── orchestrator.py             # 编排器 + PoolCombo
+│   └── orchestrator_async.py       # AsyncPoolOrchestrator
 ├── user_agent_pool/
 │   ├── __init__.py
-│   ├── agents.py                   # 22 UA + 20 Header Profile 组
+│   ├── agents.py                   # 22 UA + 20 Header Profile 组 + UA 元数据解析
 │   ├── exceptions.py
-│   └── pool.py                     # UserAgentPool + UAStrategy
+│   ├── pool.py                     # UserAgentPool + UAStrategy
+│   └── pool_async.py               # AsyncUserAgentPool
 ├── dns_resolver_pool/
 │   ├── __init__.py
 │   ├── servers.py                  # 14 台国内外 DNS
 │   ├── exceptions.py
-│   └── pool.py                     # DNSResolverPool + SelectStrategy
+│   ├── pool.py                     # DNSResolverPool + SelectStrategy + 16路分片锁
+│   └── pool_async.py               # AsyncDNSResolverPool
 ├── proxy_pool/
 │   ├── __init__.py
 │   ├── servers.py                  # ProxyEntry TypedDict
 │   ├── exceptions.py
-│   └── pool.py                     # ProxyPool + ProxyStrategy
+│   ├── pool.py                     # ProxyPool + ProxyStrategy + 评分系统
+│   └── pool_async.py               # AsyncProxyPool
+├── examples/
+│   ├── real_crawler_demo.py        # 同步爬虫集成示例
+│   ├── async_integration.py        # httpx + aiohttp 异步集成
+│   ├── scrapy_integration.py       # Scrapy Middleware 集成
+│   ├── simple_requests_demo.py     # 单线程零开销示例
+│   └── stress_test.py              # 极端压力测试
 ├── docs/
-│   └── EXCEPTIONS.md               # 异常体系文档 + 代码审查报告
-└── tests/                          # 142 个测试
+│   ├── EXCEPTIONS.md               # 异常体系文档
+│   └── UPGRADE_PLAN.md             # 升级规划
+└── tests/                          # 292 个测试
 ```
 
 ---
@@ -352,6 +399,28 @@ class CookiePool(ResourcePool):
 ---
 
 ## 更新日志
+
+### v0.7.0 (2026-05-26)
+
+- 🚀 **PoolCombo**：编排器 `next()/combos()` 返回 `PoolCombo` 对象，支持属性访问（`combo.ua`）+ 字典访问 + 解包
+- 🚀 **代理持久化**：`ProxyPool.save_to_file()` / `load_from_file()` JSON 格式，含运行时统计
+- 🚀 **多供应商拉取**：`ProxyPool.load_from_urls()` ThreadPoolExecutor 并发拉取 + 去重合并
+- 🚀 **fake_useragent 集成**：`UserAgentPool.load_from_fakeua()` 可选依赖，批量导入
+- 🚀 **UA 细粒度筛选**：`get(browser="chrome", os="windows", min_version=120)` 浏览器/OS/版本号过滤
+- 🚀 **UA 元数据自动检测**：`add()` 自动提取浏览器/OS/版本信息
+- 🚀 **集成示例**：Scrapy Middleware + requests 单线程零开销示例
+- 📝 README 全面更新：API 参考、架构特性、项目结构
+
+### v0.6.0 (2026-05-25)
+
+- 🚀 **异步支持**：AsyncUserAgentPool / AsyncDNSResolverPool / AsyncProxyPool / AsyncPoolOrchestrator
+- 🚀 **读写锁**：UA 池 ReadWriteLock 替换 Lock，读并发度从 1 提升至 N
+- 🚀 **DNS 16路分片锁**：缓存操作按域名首字符分片，1000 并发 P99 延迟 0.027ms
+- 🚀 **编排器注册表**：`isinstance` + `register_dispatch` 精确分派，告别 `hasattr` 探测
+- 🚀 **代理评分**：`ProxyState.score` + `ProxyPool.scores()` + `auto_maintain()` 自动淘汰+补充
+- 🚀 **UA 批量导入**：`UserAgentPool.load_from_file()` 支持 JSON/CSV
+- 🚀 **基准压力测试**：100/500/1000 并发吞吐量基准报告
+- 🛡️ `CATEGORY_ALL` 常量替代魔法字符串、Profile 锁粒度优化
 
 ### v0.5.1 (2026-05-25)
 

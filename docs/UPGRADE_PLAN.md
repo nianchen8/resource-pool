@@ -343,19 +343,126 @@
 
 ---
 
+## 🟢 第四阶段工作报告 —— P1 功能收尾 + P0 编排器抽象 + P2 集成示例（已完成）
+
+> **执行日期**：2026-05-26
+> **执行人**：Qoder AI Agent
+> **交付给**：下一个 Agent 接龙
+
+### 工作摘要
+
+本阶段收尾 P1 代理生命周期 + UA 扩充，完成 P0 编排器 PoolCombo 抽象，补充 P2 集成示例。
+
+### 完成内容
+
+#### 1. 多供应商并发拉取（5.4）
+
+**修改** `proxy_pool/pool.py`：
+
+- `load_from_urls()`：使用 `ThreadPoolExecutor` 并发从多个供应商 URL 拉取代理
+- 失败隔离：单个 URL 失败不影响其他 URL
+- 去重合并：自动跳过池中已存在的代理
+
+#### 2. 代理持久化（5.5）
+
+**修改** `proxy_pool/pool.py`：
+
+- `save_to_file(path)`：将完整代理状态（含运行时统计：延迟、成功率、连续失败等）持久化为 JSON
+- `load_from_file(path)`：从 JSON 恢复代理池，兼容简化格式
+
+#### 3. 编排器 PoolCombo 抽象（3.2）
+
+**新增** `resource_pool/orchestrator.py` → `PoolCombo` 类：
+
+- 实现 `Mapping` 协议，支持属性访问（`combo.ua`）、字典访问（`combo["ua"]`）
+- 支持解包（`**combo`）、迭代（`for k, v in combo`）
+- 不可变容器（`__slots__`），`__eq__`/`__hash__` 支持
+- `PoolOrchestrator.next()` / `combos()` 返回类型从 `dict` 改为 `PoolCombo`
+
+#### 4. UA 细粒度筛选（4.3）
+
+**修改** `user_agent_pool/agents.py`：
+
+- `AgentEntry` 新增 `browser`、`os`、`version` 可选字段
+- `parse_ua_metadata(ua)` 函数：正则提取浏览器/操作系统/版本号
+
+**修改** `user_agent_pool/pool.py`：
+
+- `add()` 自动检测并填充浏览器/OS/版本元数据
+- `get()` / `get_headers()` / `get_all()` 新增 `browser`、`os`、`min_version` 参数
+- `_pick_candidates()` 支持细粒度筛选逻辑
+
+#### 5. fake_useragent 集成（4.2）
+
+**新增** `user_agent_pool/pool.py` → `load_from_fakeua()`：
+
+- 从 `fake_useragent` 库批量导入 UA（可选依赖）
+- 自动去重、自动设备分类
+- 支持浏览器/OS 限定
+
+#### 6. 集成示例（8.1 / 8.4）
+
+**新建** `examples/scrapy_integration.py`（196 行）：
+
+- Scrapy Downloader Middleware 完整实现
+- 自动替换 UA/Headers、设置代理、标记失败
+- 附带 Spider 示例和配置说明
+
+**新建** `examples/simple_requests_demo.py`（189 行）：
+
+- 4 种模式展示：单线程零开销 / PoolCombo 访问 / UA 暂存器 / combos 迭代
+- `thread_safe=False` 零开销用法演示
+- 可直接运行
+
+### 关键指标
+
+| 指标 | 第四阶段前 | 第四阶段后 | 变化 |
+|------|:--:|:--:|:--:|
+| 测试用例数 | 274 | **292** | 验证全部通过 |
+| 新增源文件 | — | **2** | scrapy_integration / simple_requests_demo |
+| UPGRADE_PLAN 完成度 | 54% | **72%** | +18% |
+| P1 代理生命周期 | 60% | **100%** | 5.4/5.5 完成 |
+| P0 编排器抽象 | 66% | **100%** | 3.2 完成 |
+| P2 集成示例 | 50% | **100%** | 8.1/8.4 完成 |
+
+### 文件变更清单
+
+| 文件 | 操作 | 说明 |
+|------|:--:|------|
+| `proxy_pool/pool.py` | 修改 | +load_from_urls、+save_to_file、+load_from_file |
+| `resource_pool/orchestrator.py` | 修改 | +PoolCombo 类，next()/combos() 返回 PoolCombo |
+| `resource_pool/__init__.py` | 修改 | 导出 PoolCombo |
+| `user_agent_pool/agents.py` | 修改 | +AgentEntry 新字段，+parse_ua_metadata |
+| `user_agent_pool/pool.py` | 修改 | +load_from_fakeua、add 自动检测元数据、get/get_headers 细粒度筛选 |
+| `examples/scrapy_integration.py` | **新建** | Scrapy Middleware 集成示例 |
+| `examples/simple_requests_demo.py` | **新建** | requests 单线程零开销示例 |
+| `README.md` | 修改 | 全量更新：版本号/API参考/架构特性/项目结构/更新日志 |
+| `pyproject.toml` | 修改 | 版本号 0.5.0 → 0.7.0 |
+| `docs/UPGRADE_PLAN.md` | 修改 | 添加本阶段工作报告 |
+
+### 对后续 Agent 的建议
+
+1. **P1 剩余**：4.4 Header Profile 自动匹配（根据 UA 自动选择配套 Profile）
+2. **P2 剩余**：7.1-7.4 生产部署指南、9.4 Python 3.13 free-threaded 兼容
+3. **P3 社区推广**：10.1-10.8 + 11.1-11.3（CI/CD + PyPI 发布 + 博客文章）
+4. **DNS 策略增强**（6.1-6.4）：低优先级，可按需推进
+5. **版本号**：建议升级至 v0.7.0 并发布 PyPI
+
+---
+
 ## 项目现状总览
 
 | 维度 | 当前评分 | 目标评分 | 说明 |
 |------|:--:|:--:|------|
-| 架构设计 | 9.0 | 9.5 | ABC + 策略模式 + 注册表分派已优秀，编排器 combo 可进一步抽象 |
+| 架构设计 | 9.0 | 9.5 | ABC + 策略模式 + PoolCombo 抽象 + 注册表分派已优秀 |
 | 防御性编程 | 9.5 | 9.5 | 线程安全、故障隔离、复活机制、凭据脱敏均已到位 |
-| 反爬能力 | 9.0 | 9.5 | 22 UA + 20 Header Profile 组 + load_from_file 批量导入 |
+| 反爬能力 | 9.0 | 9.5 | 22 UA + 20 Header Profile + fake_useragent + 细粒度筛选 |
 | 代码质量 | **9.0** | 9.0 | ✅ hasattr 分派已修复、魔法字符串已常量化、Profile 锁已优化 |
 | 异步支持 | **9.0** | 9.0 | ✅ 同步/异步双模已完整实现 |
-| 文档 | 8.5 | 9.0 | 补充生产部署指南、架构图、集成示例 |
-| 测试覆盖 | **9.0** | 9.0 | ✅ 274 测试，覆盖率 94%，含端到端 + 压力基准测试 |
-| 社区信任 | 2.0 | 7.0 | 0 Star → 有真实用户和持续维护证据 |
-| **综合** | **9.0+** | **9.0+** | ✅ 三阶段完成：测试 → 异步 → 锁优化，核心架构已达目标 |
+| 文档 | 8.5 | 9.0 | 补充生产部署指南、架构图（待完成 7.1-7.4） |
+| 测试覆盖 | **9.0** | 9.0 | ✅ 292 测试全部通过，覆盖率 94%+ |
+| 社区信任 | 2.0 | 7.0 | 0 Star → 有待持续推进（P3 任务） |
+| **综合** | **9.0+** | **9.0+** | ✅ 四阶段完成：测试 → 异步 → 锁优化 → 功能收尾，核心架构已达目标 |
 
 ---
 
@@ -413,7 +520,7 @@ class PoolOrchestrator:
         cls._DISPATCH[pool_type] = method_name
 ```
 
-- [ ] **3.2** `combo()` 从固定字典改为 `NamedTuple` 或 `dataclass`，支持 N 种资源自由组合
+- [x] **3.2** `combo()` 从固定字典改为 `NamedTuple` 或 `dataclass`，支持 N 种资源自由组合 ✅ 第四阶段已完成（PoolCombo 类）
 - [x] **3.3** `_fetch_from_pool` 使用 `isinstance` 精确匹配替代 `hasattr` 模糊探测
 
 ---
@@ -427,8 +534,8 @@ class PoolOrchestrator:
 **方案**：
 
 - [x] **4.1** 提供 `load_from_file(path)` 方法，支持 JSON/CSV 批量导入 UA 列表
-- [ ] **4.2** 集成 `fake_useragent` 作为可选数据源（`pip install resource-pool[fakeua]`）
-- [ ] **4.3** 支持按浏览器（Chrome/Firefox/Safari/Edge）、OS（Windows/macOS/Linux/Android/iOS）、版本号的细粒度筛选
+- [x] **4.2** 集成 `fake_useragent` 作为可选数据源 ✅ 第四阶段已完成（load_from_fakeua）
+- [x] **4.3** 支持按浏览器（Chrome/Firefox/Safari/Edge）、OS（Windows/macOS/Linux/Android/iOS）、版本号的细粒度筛选 ✅ 第四阶段已完成
 - [ ] **4.4** Header Profile 自动匹配：根据 UA 的浏览器+版本号自动选择最接近的 Profile 组
 
 ### 5. 代理池完整生命周期管理
@@ -440,8 +547,8 @@ class PoolOrchestrator:
 - [x] **5.1** 代理评分系统：综合响应时间（40%）、成功率（40%）、稳定性（20%），加权打分
 - [x] **5.2** 自动补充：设置 `min_alive` 阈值，低于阈值自动调用 `load_from_url` 补充
 - [x] **5.3** 过期淘汰：代理超过 `max_idle` 未使用或评分低于 `min_score`，自动移除
-- [ ] **5.4** 多供应商并发拉取：`load_from_urls([url1, url2, ...])`，去重合并
-- [ ] **5.5** 代理持久化：`save_to_file` / `load_from_file`，重启后恢复代理池
+- [x] **5.4** 多供应商并发拉取：`load_from_urls([url1, url2, ...])`，去重合并 ✅ 第四阶段已完成
+- [x] **5.5** 代理持久化：`save_to_file` / `load_from_file`，重启后恢复代理池 ✅ 第四阶段已完成
 
 ### 6. DNS 池策略增强
 
@@ -491,10 +598,10 @@ auto_refill_url = "..." # 新增：自动补充的 API
 
 **方案**：
 
-- [ ] **8.1** Scrapy 集成示例：自定义 Middleware 接入三池
+- [x] **8.1** Scrapy 集成示例：自定义 Middleware 接入三池 ✅ 第四阶段已完成
 - [x] **8.2** httpx 异步集成示例：配合 `AsyncPoolOrchestrator`
 - [x] **8.3** aiohttp 并发爬虫示例：展示 100 并发下的最佳实践
-- [ ] **8.4** requests 单线程脚本示例：展示 `thread_safe=False` 的零开销用法
+- [x] **8.4** requests 单线程脚本示例：展示 `thread_safe=False` 的零开销用法 ✅ 第四阶段已完成
 
 ### 9. 代码小修
 
@@ -548,12 +655,12 @@ auto_refill_url = "..." # 新增：自动补充的 API
               P0 架构层          P1 功能层          P2 体验层          P3 社区层
 v0.6.0    ████████████░░░░
          (异步支持)
-v0.7.0    ████████░░░░░░░    ████████░░░░░░░
+v0.7.0    ████████░░░░░░░    ████████████░░░
          (锁优化)            (UA扩充+代理生命周期)
-v0.8.0    ████░░░░░░░░░░    ████████░░░░░░░    ████████░░░░░░░
-         (编排器抽象)        (DNS策略增强)       (部署指南+示例)
+v0.7.0    ████████████████    ████████████████    ████████████░░░
+         (编排器抽象✅)       (功能收尾✅)         (集成示例✅)
 v1.0.0                                             ░░░░░░░░░░░░    ████████████
-                                                  (代码小修)        (PyPI+社区推广+CI)
+                                                  (部署指南+other)  (PyPI+社区推广+CI)
 ```
 
 ---

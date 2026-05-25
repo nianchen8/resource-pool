@@ -15,6 +15,7 @@ from user_agent_pool.agents import (
     _HEADER_PROFILES,
     _PROFILE_LOCK,
     AgentEntry,
+    parse_ua_metadata,
 )
 from resource_pool.base import DummyLock, DummyReadWriteLock, ReadWriteLock, ResourcePool
 
@@ -77,16 +78,20 @@ class UserAgentPool(ResourcePool):
 
     @staticmethod
     def _copy_agent_entry(entry: AgentEntry) -> AgentEntry:
-        """创建 AgentEntry 的浅拷贝（类型安全）"""
+        """创建 AgentEntry 的浅拷贝（类型安全），含元数据字段"""
         copied: AgentEntry = {"ua": entry["ua"], "weight": entry.get("weight", 5)}
-        if "profile" in entry:
-            copied["profile"] = entry["profile"]
+        for key in ("profile", "browser", "os", "version"):
+            if key in entry:
+                copied[key] = entry[key]  # type: ignore[literal-required]
         return copied
 
     # ── 公开 API ─────────────────────────────────────────────────────
 
     def get(self, category: str = CATEGORY_ALL, weighted: bool | None = None,
-            exclude: set[str] | None = None) -> str:
+            exclude: set[str] | None = None,
+            browser: str | None = None,
+            os: str | None = None,
+            min_version: int | None = None) -> str:
         """从池中获取一个 User-Agent 字符串
 
         Args:
@@ -94,6 +99,9 @@ class UserAgentPool(ResourcePool):
             weighted: True=按权重加权随机；False=均匀随机；
                       None=使用池级 strategy 默认值
             exclude: 排除包含这些关键词的 UA（如 {"Firefox", "Linux"}）
+            browser: 限定浏览器（chrome / firefox / safari / edge）
+            os: 限定操作系统（windows / macos / linux / android / ios）
+            min_version: 最低主版本号（如 120 表示 Chrome 120+）
 
         Returns:
             User-Agent 字符串
@@ -101,7 +109,7 @@ class UserAgentPool(ResourcePool):
         Raises:
             PoolExhaustedException: 该分类下无可用 UA
         """
-        candidates = self._pick_candidates(category, exclude)
+        candidates = self._pick_candidates(category, exclude, browser, os, min_version)
         if not candidates:
             logger.error("UA 池分类 '%s' 已耗尽", category)
             raise PoolExhaustedException(resource_type=category)
@@ -111,12 +119,17 @@ class UserAgentPool(ResourcePool):
             return self._weighted_choice(candidates)
         return random.choice(candidates)["ua"]
 
-    def get_all(self, category: str = CATEGORY_ALL, exclude: set[str] | None = None) -> list[str]:
+    def get_all(self, category: str = CATEGORY_ALL, exclude: set[str] | None = None,
+                browser: str | None = None, os: str | None = None,
+                min_version: int | None = None) -> list[str]:
         """获取该分类下所有 UA 字符串（不修改池）"""
-        return [entry["ua"] for entry in self._pick_candidates(category, exclude)]
+        return [entry["ua"] for entry in self._pick_candidates(category, exclude, browser, os, min_version)]
 
     def get_headers(self, category: str = CATEGORY_ALL, weighted: bool | None = None,
-                    exclude: set[str] | None = None) -> dict[str, str]:
+                    exclude: set[str] | None = None,
+                    browser: str | None = None,
+                    os: str | None = None,
+                    min_version: int | None = None) -> dict[str, str]:
         """获取完整的请求头 Profile（包含 User-Agent + 配套请求头）
 
         返回的字典可直接用于 requests.get(url, headers=headers)。
@@ -129,11 +142,14 @@ class UserAgentPool(ResourcePool):
             category: desktop | mobile | tablet | all
             weighted: True=加权；False=均匀；None=使用池级默认策略
             exclude: 排除包含这些关键词的 UA
+            browser: 限定浏览器（chrome / firefox / safari / edge）
+            os: 限定操作系统（windows / macos / linux / android / ios）
+            min_version: 最低主版本号（如 120）
 
         Raises:
             PoolExhaustedException: 该分类下无可用 UA
         """
-        candidates = self._pick_candidates(category, exclude)
+        candidates = self._pick_candidates(category, exclude, browser, os, min_version)
         if not candidates:
             logger.error("UA 池分类 '%s' 已耗尽（get_headers）", category)
             raise PoolExhaustedException(resource_type=category)
@@ -163,12 +179,18 @@ class UserAgentPool(ResourcePool):
         if not ua or not ua.strip():
             raise InvalidAgentException("UA 不能为空")
 
-        entry: AgentEntry = {"ua": ua.strip(), "weight": max(1, weight)}
+        ua_clean = ua.strip()
+        entry: AgentEntry = {"ua": ua_clean, "weight": max(1, weight)}
         if profile:
             entry["profile"] = profile
+        # 自动检测浏览器/操作系统/版本号（用于细粒度筛选）
+        metadata = parse_ua_metadata(ua_clean)
+        for key in ("browser", "os", "version"):
+            if key in metadata:
+                entry[key] = metadata[key]  # type: ignore[literal-required]
         with self._lock.write():
             self._agents.setdefault(category, []).append(entry)
-        logger.debug("UA 已添加: %s → 分类 '%s'", ua[:50], category)
+        logger.debug("UA 已添加: %s → 分类 '%s'", ua_clean[:50], category)
 
     def load_from_file(self, path: str) -> int:
         """从 JSON 或 CSV 文件批量导入 User-Agent
@@ -237,6 +259,82 @@ class UserAgentPool(ResourcePool):
             added, skipped, path,
         )
         return added
+
+    def load_from_fakeua(
+        self,
+        browsers: list[str] | None = None,
+        os: list[str] | None = None,
+        limit: int = 50,
+    ) -> int:
+        """从 fake_useragent 库批量导入 User-Agent（可选依赖）
+
+        需要先安装：``pip install fake-useragent``
+
+        Args:
+            browsers: 限定浏览器类型，如 ["chrome", "firefox"]，
+                      None=全部
+            os: 限定操作系统，如 ["windows", "macos"]，
+                None=全部
+            limit: 最多导入数量
+
+        Returns:
+            成功导入的 UA 数量
+
+        Raises:
+            ImportError: fake_useragent 未安装
+        """
+        try:
+            from fake_useragent import UserAgent as FakeUA
+        except ImportError:
+            raise ImportError(
+                "load_from_fakeua 需要 fake-useragent 库，请执行: pip install fake-useragent"
+            ) from None
+
+        fake_ua = FakeUA(
+            browsers=browsers or ["chrome", "firefox", "safari", "edge"],
+            os=os or ["windows", "macos", "linux"],
+        )
+
+        added = 0
+        seen: set[str] = set()
+        # 收集已有 UA 用于去重
+        with self._lock.read():
+            for entries in self._agents.values():
+                for e in entries:
+                    seen.add(e["ua"])
+
+        for _ in range(limit * 2):  # 尝试 2× limit 以应对重复
+            if added >= limit:
+                break
+            try:
+                ua_str = fake_ua.random
+                if ua_str in seen:
+                    continue
+                seen.add(ua_str)
+                # 根据 UA 特征自动归类
+                category = self._guess_category(ua_str)
+                self.add(ua_str, category)
+                added += 1
+            except Exception:
+                continue
+
+        logger.info(
+            "从 fake_useragent 导入完成: %d 个 UA (limit=%d)",
+            added, limit,
+        )
+        return added
+
+    @staticmethod
+    def _guess_category(ua: str) -> str:
+        """根据 UA 字符串猜测设备分类"""
+        ua_lower = ua.lower()
+        if "mobile" in ua_lower or "iphone" in ua_lower or "android" in ua_lower:
+            if "tablet" in ua_lower or "ipad" in ua_lower:
+                return "tablet"
+            return "mobile"
+        if "tablet" in ua_lower or "ipad" in ua_lower:
+            return "tablet"
+        return "desktop"
 
     @staticmethod
     def _parse_json_file(path: str) -> list[dict[str, object]]:
@@ -407,7 +505,9 @@ class UserAgentPool(ResourcePool):
                         return cat, True
         return "", False
 
-    def _pick_candidates(self, category: str, exclude: set[str] | None = None) -> list[AgentEntry]:
+    def _pick_candidates(self, category: str, exclude: set[str] | None = None,
+                         browser: str | None = None, os: str | None = None,
+                         min_version: int | None = None) -> list[AgentEntry]:
         candidates: list[AgentEntry] = []
         if category == "all":
             with self._lock.read():
@@ -420,6 +520,22 @@ class UserAgentPool(ResourcePool):
             candidates = [
                 e for e in candidates
                 if not any(kw.lower() in e["ua"].lower() for kw in exclude)
+            ]
+        # 细粒度筛选：按浏览器/操作系统/版本号过滤
+        if browser:
+            candidates = [
+                e for e in candidates
+                if e.get("browser", "").lower() == browser.lower()
+            ]
+        if os:
+            candidates = [
+                e for e in candidates
+                if e.get("os", "").lower() == os.lower()
+            ]
+        if min_version is not None:
+            candidates = [
+                e for e in candidates
+                if e.get("version", 0) >= min_version
             ]
         return candidates
 

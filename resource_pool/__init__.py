@@ -46,7 +46,7 @@ from resource_pool.exceptions import PoolExhaustedError, ResourceUnhealthyError
 # ── IDE / 类型检查器可见的静态导入（运行时仍走惰性加载）─────────────
 if TYPE_CHECKING:
     from resource_pool.base import ResourcePool, StrategyProtocol
-    from resource_pool.orchestrator import PoolOrchestrator
+    from resource_pool.orchestrator import PoolOrchestrator, PoolCombo
     from user_agent_pool.pool import UserAgentPool, UAStrategy, UAReserve
     from user_agent_pool.agents import VALID_CATEGORIES, AVAILABLE_PROFILES, get_available_profiles
     from user_agent_pool.exceptions import PoolExhaustedException as UAPoolExhaustedException, InvalidAgentException
@@ -82,6 +82,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "ResourcePool":               ("resource_pool.base", "ResourcePool"),
     "StrategyProtocol":           ("resource_pool.base", "StrategyProtocol"),
     "PoolOrchestrator":           ("resource_pool.orchestrator", "PoolOrchestrator"),
+    "PoolCombo":                  ("resource_pool.orchestrator", "PoolCombo"),
     "ProxyPool":                  ("proxy_pool", "ProxyPool"),
     "ProxyStrategy":              ("proxy_pool", "ProxyStrategy"),
     "ProxyPoolExhaustedException":("proxy_pool.exceptions", "PoolExhaustedException"),
@@ -110,6 +111,7 @@ __all__ = [
     "StrategyProtocol",
     # 编排器
     "PoolOrchestrator",
+    "PoolCombo",
     # UA 池
     "UserAgentPool",
     "UAStrategy",

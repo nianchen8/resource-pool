@@ -2,12 +2,82 @@
 
 import threading
 import logging
-from typing import Any, Iterator
+from typing import Any, Iterator, Mapping
 
 from resource_pool.base import DummyLock, ResourcePool
 from resource_pool.exceptions import PoolExhaustedError
 
 logger = logging.getLogger(__name__)
+
+
+class PoolCombo(Mapping):
+    """多池组合结果的不可变容器
+
+    支持属性访问（``combo.ua``）、字典访问（``combo["ua"]``）、
+    解包（``**combo``）和迭代（``for key, val in combo``）。
+
+    使用示例::
+
+        combo = orch.next()
+        print(combo.ua)           # 属性访问
+        print(combo["dns_ip"])    # 字典访问
+        headers = {**combo}       # 解包为普通 dict
+        for k, v in combo:        # 迭代
+            print(k, v)
+    """
+
+    __slots__ = ("_data",)
+
+    def __init__(self, data: dict[str, Any]) -> None:
+        self._data = {k: v for k, v in data.items()}
+
+    def __getattr__(self, name: str) -> Any:
+        try:
+            return self._data[name]
+        except KeyError:
+            raise AttributeError(
+                f"'PoolCombo' 没有字段 '{name}'，可用字段: {list(self._data.keys())}"
+            ) from None
+
+    def __getitem__(self, key: str) -> Any:
+        return self._data[key]
+
+    def __iter__(self) -> Iterator[str]:
+        yield from self._data
+
+    def __len__(self) -> int:
+        return len(self._data)
+
+    def __contains__(self, key: object) -> bool:
+        return key in self._data
+
+    def __repr__(self) -> str:
+        items = ", ".join(
+            f"{k}={str(v)[:60]!r}" for k, v in self._data.items()
+        )
+        return f"PoolCombo({items})"
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, PoolCombo):
+            return self._data == other._data
+        if isinstance(other, dict):
+            return self._data == other
+        return NotImplemented
+
+    def __hash__(self) -> int:
+        return hash(tuple(sorted(self._data.items())))
+
+    def keys(self) -> Any:
+        return self._data.keys()
+
+    def values(self) -> Any:
+        return self._data.values()
+
+    def items(self) -> Any:
+        return self._data.items()
+
+    def get(self, key: str, default: Any = None) -> Any:
+        return self._data.get(key, default)
 
 
 class PoolOrchestrator:
@@ -93,11 +163,11 @@ class PoolOrchestrator:
 
     # ── 组合获取 ─────────────────────────────────────────────────────
 
-    def next(self) -> dict[str, Any]:
+    def next(self) -> PoolCombo:
         """获取一组组合资源（每池各取一个最优）
 
         Returns:
-            ``{"ua": "Mozilla/5.0...", "dns_ip": "8.8.8.8", "proxy": "http://..."}``
+            ``PoolCombo`` 对象，支持属性访问（``combo.ua``）和字典访问（``combo["ua"]``）
 
         Raises:
             RuntimeError: 某个池已耗尽且无法 fallback
@@ -112,16 +182,16 @@ class PoolOrchestrator:
                 logger.error("编排器从 '%s' 获取资源失败: %s", name, exc)
                 raise
         logger.debug("编排器返回组合: %s", {k: str(v)[:60] for k, v in combo.items()})
-        return combo
+        return PoolCombo(combo)
 
-    def combos(self, limit: int | None = None) -> Iterator[dict[str, Any]]:
+    def combos(self, limit: int | None = None) -> Iterator[PoolCombo]:
         """生成组合资源迭代器
 
         Args:
             limit: 最多返回几组，None=无限（需外部停止）
 
         Yields:
-            每池各取一个资源的组合字典
+            PoolCombo 对象（每次迭代每池各取一个资源）
         """
         count = 0
         while limit is None or count < limit:

@@ -1,4 +1,4 @@
-# Resource Pool ![version](https://img.shields.io/badge/version-1.0.3-blue)
+# Resource Pool ![version](https://img.shields.io/badge/version-1.0.4-blue)
 
 > 一套可扩展的网络资源池框架，为爬虫工程提供开箱即用的资源调度能力。
 
@@ -325,6 +325,7 @@ except ResourceUnhealthyError:
 - 单线程脚本可传 `thread_safe=False` 关闭所有锁开销
 - DNS 池配合缓存命中率可大幅降低锁持有时间
 - 编排器内部 `_fetch_from_pool` 在锁外执行，并发友好
+- 异步版 `AsyncProxyPool.get()` 选择逻辑在锁外执行（纯计算），仅状态读/写持锁，避免协程串行化
 - 长期运行的服务可定期调用 `dns_pool.close()` 释放退出的线程本地对象
 
 ---
@@ -409,6 +410,15 @@ class CookiePool(ResourcePool):
 ---
 
 ## 更新日志
+
+### v1.0.4 (2026-05-26)
+
+- 🛡️ **AsyncProxyPool 锁粒度优化**：`get()`/`get_dict()` 选择逻辑移出锁外，内部方法（`_get_alive`/`_try_revive`/`_on_success`）各自加锁，与同步版并发模型一致，避免协程串行化
+- 🛡️ **AsyncDNSResolverPool TOCTOU 修复**：`_try_revive` 时间戳检查纳入锁范围，与同步版对齐
+- 🛡️ **协程检测健壮化**：`_fetch_from_pool_async` 使用 `inspect.isawaitable()` 替代 `asyncio.iscoroutine()`
+- 🛡️ **编排器弃用警告**：同步/异步版 hasattr 回退添加 `logger.warning` 弃用提示，引导用户使用 `register_dispatch()`
+- ⚡ **加权选择优化**：`_weighted_pick` 使用 `random.choices` 替代手动累积，消除浮点误差
+- 📝 注释与测试命名修正
 
 ### v1.0.3 (2026-05-26)
 

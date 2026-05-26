@@ -1,6 +1,6 @@
 # 生产环境部署指南
 
-> 适用版本：v1.0.3+ | 最后更新：2026-05-26
+> 适用版本：v1.0.4+ | 最后更新：2026-05-26
 
 本指南覆盖 resource-pool 在生产环境中的配置、监控、排障和最佳实践。
 
@@ -379,20 +379,18 @@ graph TB
 中层：add、remove、mark_failed（公共 API 层持 asyncio.Lock）
     │  持有时间：微秒-毫秒级，中频
     ▼
-低层：get、get_headers、get_dict、resolve（快照模式：持锁选节点 → 释放锁 → 执行 I/O）
-    │  持有时间：微秒级，高频
-    ▼
-内部：_pick_one、_get_alive、_try_revive、_on_success（无锁）
-    │  由外层公共 API 统一持锁调用，避免 asyncio.Lock 不可重入死锁
+低层：_get_alive、_try_revive、_on_success（内部方法各自加锁，get 不持外层锁）
+    │  持有时间：微秒级，高频。get() 仅在调用这些方法时短暂持锁，
+    │  策略选择（排序/随机/轮询）在锁外执行，与同步版并发模型一致
     ▼
 无锁：_do_resolve、_probe_proxy（I/O 密集，asyncio.to_thread 或原生异步 I/O）
 ```
 
-> **设计要点**：异步版 `asyncio.Lock` 不可重入，内部辅助方法不加锁，
-> 由 `get()`/`add()` 等公共 API 统一获取锁后调用。
+> **设计变更（v1.0.4）**：`AsyncProxyPool.get()`/`get_dict()` 不再整个方法体持锁，
+> 而是内部方法（`_get_alive`/`_try_revive`/`_on_success`/`_pick_one`）各自加锁，
+> 选择逻辑在锁外执行。这与同步版 ProxyPool 的并发模型完全一致，
+> 避免了之前 `async with self._lock` 包裹整个 get() 导致的协程串行化问题。
 > 文件 I/O 和 HTTP 请求通过 `asyncio.to_thread` 在后台线程执行，不阻塞事件循环。
-> `resolve()` 采用快照模式：持锁选取最优 DNS 节点后立即释放，
-> 实际 DNS 查询在锁外进行，避免 I/O 阻塞所有协程。
 
 ### 4.2 锁层级说明（同步版）
 

@@ -1,6 +1,6 @@
 # resource-pool 异常体系文档
 
-> 版本：v1.0.0 | 最后更新：2026-05-26
+> 版本：v1.0.4 | 最后更新：2026-05-26
 
 ---
 
@@ -261,6 +261,7 @@ class MyPool(ResourcePool):
 
 | 日期       | 变更内容                                           |
 |-----------|---------------------------------------------------|
+| 2026-05-26 | v1.0.4：第二轮深度审查修复——AsyncProxyPool 锁粒度优化、AsyncDNSResolverPool TOCTOU 修复、iscoroutine→isawaitable、hasattr 弃用警告、_weighted_pick 浮点误差消除 |
 | 2026-05-26 | v1.0.3：异步池功能补齐（AsyncProxyPool + AsyncUserAgentPool API 完全对等）+ __repr__ 锁一致 + 编排器异常完整性 + CI/ruff 修复 |
 | 2026-05-26 | v1.0.0 深度审查：异步池并发安全加固（5 中+8 轻 → 0 中+3 设计权衡），274 测试全部通过 |
 | 2026-05-25 | 修复 P0/P1/P2 所有已知问题，全部 142 测试通过        |

@@ -134,16 +134,16 @@ class AsyncDNSResolverPool(AsyncResourcePool):
             return cached[0]
 
         last_err: Exception | None = None
-        for state in self._select_sequence():
+        for state in await self._select_sequence():
             try:
                 ips = await self._do_resolve(state, domain, record_type, timeout)
-                self._on_success(state, len(ips))
+                await self._on_success(state, len(ips))
                 result = ips[0]
                 await self._cache_set(cache_key, ips)
                 return result
             except Exception as exc:
                 logger.warning("DNS %s 解析 %s 失败: %s", state.ip, domain, exc)
-                self._on_fail(state)
+                await self._on_fail(state)
                 last_err = exc
                 continue
 
@@ -162,15 +162,15 @@ class AsyncDNSResolverPool(AsyncResourcePool):
             return cached
 
         last_err: Exception | None = None
-        for state in self._select_sequence():
+        for state in await self._select_sequence():
             try:
                 ips = await self._do_resolve(state, domain, record_type, timeout)
-                self._on_success(state, len(ips))
+                await self._on_success(state, len(ips))
                 await self._cache_set(cache_key, ips)
                 return ips
             except Exception as exc:
                 logger.warning("DNS %s resolve_all %s 失败: %s", state.ip, domain, exc)
-                self._on_fail(state)
+                await self._on_fail(state)
                 last_err = exc
                 continue
 
@@ -259,10 +259,10 @@ class AsyncDNSResolverPool(AsyncResourcePool):
     async def get_server(self) -> str:
         """返回当前最优 DNS 服务器的 IP（供编排器调用）"""
         alive = self._get_alive()
-        self._try_revive()
+        await self._try_revive()
         if not alive:
             raise PoolExhaustedException("DNS 服务器", "无可用 DNS 服务器")
-        it = self._select_sequence()
+        it = await self._select_sequence()
         try:
             return next(it).ip
         except StopIteration:
@@ -270,13 +270,15 @@ class AsyncDNSResolverPool(AsyncResourcePool):
 
     async def clear_cache(self) -> None:
         """清空 DNS 解析缓存（协程安全，获取所有分片锁）"""
-        for lock in self._cache_locks:
-            await lock.acquire()
+        acquired: list = []
         try:
+            for lock in self._cache_locks:
+                await lock.acquire()
+                acquired.append(lock)
             self._cache.clear()
             self._cache_order.clear()
         finally:
-            for lock in self._cache_locks:
+            for lock in reversed(acquired):
                 lock.release()
 
     async def close(self) -> None:
@@ -335,9 +337,9 @@ class AsyncDNSResolverPool(AsyncResourcePool):
             self._strategy_enum = None
             self._strategy_fn = value
 
-    def _select_sequence(self):
+    async def _select_sequence(self):
         alive = self._get_alive()
-        self._try_revive()
+        await self._try_revive()
         if not alive:
             return iter(())
 
@@ -354,8 +356,7 @@ class AsyncDNSResolverPool(AsyncResourcePool):
             return self._strategy_fn(alive)
         return iter(())
 
-    @staticmethod
-    async def _do_resolve(state: AsyncServerState, domain: str,
+    async def _do_resolve(self, state: AsyncServerState, domain: str,
                           record_type: str, timeout: float) -> list[str]:
         resolver = state.get_resolver()
         resolver.timeout = timeout
@@ -364,6 +365,7 @@ class AsyncDNSResolverPool(AsyncResourcePool):
         try:
             answer = await resolver.resolve(domain, record_type)
             elapsed = (time.monotonic() - start) * 1000
+            # asyncio 单线程下写入原子安全；暂不加锁避免 async-lock 嵌套复杂性
             state.latency_ms = state.latency_ms * 0.7 + elapsed * 0.3 if state.latency_ms else elapsed
             return [str(r) for r in answer]
         except dns.exception.DNSException as exc:
@@ -386,34 +388,38 @@ class AsyncDNSResolverPool(AsyncResourcePool):
     def _get_alive(self) -> list[AsyncServerState]:
         return [s for s in self._servers if s.enabled]
 
-    def _try_revive(self) -> None:
+    async def _try_revive(self) -> None:
+        """检查并复活超时隔离的 DNS 服务器（锁内操作，与同步版一致）"""
         now = time.time()
-        # 注意：asyncio 单线程下简单属性访问原子安全，此处仅做时间戳防抖
-        if now - self._last_revive_check < 30:
-            return
-        self._last_revive_check = now
-        for s in self._servers:
-            if not s.enabled and (now - s.last_health) > self._revive_after:
-                s.enabled = True
-                # 只给一次机会：再失败立即重新隔离
-                s.consecutive_fails = max(0, self._max_fails - 1)
-                logger.info("DNS %s (%s) 超过复活时间，已重新启用（试用中）", s.ip, s.name)
+        async with self._lock:
+            # 时间戳检查纳入锁范围，避免多协程重复复活（与同步版对齐）
+            if now - self._last_revive_check < 30:
+                return
+            self._last_revive_check = now
+            for s in self._servers:
+                if not s.enabled and (now - s.last_health) > self._revive_after:
+                    s.enabled = True
+                    # 只给一次机会：再失败立即重新隔离
+                    s.consecutive_fails = max(0, self._max_fails - 1)
+                    logger.info("DNS %s (%s) 超过复活时间，已重新启用（试用中）", s.ip, s.name)
 
-    def _on_success(self, state: AsyncServerState, _ip_count: int) -> None:
-        state.success_count += 1
-        state.consecutive_fails = 0
-        state.last_used = time.time()
+    async def _on_success(self, state: AsyncServerState, _ip_count: int) -> None:
+        async with self._lock:
+            state.success_count += 1
+            state.consecutive_fails = 0
+            state.last_used = time.time()
 
-    def _on_fail(self, state: AsyncServerState) -> None:
-        state.fail_count += 1
-        state.consecutive_fails += 1
-        state.last_used = time.time()
-        if state.consecutive_fails >= self._max_fails:
-            state.enabled = False
-            logger.warning(
-                "DNS %s (%s) 连续失败 %d 次，已隔离（resolve 触发）",
-                state.ip, state.name, state.consecutive_fails,
-            )
+    async def _on_fail(self, state: AsyncServerState) -> None:
+        async with self._lock:
+            state.fail_count += 1
+            state.consecutive_fails += 1
+            state.last_used = time.time()
+            if state.consecutive_fails >= self._max_fails:
+                state.enabled = False
+                logger.warning(
+                    "DNS %s (%s) 连续失败 %d 次，已隔离（resolve 触发）",
+                    state.ip, state.name, state.consecutive_fails,
+                )
 
     # ── 选择策略 ─────────────────────────────────────────────────────
 

@@ -258,14 +258,15 @@ class DNSResolverPool(ResourcePool):
 
     def clear_cache(self) -> None:
         """清空 DNS 解析缓存（线程安全，获取所有分片锁）"""
-        # 按顺序获取所有分片锁，避免死锁
-        for lock in self._cache_locks:
-            lock.acquire()
+        acquired: list = []
         try:
+            for lock in self._cache_locks:
+                lock.acquire()
+                acquired.append(lock)
             self._cache.clear()
             self._cache_order.clear()
         finally:
-            for lock in self._cache_locks:
+            for lock in reversed(acquired):
                 lock.release()
 
     def close(self) -> None:
@@ -336,8 +337,7 @@ class DNSResolverPool(ResourcePool):
             return self._strategy_fn(alive)
         return iter(())
 
-    @staticmethod
-    def _do_resolve(state: ServerState, domain: str, record_type: str, timeout: float) -> list[str]:
+    def _do_resolve(self, state: ServerState, domain: str, record_type: str, timeout: float) -> list[str]:
         # 通过 ServerState 公开方法获取每线程独立 Resolver 实例
         # 多线程场景：每线程复用独立 Resolver，无锁无争用
         # 单线程场景：等价于复用同一 Resolver
@@ -348,8 +348,8 @@ class DNSResolverPool(ResourcePool):
         try:
             answer = resolver.resolve(domain, record_type)
             elapsed = (time.monotonic() - start) * 1000
-            # 加锁保护 latency_ms 写入，兼容 Python 3.13 free-threaded
-            state.latency_ms = state.latency_ms * 0.7 + elapsed * 0.3 if state.latency_ms else elapsed
+            with self._lock:
+                state.latency_ms = state.latency_ms * 0.7 + elapsed * 0.3 if state.latency_ms else elapsed
             return [str(r) for r in answer]
         except dns.exception.DNSException as exc:
             raise ResourceUnhealthyException(state.ip, str(exc)) from exc

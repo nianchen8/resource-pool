@@ -307,7 +307,8 @@ class ProxyPool(ResourcePool):
     def _parse_response(body: str, default_scheme: str) -> list[ProxyEntry]:
         """解析 API 响应，返回 ProxyEntry 列表
 
-        自动检测 JSON / 纯文本格式。
+        JSON 解析成功则仅从 JSON 结果提取（不回落纯文本），
+        JSON 解析失败（非 JSON 格式）则回退到文本逐行解析。
         """
         # ── 尝试 JSON ──
         if body.startswith(("{", "[")):
@@ -412,6 +413,9 @@ class ProxyPool(ResourcePool):
                 elif token.startswith("http://"):
                     detected_scheme = "http"  # noqa: S105
                     token = token.removeprefix("http://")
+                elif token.startswith("socks5://"):
+                    detected_scheme = "socks5"
+                    token = token.removeprefix("socks5://")
                 token = token.rstrip(",;")
                 if token and ":" in token:
                     tokens.append((token, detected_scheme))
@@ -521,6 +525,8 @@ class ProxyPool(ResourcePool):
             raise ValueError(f"无效 scheme '{scheme}'，可选: {VALID_SCHEMES}")
         if "host" not in entry or "port" not in entry:
             raise ValueError("ProxyEntry 必须包含 host 和 port")
+        if not (0 < int(entry.get("port", 0)) < 65536):
+            raise ValueError(f"端口号无效: {entry.get('port')}")
 
         state = ProxyState(entry)
         with self._lock:
@@ -802,8 +808,7 @@ class ProxyPool(ResourcePool):
                 return None
         return None
 
-    @staticmethod
-    def _probe_proxy(state: ProxyState, timeout: float) -> bool:
+    def _probe_proxy(self, state: ProxyState, timeout: float) -> bool:
         """通过代理访问探测 URL，测试连通性
 
         先做 socket 快速预检（排除僵死端口），再走 HTTP 验证。
@@ -831,8 +836,8 @@ class ProxyPool(ResourcePool):
             req = urllib.request.Request(target, method="HEAD")
             opener.open(req, timeout=timeout)
             elapsed = (time.monotonic() - start) * 1000
-            # 加锁保护 latency_ms 写入，兼容 Python 3.13 free-threaded
-            state.latency_ms = state.latency_ms * 0.7 + elapsed * 0.3 if state.latency_ms else elapsed
+            with self._lock:
+                state.latency_ms = state.latency_ms * 0.7 + elapsed * 0.3 if state.latency_ms else elapsed
             return True
         except OSError:
             return False

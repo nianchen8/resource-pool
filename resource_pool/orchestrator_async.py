@@ -4,6 +4,7 @@
 """
 
 import asyncio
+import inspect
 import logging
 from typing import Any, AsyncIterator
 
@@ -160,25 +161,31 @@ class AsyncPoolOrchestrator:
                     return await method()
                 return method()
 
-        # ── 2. hasattr 兜底 ──
+        # ── 2. hasattr 兜底（已弃用，将在未来版本移除） ──
+        # 请使用 AsyncPoolOrchestrator.register_dispatch() 注册自定义池。
+        logger.warning(
+            "池 '%s' (%s) 未注册分派，使用 hasattr 回退（已弃用）。"
+            "请调用 AsyncPoolOrchestrator.register_dispatch() 显式注册。",
+            name, type(pool).__name__,
+        )
         if hasattr(pool, "get_dict"):
             result = pool.get_dict()
-            if asyncio.iscoroutine(result):
+            if inspect.isawaitable(result):
                 return await result
             return result
         if hasattr(pool, "get_headers"):
             result = pool.get_headers()
-            if asyncio.iscoroutine(result):
+            if inspect.isawaitable(result):
                 return await result
             return result
         if hasattr(pool, "get"):
             result = pool.get()
-            if asyncio.iscoroutine(result):
+            if inspect.isawaitable(result):
                 return await result
             return result
         if hasattr(pool, "get_server"):
             result = pool.get_server()
-            if asyncio.iscoroutine(result):
+            if inspect.isawaitable(result):
                 return await result
             return result
         raise RuntimeError(f"'{name}' ({type(pool).__name__}) 无可用的资源获取方法")

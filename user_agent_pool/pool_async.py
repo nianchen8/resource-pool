@@ -437,16 +437,14 @@ class AsyncUserAgentPool(AsyncResourcePool):
 
     @staticmethod
     def _weighted_pick(entries: list[AgentEntry]) -> AgentEntry:
-        total = sum(e["weight"] for e in entries)
-        if total == 0:
+        """加权随机选择一个条目（返回完整 entry）
+
+        使用 random.choices 替代手动累积求和，避免浮点累积误差。
+        """
+        weights = [e["weight"] for e in entries]
+        if sum(weights) == 0:
             return random.choice(entries)
-        r = random.uniform(0, total)
-        cumulative = 0.0
-        for entry in entries:
-            cumulative += entry["weight"]
-            if r <= cumulative:
-                return entry
-        return entries[-1]
+        return random.choices(entries, weights=weights, k=1)[0]
 
     @staticmethod
     def _weighted_choice(entries: list[AgentEntry]) -> str:
@@ -484,6 +482,9 @@ class AsyncUserAgentPool(AsyncResourcePool):
                     )
 
         if profile_key:
+            # _PROFILE_LOCK 是 threading.Lock，用于保护模块级 _HEADER_PROFILES 访问
+            # 在 asyncio 单线程场景下不会阻塞事件循环（无竞争，仅 dict.get）
+            # 多线程+asyncio 场景下持锁时间极短（<1μs），对事件循环影响可忽略
             with _PROFILE_LOCK:
                 profile_data = _HEADER_PROFILES.get(profile_key)
             if profile_data is not None:

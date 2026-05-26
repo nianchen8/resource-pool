@@ -543,17 +543,14 @@ class UserAgentPool(ResourcePool):
 
     @staticmethod
     def _weighted_pick(entries: list[AgentEntry]) -> AgentEntry:
-        """加权随机选择一个条目（返回完整 entry）"""
-        total = sum(e["weight"] for e in entries)
-        if total == 0:
+        """加权随机选择一个条目（返回完整 entry）
+
+        使用 random.choices 替代手动累积求和，避免浮点累积误差。
+        """
+        weights = [e["weight"] for e in entries]
+        if sum(weights) == 0:
             return random.choice(entries)
-        r = random.uniform(0, total)
-        cumulative = 0.0
-        for entry in entries:
-            cumulative += entry["weight"]
-            if r <= cumulative:
-                return entry
-        return entries[-1]
+        return random.choices(entries, weights=weights, k=1)[0]
 
     @staticmethod
     def _weighted_choice(entries: list[AgentEntry]) -> str:

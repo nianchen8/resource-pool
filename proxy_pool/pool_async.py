@@ -128,23 +128,28 @@ class AsyncProxyPool(AsyncResourcePool):
     # ── 公开 API ─────────────────────────────────────────────────────
 
     async def get(self, scheme: str | None = None) -> str:
-        """获取一个代理 URL"""
-        async with self._lock:
-            state = self._pick_one(scheme)
-            if state is None:
-                raise PoolExhaustedException(detail="无可用代理")
-            self._on_success(state)
-            return state.url
+        """获取一个代理 URL
+
+        选择逻辑在锁外执行（纯计算），仅状态访问/修改走锁，
+        与同步版 ProxyPool 保持一致的并发模型，避免协程串行化。
+        """
+        state = await self._pick_one(scheme)
+        if state is None:
+            raise PoolExhaustedException(detail="无可用代理")
+        await self._on_success(state)
+        return state.url
 
     async def get_dict(self, scheme: str | None = None) -> dict[str, str]:
-        """获取 requests 库兼容的代理字典"""
-        async with self._lock:
-            state = self._pick_one(scheme)
-            if state is None:
-                raise PoolExhaustedException(detail="无可用代理")
-            url = state.url
-            self._on_success(state)
-            return {"http": url, "https": url}
+        """获取 requests 库兼容的代理字典
+
+        选择逻辑在锁外执行（纯计算），仅状态访问/修改走锁。
+        """
+        state = await self._pick_one(scheme)
+        if state is None:
+            raise PoolExhaustedException(detail="无可用代理")
+        url = state.url
+        await self._on_success(state)
+        return {"http": url, "https": url}
 
     async def add_proxy(self, entry: ProxyEntry) -> None:
         """添加代理（协程安全）"""
@@ -153,6 +158,8 @@ class AsyncProxyPool(AsyncResourcePool):
             raise ValueError(f"无效 scheme '{scheme}'，可选: {VALID_SCHEMES}")
         if "host" not in entry or "port" not in entry:
             raise ValueError("ProxyEntry 必须包含 host 和 port")
+        if not (0 < int(entry.get("port", 0)) < 65536):
+            raise ValueError(f"端口号无效: {entry.get('port')}")
 
         state = AsyncProxyState(entry)
         async with self._lock:
@@ -608,6 +615,7 @@ class AsyncProxyPool(AsyncResourcePool):
         self._strategy = value
 
     def __repr__(self) -> str:
+        # asyncio 单线程环境下简单属性读取原子安全
         alive = sum(1 for s in self._proxies if s.enabled)
         total = len(self._proxies)
         if self._strategy_fn is not None:
@@ -624,15 +632,20 @@ class AsyncProxyPool(AsyncResourcePool):
 
     # ── 内部 ─────────────────────────────────────────────────────────
 
-    def _pick_one(self, scheme: str | None) -> AsyncProxyState | None:
-        alive = self._get_alive()
+    async def _pick_one(self, scheme: str | None) -> AsyncProxyState | None:
+        """按策略选一个可用代理
+
+        锁仅保护状态读（_get_alive）和复活（_try_revive），
+        策略选择（排序/随机/轮询偏移更新）在锁外执行，减少锁持有时间。
+        """
+        alive = await self._get_alive()
         if scheme:
             alive = [s for s in alive if s.scheme == scheme]
-        self._try_revive()
+        await self._try_revive()
         if not alive:
             return None
 
-        # 优先枚举策略，其次 callable
+        # 优先枚举策略，其次 callable（纯计算，锁外执行）
         if self._strategy_enum is not None:
             strat = self._strategy_enum
             if strat == ProxyStrategy.LATENCY_WEIGHTED:
@@ -642,8 +655,9 @@ class AsyncProxyPool(AsyncResourcePool):
                 )
                 return ordered[0]
             if strat == ProxyStrategy.ROUND_ROBIN:
-                self._rr_index = (self._rr_index + 1) % len(alive)
-                return alive[self._rr_index]
+                async with self._lock:
+                    self._rr_index = (self._rr_index + 1) % len(alive)
+                    return alive[self._rr_index]
             if strat == ProxyStrategy.RANDOM:
                 return random.choice(alive)
             return None
@@ -702,24 +716,32 @@ class AsyncProxyPool(AsyncResourcePool):
             pass
         return False
 
-    def _get_alive(self) -> list[AsyncProxyState]:
-        return [s for s in self._proxies if s.enabled]
+    async def _get_alive(self) -> list[AsyncProxyState]:
+        """获取存活代理快照（锁内操作，返回独立 list）"""
+        async with self._lock:
+            return [s for s in self._proxies if s.enabled]
 
-    def _try_revive(self) -> None:
+    async def _try_revive(self) -> None:
+        """检查并复活超时隔离的代理（锁内操作，与同步版一致）"""
         now = time.time()
-        if now - self._last_revive_check < 30:
-            return
-        self._last_revive_check = now
-        for s in self._proxies:
-            if not s.enabled and (now - s.last_health) > self._revive_after:
-                s.enabled = True
-                s.consecutive_fails = max(0, self._max_fails - 1)
-                logger.info("代理 %s 超过复活时间，已重新启用（试用中）", s.masked_url)
+        async with self._lock:
+            # 时间戳检查纳入锁范围，避免多协程重复复活
+            if now - self._last_revive_check < 30:
+                return
+            self._last_revive_check = now
+            for s in self._proxies:
+                if not s.enabled and (now - s.last_health) > self._revive_after:
+                    s.enabled = True
+                    # 只给一次机会：再失败立即重新隔离
+                    s.consecutive_fails = max(0, self._max_fails - 1)
+                    logger.info("代理 %s 超过复活时间，已重新启用（试用中）", s.masked_url)
 
-    def _on_success(self, state: AsyncProxyState) -> None:
-        state.success_count += 1
-        state.consecutive_fails = 0
-        state.last_used = time.time()
+    async def _on_success(self, state: AsyncProxyState) -> None:
+        """记录一次成功的代理选取（锁内操作）"""
+        async with self._lock:
+            state.success_count += 1
+            state.consecutive_fails = 0
+            state.last_used = time.time()
 
 
 # ── 自动注册到异步编排器 ──

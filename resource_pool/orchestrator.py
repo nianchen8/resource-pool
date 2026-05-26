@@ -65,7 +65,9 @@ class PoolCombo(Mapping):
         return NotImplemented
 
     def __hash__(self) -> int:
-        return hash(tuple(sorted(self._data.items())))
+        # 仅用 key 做 hash：combo 中的 value 可能是 dict（如 get_headers 返回的 headers）
+        # dict 不可哈希，直接用 keys 的 frozenset 确保稳定性
+        return hash(frozenset(self._data.keys()))
 
     def keys(self) -> Any:
         return self._data.keys()
@@ -243,7 +245,13 @@ class PoolOrchestrator:
             if isinstance(pool, pool_type):
                 return getattr(pool, method_name)()
 
-        # ── 2. hasattr 兜底（向后兼容，未来版本将移除） ──
+        # ── 2. hasattr 兜底（已弃用，将在未来版本移除） ──
+        # 请使用 PoolOrchestrator.register_dispatch() 注册自定义池。
+        logger.warning(
+            "池 '%s' (%s) 未注册分派，使用 hasattr 回退（已弃用）。"
+            "请调用 PoolOrchestrator.register_dispatch() 显式注册。",
+            name, type(pool).__name__,
+        )
         if hasattr(pool, "get_dict"):
             return pool.get_dict()
         if hasattr(pool, "get_headers"):

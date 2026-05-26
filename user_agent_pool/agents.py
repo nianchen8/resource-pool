@@ -349,13 +349,16 @@ def _parse_profile_key(key: str) -> tuple[str, str, str]:
 
 
 def _build_profile_key_cache() -> dict[str, tuple[str, str, str]]:
-    """构建 Profile 键解析缓存"""
+    """构建 Profile 键解析缓存（双检锁模式）"""
     global _profile_key_cache
-    if _profile_key_cache is None:
-        with _PROFILE_LOCK:
-            _profile_key_cache = {
-                k: _parse_profile_key(k) for k in _HEADER_PROFILES
-            }
+    if _profile_key_cache is not None:
+        return _profile_key_cache
+    with _PROFILE_LOCK:
+        # 双重检查：锁内再次验证，防止锁外检查到锁获取之间已有线程完成构建
+        if _profile_key_cache is None:
+            # 先构建局部变量再赋值，避免 free-threaded 下赋值重排序
+            data = {k: _parse_profile_key(k) for k in _HEADER_PROFILES}
+            _profile_key_cache = data
     return _profile_key_cache
 
 

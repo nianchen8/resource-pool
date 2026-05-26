@@ -572,8 +572,8 @@ class TestLoadFromURLErrors:
         assert call_req.get_header("Authorization") == "Bearer token123"
 
     @patch("urllib.request.urlopen")
-    def test_load_from_url_bad_json_still_fallsback_to_text(self, mock_urlopen):
-        """JSON 解析失败时回退到纯文本解析"""
+    def test_load_from_url_valid_json_no_proxy_data_raises(self, mock_urlopen):
+        """合法 JSON 但不含代理数据 → 抛出 ValueError（无可用代理回退到文本解析）"""
         mock_urlopen.return_value = _mock_response(
             json.dumps({"broken": [1, 2, 3]})
         )

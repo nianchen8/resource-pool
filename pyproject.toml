@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "resource-pool"
-version = "1.0.5"
+version = "1.0.6"
 description = "可扩展的网络资源池框架，内置 User-Agent 池（含 Header Profile 组）+ DNS 解析器池 + 代理池"
 readme = "README.md"
 license = { text = "MIT" }
@@ -40,6 +40,6 @@ include = ["resource_pool*", "user_agent_pool*", "dns_resolver_pool*", "proxy_po
 
 [tool.setuptools.package-data]
 "resource_pool" = ["py.typed"]
-"user_agent_pool" = ["py.typed"]
+"user_agent_pool" = ["py.typed", "headers_pool.jsonl"]
 "dns_resolver_pool" = ["py.typed"]
 "proxy_pool" = ["py.typed"]

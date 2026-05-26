@@ -1,4 +1,4 @@
-# Resource Pool ![version](https://img.shields.io/badge/version-1.0.5-blue)
+# Resource Pool ![version](https://img.shields.io/badge/version-1.0.6-blue)
 
 > 可扩展的爬虫资源池微框架 —— **爬虫三件套**开箱即用，同步/异步双模。
 
@@ -28,7 +28,7 @@ print(c.ua, c.proxy, c.dns)
 
 | 资源 | 无池 | 有池 |
 |------|------|------|
-| User-Agent | 固定一个，高频秒被识别 | 22+ UA + 20 组完整 Header Profile，加权随机，支持细粒度筛选 |
+| User-Agent | 固定一个，高频秒被识别 | 22+ 内置 UA + 830 条本地数据集 + 20 组 Header Profile 自动匹配，支持 fake_useragent 远程扩充+自动降级 |
 | DNS 解析 | 单点 DNS 频次过高被限流 | 14 台 DNS 轮换 + LRU 缓存（16路分片锁）+ 故障隔离 + 自动复活 |
 | 代理 | 单代理被封全部瘫痪 | HTTP/HTTPS/SOCKS5 代理池，质量评分 + 自动淘汰补充 + 持久化 |
 
@@ -51,7 +51,7 @@ import resource_pool
 
 # 换 UA
 ua = resource_pool.UA()
-headers = ua.headers()                   # dict，直接传给 requests
+headers = ua.headers()                   # dict，完整反爬请求头（Profile 自动匹配）
 
 # 换代理
 proxy = resource_pool.Proxy("1.2.3.4:8080")
@@ -122,11 +122,11 @@ requests.get(url, headers=c.ua, proxies=c.proxy)
 
 ```
 resource_pool/        ← 统一入口 + 框架层 (ABC / 编排器 / 锁基础设施)
-user_agent_pool/      ← UA 池 (22 UA + 20 Profile + 细粒度筛选)
+user_agent_pool/      ← UA 池 (22 UA + 830 JSONL + 20 Profile + 细粒度筛选)
 dns_resolver_pool/    ← DNS 池 (14 DNS + 16路缓存分片 + ContextVar)
 proxy_pool/           ← 代理池 (评分系统 + 9种格式解析 + 持久化)
 examples/             ← 5 个可运行示例
-tests/                ← 274 个测试 (覆盖率 94%+)
+tests/                ← 275 个测试 (覆盖率 94%+)
 docs/
 ├── guides/
 │   ├── quickstart.md  ← 新手 5 分钟入门
@@ -141,6 +141,17 @@ docs/
 ---
 
 ## 更新日志
+
+### v1.0.6 (2026-05-26)
+
+- 🚀 **本地 UA 数据集**：打包 830 条 headers_pool.jsonl，fake_useragent 不可用时自动降级
+- 🚀 **降级策略**：远程 fake_useragent 优先，不可用/UA 过少时自动回退本地
+- 🚀 **JSONL 导入**：`load_from_file()` 支持 `.jsonl` 格式
+- 🛡️ **架构一致**：所有数据源统一走 Profile 匹配组装请求头
+
+### v1.0.5 (2026-05-26)
+
+- 🚀 **短别名封装层**：`import resource_pool` 一行搞定日常使用
 
 ### v1.0.4 (2026-05-26)
 

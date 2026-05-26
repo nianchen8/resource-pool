@@ -1,6 +1,6 @@
 # 生产环境部署指南
 
-> 适用版本：v1.0.4+ | 最后更新：2026-05-26
+> 适用版本：v1.0.6+ | 最后更新：2026-05-26
 
 本指南覆盖 resource-pool 在生产环境中的配置、监控、排障和最佳实践。
 
@@ -25,6 +25,8 @@ thread_safe = true
 
 [ua_pool.fake_useragent]
 # 是否使用 fake_useragent 扩充 UA 数据库
+# 远程优先策略：fake_useragent 可用时取其 UA + Profile 组装请求头
+# 返回 UA 数量 < 5 时自动降级到包内置 headers_pool.jsonl (830 条)
 enabled = false
 browsers = ["chrome", "firefox", "safari", "edge"]
 os = ["windows", "macos", "linux"]

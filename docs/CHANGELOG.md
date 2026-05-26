@@ -1,5 +1,14 @@
 # 更新日志
 
+## v1.0.6 (2026-05-26)
+
+- 🚀 **本地 UA 数据集（headers_pool.jsonl）**：打包 830 条多浏览器/多平台 UA 到 `user_agent_pool/headers_pool.jsonl`，`load_from_fakeua()` 不可用时自动降级
+- 🚀 **fake_useragent 降级策略**：`load_from_fakeua()` 远程优先：fake_useragent 可用时取其 UA + 架构 Profile 组装请求头；返回 < 5 条时自动回退到本地 jsonl 数据集
+- 🚀 **JSONL 文件导入**：`load_from_file()` 新增 `.jsonl` 格式支持（每行一个 JSON 对象）
+- 🛡️ **架构一致性**：jsonl 仅提取 UA 字符串，请求头统一走 Profile 匹配机制组装，不再使用预制 headers。`load_from_fakeua()` 和本地降级走同一套 pipeline
+- 🔧 `AgentEntry` TypedDict 新增 `headers` 字段支持内联完整请求头（供高级用户自定义使用）
+- 🔧 `_build_headers` 优先级：内联 headers > 显式 profile > 自动匹配 > 仅 UA
+
 ## v1.0.5 (2026-05-26)
 
 - 🚀 **短别名封装层**：`import resource_pool` 一行搞定日常使用

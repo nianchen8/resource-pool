@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import random
+import re
 from enum import Enum
 from typing import Iterator
 
@@ -31,6 +32,48 @@ class UAStrategy(Enum):
 
 # 常量
 CATEGORY_ALL: str = "all"  # 表示所有分类的特殊值
+
+# ── Sec-Ch-Ua 动态版本补丁 ──────────────────────────────────────────
+_SEC_CH_UA_VERSION_RE = re.compile(r'v="(\d+)"')
+_UA_VERSION_RE = re.compile(r'(?:Chrome|Edg|Edge)/(\d+)', re.I)
+
+
+def _extract_ua_version(ua: str) -> int | None:
+    """从 UA 字符串提取浏览器主版本号"""
+    m = _UA_VERSION_RE.search(ua)
+    if m:
+        try:
+            return int(m.group(1))
+        except ValueError:
+            pass
+    return None
+
+
+def _patch_sec_ch_ua(headers: dict[str, str], ua: str) -> None:
+    """修正 Sec-Ch-Ua 版本号使其与 UA 一致
+
+    解决 Profile 版本号（如 chrome_131_win 中 v="131"）与 UA 实际版本
+    （如 Chrome/148）不一致导致的指纹矛盾。
+    """
+    sec_ch_ua = headers.get("Sec-Ch-Ua", "")
+    if not sec_ch_ua:
+        return
+    ua_version = _extract_ua_version(ua)
+    if not ua_version:
+        return
+    profile_match = _SEC_CH_UA_VERSION_RE.search(sec_ch_ua)
+    if not profile_match:
+        return
+    try:
+        profile_version = int(profile_match.group(1))
+    except ValueError:
+        return
+    if profile_version == ua_version:
+        return
+    # 替换所有 v="N" 为 v="实际版本"
+    headers["Sec-Ch-Ua"] = _SEC_CH_UA_VERSION_RE.sub(
+        f'v="{ua_version}"', sec_ch_ua
+    )
 
 
 class UserAgentPool(ResourcePool):
@@ -81,7 +124,7 @@ class UserAgentPool(ResourcePool):
     def _copy_agent_entry(entry: AgentEntry) -> AgentEntry:
         """创建 AgentEntry 的浅拷贝（类型安全），含元数据字段"""
         copied: AgentEntry = {"ua": entry["ua"], "weight": entry.get("weight", 5)}
-        for key in ("profile", "browser", "os", "version"):
+        for key in ("profile", "headers", "browser", "os", "version"):
             if key in entry:
                 copied[key] = entry[key]  # type: ignore[literal-required]
         return copied
@@ -230,11 +273,13 @@ class UserAgentPool(ResourcePool):
         ext = os.path.splitext(path)[1].lower()
         if ext == ".json":
             entries = self._parse_json_file(path)
+        elif ext == ".jsonl":
+            entries = self._parse_jsonl_file(path)
         elif ext == ".csv":
             entries = self._parse_csv_file(path)
         else:
             raise ValueError(
-                f"不支持的文件格式 '{ext}'，仅支持 .json 和 .csv"
+                f"不支持的文件格式 '{ext}'，仅支持 .json、.jsonl 和 .csv"
             )
 
         if not entries:
@@ -270,6 +315,9 @@ class UserAgentPool(ResourcePool):
         """从 fake_useragent 库批量导入 User-Agent（可选依赖）
 
         需要先安装：``pip install fake-useragent``
+
+        若 fake_useragent 远程源不可用（返回 UA 过少），
+        自动降级到本地 bundled headers_pool.jsonl 数据集。
 
         Args:
             browsers: 限定浏览器类型，如 ["chrome", "firefox"]，
@@ -319,12 +367,73 @@ class UserAgentPool(ResourcePool):
             except Exception:
                 continue
 
+        # ── 降级：fake_useragent 返回过少时，回退到本地 bundled 数据集 ──
+        FALLBACK_THRESHOLD = 5
+        if added < FALLBACK_THRESHOLD:
+            logger.warning(
+                "fake_useragent 仅返回 %d 条 UA（阈值=%d），降级到本地 headers_pool.jsonl",
+                added, FALLBACK_THRESHOLD,
+            )
+            jsonl_added = self._load_bundled_jsonl()
+            if jsonl_added > 0:
+                logger.info(
+                    "降级成功：从本地 headers_pool.jsonl 加载 %d 条 UA（Profile 自动匹配）",
+                    jsonl_added,
+                )
+                added += jsonl_added
+
         logger.info(
             "从 fake_useragent 导入完成: %d 个 UA (limit=%d)",
             added, limit,
         )
         return added
 
+    def _load_bundled_jsonl(self) -> int:
+        """加载包内置的 headers_pool.jsonl 数据集
+
+        仅提取 UA 字符串，其余请求头由架构的 Profile 匹配机制自动组装。
+        按优先级查找文件：
+        1. user_agent_pool/headers_pool.jsonl（包内）
+        2. ./headers_pool.jsonl（项目根目录）
+        """
+        import os as _os
+
+        search_paths = [
+            _os.path.join(_os.path.dirname(__file__), "headers_pool.jsonl"),
+            _os.path.join(_os.getcwd(), "headers_pool.jsonl"),
+        ]
+
+        for path in search_paths:
+            if _os.path.isfile(path):
+                logger.debug("找到本地 headers_pool.jsonl: %s", path)
+                try:
+                    entries = self._parse_jsonl_file(path)
+                except Exception as e:
+                    logger.warning("解析 headers_pool.jsonl 失败: %s", e)
+                    continue
+
+                added = 0
+                skipped = 0
+                for entry in entries:
+                    try:
+                        self.add(
+                            ua=str(entry["ua"]),
+                            category=str(entry.get("category", "desktop")),
+                            weight=int(entry.get("weight", 5)),
+                        )
+                        added += 1
+                    except (ValueError, InvalidAgentException) as e:
+                        logger.warning("跳过无效 headers 条目: %s", e)
+                        skipped += 1
+
+                logger.info(
+                    "本地 headers_pool.jsonl: %d 导入, %d 跳过",
+                    added, skipped,
+                )
+                return added
+
+        logger.warning("未找到 headers_pool.jsonl 文件")
+        return 0
     @staticmethod
     def _guess_category(ua: str) -> str:
         """根据 UA 字符串猜测设备分类"""
@@ -336,6 +445,41 @@ class UserAgentPool(ResourcePool):
         if "tablet" in ua_lower or "ipad" in ua_lower:
             return "tablet"
         return "desktop"
+
+    @staticmethod
+    def _parse_jsonl_file(path: str) -> list[dict[str, object]]:
+        """解析 JSONL 文件（每行一个完整 headers JSON 对象）
+
+        每行格式::
+
+            {"User-Agent": "...", "Accept": "...", ...}
+
+        仅提取 User-Agent 字段作为 UA 字符串，分类由 UA 字符串自动推断。
+        其余请求头字段不存储，由架构的 Profile 匹配机制在运行时组装。
+        """
+        entries: list[dict[str, object]] = []
+        with open(path, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    data = json.loads(line)
+                except json.JSONDecodeError:
+                    logger.warning("跳过无效 JSONL 行: %s...", line[:60])
+                    continue
+                if not isinstance(data, dict):
+                    continue
+                ua = data.pop("User-Agent", "")
+                if not ua:
+                    continue
+                entry: dict[str, object] = {
+                    "ua": ua,
+                    "category": UserAgentPool._guess_category(ua),
+                    "weight": 5,
+                }
+                entries.append(entry)
+        return entries
 
     @staticmethod
     def _parse_json_file(path: str) -> list[dict[str, object]]:
@@ -562,10 +706,23 @@ class UserAgentPool(ResourcePool):
         """从 entry 构建完整请求头字典
 
         优先级：
-        1. entry 显式指定 profile → 直接使用
-        2. entry 无 profile 但有 browser/os/version → 自动匹配最佳 Profile
-        3. 均无 → 仅返回 User-Agent
+        1. entry 有内联 headers → 直接使用（最高优先级）
+        2. entry 显式指定 profile → 直接使用
+        3. entry 无 profile 但有 browser/os/version → 自动匹配最佳 Profile
+        4. 均无 → 仅返回 User-Agent
+
+        自动修正：若 Profile 中 Sec-Ch-Ua 版本号与 UA 不一致，
+        动态替换版本号，避免指纹不匹配被反爬识别。
         """
+        # ── 最高优先级：内联 headers（含完整请求头字典）──
+        inline_headers = entry.get("headers")
+        if inline_headers:
+            result = dict(inline_headers)
+            # 以 entry 的 UA 为准，防止内联 headers 中 UA 不一致
+            result["User-Agent"] = entry["ua"]
+            _patch_sec_ch_ua(result, entry["ua"])
+            return result
+
         headers: dict[str, str] = {"User-Agent": entry["ua"]}
         profile_key = entry.get("profile", "")
 
@@ -594,6 +751,8 @@ class UserAgentPool(ResourcePool):
                 profile_data = _HEADER_PROFILES.get(profile_key)
             if profile_data is not None:
                 headers.update(profile_data)
+                # 动态补丁：修正 Sec-Ch-Ua 版本号与 UA 一致
+                _patch_sec_ch_ua(headers, entry["ua"])
             else:
                 logger.warning("Profile '%s' 不存在，仅返回 User-Agent", profile_key)
         return headers

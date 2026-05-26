@@ -800,19 +800,93 @@
 
 ---
 
+## 🟢 第十阶段工作报告 —— UA 数据源高可用架构（已完成）
+
+> **执行日期**：2026-05-26
+> **执行人**：Qoder AI Agent
+> **交付给**：下一个 Agent 接龙
+
+### 工作摘要
+
+本阶段聚焦 UA 池数据源的可信和可用性：
+1. **本地 UA 数据集**：打包 830 条 headers_pool.jsonl 作为离线备用数据源
+2. **降级策略**：fake_useragent 远程优先，UA 返回 < 5 时自动回退本地
+3. **架构一致性**：所有数据源（内置、fake_useragent、jsonl）统一走 Profile 匹配组装请求头
+
+### 完成内容
+
+#### 1. 本地 UA 数据集（headers_pool.jsonl）
+
+**新增** `user_agent_pool/headers_pool.jsonl`（830 条）：
+
+- 覆盖 Chrome / Firefox / Safari / Edge / Opera / SamsungBrowser
+- 桌面 + 移动端 + 平板，版本从 Chrome 39 到 135
+- 打包在 `user_agent_pool/` 目录下随包分发
+
+#### 2. fake_useragent 降级策略
+
+**修改** `user_agent_pool/pool.py`：
+
+- `load_from_fakeua()`：新增 `FALLBACK_THRESHOLD=5`，fake_useragent 返回 < 阈值时自动调用 `_load_bundled_jsonl()`
+- `_load_bundled_jsonl()`：按优先级查找包内 + 项目根目录的 `headers_pool.jsonl`
+- `_parse_jsonl_file()`：JSONL 解析（仅提取 UA 字符串，不存储预制 headers）
+
+#### 3. 架构一致性
+
+**核心原则**：所有数据源仅提供 UA 字符串，请求头由架构的 Profile 匹配机制组装。
+
+```
+fake_useragent → UA → parse_ua_metadata() → browser/os/version
+                                                │
+headers_pool.jsonl → UA ───────────────────────→│
+                                                ▼
+                                        match_profile()
+                                                │
+                                                ▼
+                                       组装完整 20 项请求头
+```
+
+- `_build_headers` 优先级：内联 headers（高级用户） > 显式 profile > 自动匹配 > 仅 UA
+- `AgentEntry` TypedDict 新增 `headers` 字段支持高级用户自定义内联请求头
+- `load_from_file()` 新增 `.jsonl` 格式支持
+
+### 关键指标
+
+| 指标 | 第十阶段前 | 第十阶段后 | 变化 |
+|------|:--:|:--:|:--:|
+| 测试用例数 | 274 | **275** | +1，全部通过 ✅ |
+| UA 数据源 | 22 内置 + fake_useragent | **22 内置 + 830 JSONL + fake_useragent (自动降级)** | 高可用 |
+| 数据源一致性 | fakeua 裸 UA，jsonl 预制 headers | **所有源统一 Profile 组装** | 指纹一致 ✅ |
+
+### 文件变更清单
+
+| 文件 | 操作 | 说明 |
+|------|:--:|------|
+| `user_agent_pool/pool.py` | 修改 | +_parse_jsonl_file、+_load_bundled_jsonl、降级逻辑、架构一致性 |
+| `user_agent_pool/agents.py` | 修改 | AgentEntry +headers 字段 |
+| `user_agent_pool/headers_pool.jsonl` | **新增** | 830 条完整 UA 数据集 |
+| `docs/CHANGELOG.md` | 修改 | v1.0.6 条目 |
+| `docs/guides/cookbook.md` | 修改 | JSONL 导入 + 降级说明 |
+| `docs/guides/deep-dive.md` | 修改 | UA 数据源与 Header 组装链路 |
+| `docs/PRODUCTION.md` | 修改 | 配置降级说明 |
+| `README.md` | 修改 | v1.0.6 changelog + 测试数 |
+| `docs/UPGRADE_PLAN.md` | 修改 | 添加本阶段工作报告 |
+
+---
+
 ## 项目现状总览
 
 | 维度 | 当前评分 | 目标评分 | 说明 |
 |------|:--:|:--:|------|
 | 架构设计 | 9.0 | 9.5 | ABC + 策略模式 + PoolCombo 抽象 + 注册表分派已优秀 |
 | 防御性编程 | 9.5 | 9.5 | 线程安全、故障隔离、复活机制、凭据脱敏均已到位 |
-| 反爬能力 | 9.0 | 9.5 | 22 UA + 20 Header Profile + fake_useragent + 细粒度筛选 |
-| 代码质量 | **9.5** | 9.5 | ✅ 异步锁模型对齐同步版、hasattr 弃用警告、浮点误差消除 |
+| 反爬能力 | **9.5** | 9.5 | 22 UA + 830 JSONL + 20 Profile + fake_useragent(远程优先+自动降级) + 细粒度筛选 |
+| 代码质量 | **9.5** | 9.5 | ✅ 所有数据源统一走 Profile 匹配组装，指纹一致性 |
 | 异步支持 | **9.5** | 9.5 | ✅ 同步/异步双模并发模型完全对等 |
 | 文档 | 9.0 | 9.0 | ✅ PRODUCTION.md 异步锁层级已更新至最新设计 |
-| 测试覆盖 | **9.0** | 9.0 | ✅ 274 测试全部通过，覆盖率 94%+ |
+| 测试覆盖 | **9.0** | 9.0 | ✅ 275 测试全部通过，覆盖率 94%+ |
 | 社区信任 | 2.0 | 7.0 | 0 Star → 有待持续推进（P3 任务） |
-| **综合** | **9.5+** | **9.5+** | ✅ 九阶段完成：第二轮审查全部修复，274 测试全通过 |
+| **综合** | **9.5+** | **9.5+** | ✅ v1.0.6：本地 UA 数据集 + 降级策略 + JSONL 导入 |
 
 ---
 

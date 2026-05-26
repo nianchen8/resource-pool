@@ -23,7 +23,9 @@ for _ in range(10):
 
 ### 完整请求头（反反爬推荐）
 
-单换 UA 不够——真实浏览器携带 Accept、Sec-Ch-Ua、Accept-Language 等 20 项请求头：
+单换 UA 不够——真实浏览器携带 Accept、Sec-Ch-Ua、Accept-Language 等 20 项请求头。
+
+**所有数据源统一走 Profile 自动匹配**：无论 UA 来自内置预设、fake_useragent 还是本地 jsonl 数据集，`get_headers()` 都会根据 UA 的浏览器/版本号自动匹配最接近的 Header Profile 组——不使用预制 headers，确保指纹一致性。
 
 ```python
 headers = ua.get_headers("desktop")
@@ -59,10 +61,15 @@ with ua.reserve("desktop") as agent:
 # JSON 格式：[{"ua": "...", "category": "desktop", "weight": 5}]
 ua.load_from_file("ua_list.json")
 
+# JSONL 格式：每行一个 JSON 对象（如 headers_pool.jsonl）
+ua.load_from_file("headers_pool.jsonl")
+
 # CSV 格式：ua,category,weight
 ua.load_from_file("ua_list.csv")
 
 # 从 fake_useragent 库导入（需先 pip install fake_useragent）
+# 远程优先：fake_useragent 可用时取其 UA + Profile 组装请求头
+# 自动降级：fake_useragent 返回 < 5 条时，自动回退本地 headers_pool.jsonl
 ua.load_from_fakeua(limit=100, browsers=["chrome", "firefox"])
 ```
 
@@ -331,8 +338,8 @@ except ResourceUnhealthyError:
 | `count(category=None) → dict[str,int] \| int` | 统计 |
 | `reserve(category, weighted=None) → UAReserve` | 暂存器 |
 | `register_profile(key, headers)` | 注册 Header Profile（静态） |
-| `load_from_file(path) → int` | JSON/CSV 导入 |
-| `load_from_fakeua(limit=50, ...) → int` | fake_useragent 导入 |
+| `load_from_file(path) → int` | JSON/JSONL/CSV 导入 |
+| `load_from_fakeua(limit=50, ...) → int` | fake_useragent 导入（远程优先+自动降级） |
 
 ### DNSResolverPool
 

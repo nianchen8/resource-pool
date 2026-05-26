@@ -53,6 +53,40 @@ ua.pick()                        # → ua._pool.get("desktop")
 ua.headers()                     # → ua._pool.get_headers("desktop")
 ```
 
+### UA 数据源与 Header 组装链路
+
+`UserAgentPool` 支持多数据源，所有来源的 UA 统一走同一套 Profile 匹配管道：
+
+```
+fake_useragent (远程)                 headers_pool.jsonl (本地 830 条)
+        │                                        │
+        │  返回 UA < 5 条时自动降级               │
+        └────────────────→  ─────────────────────→│
+                         │                       │
+                         ▼                       ▼
+                   self.add(ua, ...)
+                         │
+                         ▼
+                parse_ua_metadata()
+                  → browser / os / version
+                         │
+                         ▼
+         get_headers() → _build_headers()
+                         │
+                         ▼
+                  match_profile()
+             → 最近版本号匹配 + Sec-CH-UA 版本修正
+                         │
+                         ▼
+              组装完整的 20 项请求头
+```
+
+**关键设计**：jsonl 仅作为 UA 池扩充（830 条），不存储预制 headers。
+所有请求头字段由 `_HEADER_PROFILES` 模板 + `match_profile()` 运行时组装，
+确保不同数据源产出的 headers 指纹一致性。
+
+> `load_from_fakeua()` 降级阈值 = 5，用户可通过 `_load_bundled_jsonl()` 显式触发本地加载。
+
 ---
 
 ## 锁层级与并发模型

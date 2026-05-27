@@ -1,0 +1,13 @@
+{
+  "description": "导入 UA 种子时转换器能识别的字段。将此文件交给 AI 帮助格式化数据。",
+  "fields": {
+    "ua": {"required": true, "type": "string", "example": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/148.0.0.0 Safari/537.36"},
+    "weight": {"required": false, "type": "int", "default": 5, "range": "1-10"},
+    "browser": {"required": false, "type": "string", "auto": "从 UA 自动解析", "options": ["chrome", "firefox", "safari", "edge"]},
+    "os": {"required": false, "type": "string", "auto": "从 UA 自动解析", "options": ["windows", "macos", "linux", "android", "ios"]},
+    "version": {"required": false, "type": "int", "auto": "从 UA 自动解析"},
+    "profile": {"required": false, "type": "string", "example": "chrome_148_win"},
+    "headers": {"required": false, "type": "object", "example": {"Accept-Language": "zh-CN,zh;q=0.9"}}
+  },
+  "accepted_input_formats": ["json数组", "jsonl(每行一个对象)", "csv(表头: ua,weight,category)"]
+}

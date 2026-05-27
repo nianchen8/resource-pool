@@ -1,0 +1,100 @@
+{
+  "format_version": 2,
+  "ua_templates": {
+    "chrome_desktop": "Mozilla/5.0 ({os}) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/{v}.0.0.0 Safari/537.36",
+    "chrome_mobile": "Mozilla/5.0 ({os}) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/{v}.0.0.0 Mobile Safari/537.36",
+    "firefox_desktop": "Mozilla/5.0 ({os}; rv:{v}.0) Gecko/20100101 Firefox/{v}.0",
+    "firefox_mobile": "Mozilla/5.0 ({os}; rv:{v}.0) Gecko/{v}.0 Firefox/{v}.0",
+    "safari_desktop": "Mozilla/5.0 ({os}) AppleWebKit/{wk_ver} (KHTML, like Gecko) Version/{safari_ver} Safari/{wk_ver}",
+    "safari_mobile": "Mozilla/5.0 ({device}; CPU {cpu_os} like Mac OS X) AppleWebKit/{wk_ver} (KHTML, like Gecko) Version/{safari_ver} Mobile/15E148 Safari/{wk_ver}",
+    "edge_desktop": "Mozilla/5.0 ({os}) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/{v}.0.0.0 Safari/537.36 Edg/{v}.0.0.0"
+  },
+  "os_pools": {
+    "chrome_desktop": [
+      "Windows NT 10.0; Win64; x64",
+      "Windows NT 10.0; WOW64",
+      "Macintosh; Intel Mac OS X 10_15_7",
+      "X11; Linux x86_64"
+    ],
+    "chrome_mobile": [
+      "Linux; Android 15; Pixel 9 Pro",
+      "Linux; Android 14; Pixel 8 Pro",
+      "Linux; Android 14; SM-S928B",
+      "Linux; Android 13; Pixel 7",
+      "Linux; Android 14; 23127PN0CC",
+      "Linux; Android 13; ALN-AL80"
+    ],
+    "chrome_tablet": [
+      "Linux; Android 15; SM-X920",
+      "Linux; Android 14; SM-X910",
+      "Linux; Android 13; AGS6-W00"
+    ],
+    "firefox_desktop": [
+      "Windows NT 10.0; Win64; x64",
+      "Windows NT 10.0; WOW64",
+      "Macintosh; Intel Mac OS X 10.15",
+      "X11; Linux x86_64"
+    ],
+    "firefox_mobile": [
+      "Android 14; Mobile",
+      "Android 15; Mobile"
+    ]
+  },
+  "accept_language_pools": {
+    "desktop_5": [
+      "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+      "en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7,ja;q=0.6",
+      "zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7,ko;q=0.6",
+      "en-US,en;q=0.9,es;q=0.8,fr;q=0.7,de;q=0.6",
+      "ja;q=0.9,en-US;q=0.8,en;q=0.7,zh-CN;q=0.6,ko;q=0.5"
+    ],
+    "macos": [
+      "zh-CN,zh-Hans;q=0.9,en;q=0.8",
+      "en-US,en;q=0.9,zh-Hans;q=0.8",
+      "zh-Hant,zh;q=0.9,en-US;q=0.8"
+    ],
+    "mobile_3": [
+      "zh-CN,zh;q=0.9,en-US;q=0.8",
+      "en-US,en;q=0.9,zh-CN;q=0.8",
+      "zh-CN,zh;q=0.9,en;q=0.7"
+    ],
+    "firefox": [
+      "zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3",
+      "en-US,en;q=0.5,zh-CN;q=0.3",
+      "zh-CN,zh;q=0.9,en;q=0.5"
+    ]
+  },
+  "cache_control_variants": [
+    "max-age=0",
+    "no-cache"
+  ],
+  "upgrade_variants": [
+    "1",
+    null
+  ],
+  "accept_headers": {
+    "chrome": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+    "firefox": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+    "safari": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+  },
+  "not_brand_map": {
+    "0-129": "Not=A?Brand;v=\"8\"",
+    "130-130": "Not?A_Brand;v=\"99\"",
+    "131-139": "Not_A Brand;v=\"24\"",
+    "140-999": "Not_A Brand;v=\"99\""
+  },
+  "version_ranges": {
+    "chrome": [
+      129,
+      148
+    ],
+    "firefox": [
+      132,
+      151
+    ],
+    "edge": [
+      131,
+      148
+    ]
+  }
+}

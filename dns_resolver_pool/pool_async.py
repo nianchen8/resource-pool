@@ -10,6 +10,7 @@ import asyncio
 import contextvars
 import logging
 import random
+import socket
 import time
 from collections import deque
 from enum import Enum
@@ -328,6 +329,57 @@ class AsyncDNSResolverPool(AsyncResourcePool):
                 s.reset_resolvers()
         logger.info("已释放所有 per-task Resolver 引用")
 
+    # ── aiohttp 集成：异步 resolver 工厂 ────────────────────────────
+
+    def create_resolver(self):
+        """返回 aiohttp TCPConnector 兼容的异步 DNS resolver。
+
+        调用此方法获得一个对象，直接传入
+        ``aiohttp.TCPConnector(resolver=...)`` 即可让 aiohttp
+        的 DNS 解析走池内 14 台 DNS 服务器。
+
+        全部池内服务器失败时自动回退到系统 DNS（通过
+        ``fallback_to_system`` 参数控制）。
+
+        使用示例::
+
+            import aiohttp
+            pool = AsyncDNSResolverPool()
+            connector = aiohttp.TCPConnector(resolver=pool.create_resolver())
+            async with aiohttp.ClientSession(connector=connector) as session:
+                async with session.get("https://www.baidu.com") as resp:
+                    ...
+        """
+        pool_ref = self
+
+        class _Resolver:
+            """aiohttp 兼容的 DNS resolver 适配器"""
+
+            async def resolve(self, host, port, family=socket.AF_INET):
+                try:
+                    ips = await pool_ref.resolve_all(host)
+                except PoolExhaustedException:
+                    raise socket.gaierror(
+                        f"[DNS-Pool] all servers exhausted for {host}",
+                    )
+                except Exception:
+                    raise socket.gaierror(
+                        f"[DNS-Pool] resolve_all failed for {host}",
+                    )
+                return [
+                    {
+                        "hostname": host,
+                        "host": ip,
+                        "port": port,
+                        "family": family,
+                        "proto": 6,
+                        "flags": socket.AI_NUMERICHOST,
+                    }
+                    for ip in ips
+                ]
+
+        return _Resolver()
+
     # ── 魔术方法 ─────────────────────────────────────────────────────
 
     @property
@@ -348,8 +400,10 @@ class AsyncDNSResolverPool(AsyncResourcePool):
         total = len(self._servers)
         if self._strategy_enum is not None:
             strategy_name = self._strategy_enum.value
-        else:
+        elif self._strategy_fn is not None:
             strategy_name = type(self._strategy_fn).__name__
+        else:
+            strategy_name = "unknown"
         return f"AsyncDNSResolverPool(alive={alive}/{total}, strategy={strategy_name})"
 
     def __len__(self) -> int:

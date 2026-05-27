@@ -1,4 +1,4 @@
-# Resource Pool ![version](https://img.shields.io/badge/version-1.1.3-blue)
+# Resource Pool ![version](https://img.shields.io/badge/version-1.2.0-blue)
 
 > 爬虫资源池——UA 请求头、DNS、代理，三件套一把抓。
 
@@ -80,10 +80,11 @@ docs/
 
 ## 更新日志
 
-### v1.1.3 (2026-05-27)
+### v1.2.0 (2026-05-27)
 
-- 🐛 **`host` 字段解析**：荷花代理等 JSON `host`/`port` 格式已支持
-- 🛡️ **三探验活**：`_probe_proxy` 改为多目标探测，误杀率 70%→0
+- 🚀 **养成系持久化 API**：`feed_ua()` / `feed_dns()` / `feed_proxy()` 养成，`import_*()` 批量导入，`export_fed()` 备份
+- 🚀 **四层文档**：开箱即用/初级定制/深度定制/底层源码，每层 5 种写法
+- 🐛 **host 字段解析 + 三探验活**：荷花代理兼容，代理误杀率 70%→0
 
 ### v1.1.2 (2026-05-27)
 

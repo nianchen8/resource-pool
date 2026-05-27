@@ -181,28 +181,37 @@ class UserAgentPool(ResourcePool):
     """
 
     def __init__(self, strategy: UAStrategy = UAStrategy.WEIGHTED,
-                 thread_safe: bool = True) -> None:
+                 thread_safe: bool = True,
+                 data_dir: str | None = None,
+                 load_builtin: bool = True,
+                 load_fed: bool = True,
+                 raw_only: bool = False) -> None:
         self._agents: dict[str, list[AgentEntry]] = {}
         self._strategy = strategy
         self._thread_safe = thread_safe
         self._lock = ReadWriteLock() if thread_safe else DummyReadWriteLock()
         self._ua_pools: dict[str, dict[str, list[str | int]]] = {}
+        self._data_dir = data_dir
+        self._load_builtin = load_builtin
+        self._load_fed = load_fed
+        self._raw_only = raw_only
         self._init_defaults()
 
     # ── 初始化 ───────────────────────────────────────────────────────
 
     def _init_defaults(self) -> None:
-        """从 ua_seeds.json 统一配置文件加载全部 UA + Header Profiles
+        """从统一配置文件加载全部 UA + Header Profiles
 
-        单一数据源：user_agent_pool/ua_seeds.json，包含：
-        - _header_profiles: 完整 Header Profile 定义（注册到 agents._HEADER_PROFILES）
-        - desktop / mobile / tablet: 各分类 UA 种子列表
+        加载优先级：
+        1. data_dir 目录（若指定）
+        2. resource_pool/data/ua_seeds.json（安装目录，含 fed 养成数据）
+        3. user_agent_pool/ua_seeds.json（内置回退）
 
-        每条 UA 通过 parse_ua_metadata 自动提取 browser/os/version 元数据，
-        在 get_headers() 时走派系即时组装，实现指数级 header 组合爆炸。
+        raw_only=True 时不拆零件，fed 种子原样循环使用。
         """
         self._load_unified_seeds()
-        self._build_ua_component_pools()
+        if not self._raw_only:
+            self._build_ua_component_pools()
         total = sum(len(v) for v in self._agents.values())
         logger.info("已加载 %d 个 User-Agent（desktop=%d, mobile=%d, tablet=%d），零件池=%d 组",
                     total, len(self._agents.get("desktop", [])),
@@ -512,39 +521,52 @@ class UserAgentPool(ResourcePool):
     def _load_unified_seeds(self) -> int:
         """从 ua_seeds.json 统一配置文件加载全部 UA + Header Profiles
 
-        配置文件格式::
+        加载优先级：
+        1. data_dir 目录（若指定）
+        2. resource_pool/data/ua_seeds.json（安装目录，含 fed）
+        3. user_agent_pool/ua_seeds.json（内置回退）
 
-            {
-                "_meta": {...},
-                "_header_profiles": {"chrome_148_win": {...}, ...},
-                "desktop": [{"ua": "...", "weight": 5, "profile": "..."}, ...],
-                "mobile": [...],
-                "tablet": [...]
-            }
-
-        文件位置：user_agent_pool/ua_seeds.json（包内置）
-
-        Returns:
-            成功加载的 UA 总数
+        支持两种格式：旧格式(desktop/mobile/tablet 键)和新格式(items 列表)。
         """
         import os as _os
 
-        path = _os.path.join(_os.path.dirname(__file__), "ua_seeds.json")
-        if not _os.path.isfile(path):
-            logger.warning("未找到 ua_seeds.json: %s", path)
+        # ── 三层加载：data_dir → 安装目录 JSON → 内置回退 ──
+        data: dict | None = None
+        source_label = ""
+
+        # 1) data_dir 优先
+        if self._data_dir:
+            path = _os.path.join(self._data_dir, "ua_seeds.json")
+            if _os.path.isfile(path):
+                data = self._try_load_json(path)
+                if data is not None:
+                    source_label = path
+
+        # 2) 安装目录 JSON（resource_pool/data/ua_seeds.json，含 fed）
+        if data is None:
+            fed_path = _os.path.join(
+                _os.path.dirname(__file__), "..", "resource_pool", "data", "ua_seeds.json"
+            )
+            if _os.path.isfile(fed_path):
+                data = self._try_load_json(fed_path)
+                if data is not None:
+                    source_label = fed_path
+
+        # 3) 内置回退
+        if data is None:
+            path = _os.path.join(_os.path.dirname(__file__), "ua_seeds.json")
+            if _os.path.isfile(path):
+                data = self._try_load_json(path)
+                if data is not None and self._load_builtin:
+                    source_label = path
+            else:
+                logger.warning("未找到任何 ua_seeds.json")
+                return 0
+
+        if data is None:
             return 0
 
-        logger.debug("加载统一配置文件: %s", path)
-        try:
-            with open(path, "r", encoding="utf-8") as f:
-                data = json.load(f)
-        except Exception as e:
-            logger.warning("解析 ua_seeds.json 失败: %s", e)
-            return 0
-
-        if not isinstance(data, dict):
-            logger.warning("ua_seeds.json 格式无效")
-            return 0
+        logger.debug("加载 UA 种子: %s", source_label)
 
         # ── 注册 Header Profiles ──
         profile_data = data.get("_header_profiles", {})
@@ -559,31 +581,79 @@ class UserAgentPool(ResourcePool):
         # ── 加载 UA 种子 ──
         added = 0
         skipped = 0
-        for cat in ("desktop", "mobile", "tablet"):
-            entries = data.get(cat, [])
-            if not isinstance(entries, list):
-                continue
-            self._agents.setdefault(cat, [])
-            for entry in entries:
+
+        # 新格式：items 列表（含 source/batch 字段）
+        items = data.get("items")
+        if isinstance(items, list):
+            for entry in items:
                 if not isinstance(entry, dict) or "ua" not in entry:
                     skipped += 1
                     continue
+                # source 过滤
+                source = str(entry.get("source", "builtin"))
+                if source == "builtin" and not self._load_builtin:
+                    continue
+                if source == "fed" and not self._load_fed:
+                    continue
+                cat = self._guess_category(str(entry["ua"]))
+                self._agents.setdefault(cat, [])
                 try:
                     agent = self._copy_agent_entry({
                         "ua": str(entry["ua"]),
                         "weight": int(entry.get("weight", 5)),
                         "profile": str(entry["profile"]) if entry.get("profile") else None,
+                        "browser": str(entry["browser"]) if entry.get("browser") else None,
+                        "os": str(entry["os"]) if entry.get("os") else None,
+                        "version": int(entry["version"]) if entry.get("version") else None,
                     })
                     self._agents[cat].append(agent)
                     added += 1
                 except (ValueError, InvalidAgentException) as e:
                     logger.warning("跳过无效 UA 条目: %s", e)
                     skipped += 1
+        else:
+            # 旧格式：desktop/mobile/tablet 分类键（默认 source="builtin"）
+            for cat in ("desktop", "mobile", "tablet"):
+                entries = data.get(cat, [])
+                if not isinstance(entries, list):
+                    continue
+                self._agents.setdefault(cat, [])
+                for entry in entries:
+                    if not isinstance(entry, dict) or "ua" not in entry:
+                        skipped += 1
+                        continue
+                    # source 过滤（旧格式默认 builtin，喂养后为 fed）
+                    source = str(entry.get("source", "builtin"))
+                    if source == "builtin" and not self._load_builtin:
+                        continue
+                    if source == "fed" and not self._load_fed:
+                        continue
+                    try:
+                        agent = self._copy_agent_entry({
+                            "ua": str(entry["ua"]),
+                            "weight": int(entry.get("weight", 5)),
+                            "profile": str(entry["profile"]) if entry.get("profile") else None,
+                        })
+                        self._agents[cat].append(agent)
+                        added += 1
+                    except (ValueError, InvalidAgentException) as e:
+                        logger.warning("跳过无效 UA 条目: %s", e)
+                        skipped += 1
 
         logger.info("ua_seeds.json: %d 导入, %d 跳过", added, skipped)
         return added
 
-    # ── UA 零件池（拆解+重组）───────────────────────────────────────
+    @staticmethod
+    def _try_load_json(path: str) -> dict | None:
+        """安全加载 JSON 文件，失败返回 None"""
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            if isinstance(data, dict):
+                return data
+        except Exception as e:
+            logger.warning("解析 %s 失败: %s", path, e)
+        return None
 
     def _build_ua_component_pools(self) -> None:
         """从 854 条 UA 提取零件池，按 (派系, 设备类型) 分组

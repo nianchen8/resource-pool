@@ -1,0 +1,13 @@
+{
+  "description": "导入代理时转换器能识别的字段。将此文件交给 AI 帮助格式化数据。",
+  "fields": {
+    "proxy": {"required": true, "type": "string", "example": "127.0.0.1:8080", "note": "支持 ip:port / ip:port:user:pass / http://ip:port / socks5://ip:port"},
+    "weight": {"required": false, "type": "int", "default": 5, "range": "1-10"},
+    "region": {"required": false, "type": "string", "options": ["china", "overseas"], "default": null},
+    "scheme": {"required": false, "type": "string", "options": ["http", "https", "socks5"], "auto": "从 proxy 字符串自动解析"},
+    "expires_at": {"required": false, "type": "string", "format": "ISO 8601", "example": "2026-07-01T00:00:00", "default": null},
+    "last_score": {"required": false, "type": "float", "range": "0-100"},
+    "last_latency_ms": {"required": false, "type": "float"}
+  },
+  "accepted_input_formats": ["json数组", "纯文本(每行一个ip:port)", "URL(自动GET拉取)"]
+}

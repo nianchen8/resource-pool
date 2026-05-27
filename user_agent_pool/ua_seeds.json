@@ -379,3447 +379,4301 @@
   "desktop": [
     {
       "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:136.0) Gecko/20100101 Firefox/136.0",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 Edg/135.0.0.0",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:137.0) Gecko/20100101 Firefox/137.0",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.2 Safari/605.1.15",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (X11; CrOS x86_64 14541.0.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Safari/605.1.15",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:137.0) Gecko/20100101 Firefox/137.0",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36 Edg/134.0.0.0",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (X11; CrOS x86_64 14541.0.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.6312.4 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:136.0) Gecko/20100101 Firefox/136.0",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/11.1.2 Safari/605.1.15",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.2 Safari/605.1.15",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.4 Safari/605.1.15",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36 Edg/133.0.0.0",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (X11; CrOS x86_64 14541.0.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (X11; CrOS x86_64 14541.0.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3.1 Safari/605.1.15",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (X11; CrOS x86_64 14541.0.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 9; KFTRWI) AppleWebKit/537.36 (KHTML, like Gecko) Silk/134.1.82 like Chrome/134.0.6998.135 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 YaBrowser/25.2.0.0 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (X11; Linux x86_64; rv:125.0) Gecko/20100101 Firefox/125.0",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (X11; CrOS x86_64 14541.0.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36 OPR/117.0.0.0",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.1 Safari/605.1.15",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/115.0",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.120 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.4 Safari/605.1.15",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.5481.100 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.127 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Safari/605.1.15",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.3.1 Safari/605.1.15",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.6 Safari/605.1.15",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 LikeWise/96.6.3505.6",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (X11; CrOS x86_64 14816.131.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36 OPR/117.0.0.0",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (X11; Linux x86_64; rv:137.0) Gecko/20100101 Firefox/137.0",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (X11; CrOS x86_64 14541.0.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.6.1 Safari/605.1.15",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.289.3 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.8.1 Safari/605.1.15",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.6.1 Safari/605.1.15",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (X11; Linux x86_64; rv:136.0) Gecko/20100101 Firefox/136.0",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Safari/605.1.15 Ddg/18.3",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:136.0) Gecko/20100101 Firefox/136.0",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36 OPR/117.0.0.0 (Edition std-2)",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.6943.127 ADG/11.1.4805 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.10 Safari/605.1.15",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.1.1; KFSUWI) AppleWebKit/537.36 (KHTML, like Gecko) Silk/108.16.2 like Chrome/108.0.5359.220 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.2 Safari/605.1.15",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.3 Safari/605.1.15",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.1.1 Safari/605.1.15",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:128.0) Gecko/20100101 Firefox/128.0",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.102 Safari/537.36 Edge/18.19582",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:135.0) Gecko/20100101 Firefox/135.0",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.117 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.79 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36 Edg/134.0.0.0",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (X11; CrOS x86_64 14541.0.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.237.272 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3.1 Safari/605.1.15 Ddg/18.3.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Safari/605.1.15",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:134.0) Gecko/20100101 Firefox/134.0",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) CMAC 2.1.2.01; Chrome/118.0.5993.119 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.13; rv:109.0) Gecko/20100101 Firefox/115.0",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 12; SM-T500) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.88 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.4 Safari/605.1.15",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.1 Safari/605.1.15",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.1 Safari/605.1.15",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.1.1; KFDOWI) AppleWebKit/537.36 (KHTML, like Gecko) Silk/108.16.2 like Chrome/108.0.5359.220 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.3 Safari/605.1.15",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:138.0) Gecko/20100101 Firefox/138.0",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.11 Safari/605.1.15",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6.1 Safari/605.1.15",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.51 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0.1 Safari/605.1.15",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4.1 Safari/605.1.15",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0.1 Safari/605.1.15",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.139 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1.2 Safari/605.1.15",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36 Edg/132.0.0.0",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 9; KFKAWI) AppleWebKit/537.36 (KHTML, like Gecko) Silk/134.1.82 like Chrome/134.0.6998.135 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36 Edg/100.0.1185.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2.1 Safari/605.1.15",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:127.0) Gecko/20100101 Firefox/127.0",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36 AVG/133.0.0.0",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36 Edg/126.0.0.0",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 YaBrowser/19.6.4.366.00 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (X11; CrOS x86_64 14541.0.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "\"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3312.0 Safari/537.36\"",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.3 Safari/605.1.15",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (X11; CrOS x86_64 14541.0.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 Edg/135.0.0.0",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:130.0) Gecko/20100101 Firefox/130.0",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:137.0) Gecko/20100101 Firefox/137.0",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (X11; CrOS x86_64 14541.0.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:135.0) Gecko/20100101 Firefox/135.0",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 11; KFTUWI) AppleWebKit/537.36 (KHTML, like Gecko) Silk/134.1.82 like Chrome/134.0.6998.135 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.6834.49 YaBrowser/25.2.9.49.01 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.6312.86 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.1 Safari/605.1.15",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36 Avast/133.0.0.0",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
       "weight": 12,
-      "profile": "chrome_148_win"
+      "profile": "chrome_148_win",
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
       "weight": 10,
-      "profile": "chrome_145_win"
+      "profile": "chrome_145_win",
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
       "weight": 8,
-      "profile": "chrome_148_mac"
+      "profile": "chrome_148_mac",
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
       "weight": 4,
-      "profile": "chrome_130_mac"
+      "profile": "chrome_130_mac",
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:151.0) Gecko/20100101 Firefox/151.0",
       "weight": 10,
-      "profile": "firefox_151_win"
+      "profile": "firefox_151_win",
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:150.0) Gecko/20100101 Firefox/150.0",
       "weight": 7,
-      "profile": "firefox_150_win"
+      "profile": "firefox_150_win",
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:133.0) Gecko/20100101 Firefox/133.0",
       "weight": 4,
-      "profile": "firefox_133_win"
+      "profile": "firefox_133_win",
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:132.0) Gecko/20100101 Firefox/132.0",
       "weight": 3,
-      "profile": "firefox_132_win"
+      "profile": "firefox_132_win",
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36 Edg/148.0.0.0",
       "weight": 8,
-      "profile": "edge_148_win"
+      "profile": "edge_148_win",
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
       "weight": 5,
-      "profile": "chrome_148_linux"
+      "profile": "chrome_148_linux",
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
       "weight": 2,
-      "profile": "chrome_131_linux"
+      "profile": "chrome_131_linux",
+      "source": "builtin"
     }
   ],
   "mobile": [
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_3_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3.1 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.4452.1451 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.5777.1497 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_6_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.6.1 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_3_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) EdgiOS/134.0.3124.95 Version/18.0 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_3_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/135.0.7049.83 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_3_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Mobile/15E148 Safari/604.1 Ddg/18.3",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_1_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.1.1 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_3_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) GSA/363.0.743255906 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.4 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_3_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/135.0.7049.53 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_1_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.1 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_4_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.4 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_7_10 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.1191.1326 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36 OPR/86.0.0.0",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_7_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.8.1 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_6_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.4681.1876 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.4212.1239 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/27.0 Chrome/125.0.0.0 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_4_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/135.0.7049.53 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.4350.1896 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.5 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.7338.1011 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_6_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.6 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.9974.1464 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_5_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.5.1 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.4 Mobile/15E148 Safari/604.1 Ddg/18.4",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.3993.1101 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_1_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) GSA/363.0.743255906 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.3216.1636 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) GSA/273.0.547966426 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.5177.1825 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.5095.1183 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.6759.1270 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2296.1271 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_1_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/135.0.7049.53 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.8427.1920 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.4102.1129 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.6649.1089 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/135.0.7049.83 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.9254.1809 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.7596.1522 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.4245.1773 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.1659.1243 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2521.1888 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.1158.1705 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.9072.1282 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3154.1393 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_2_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.2 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2732.1510 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Android 14; Mobile; rv:137.0) Gecko/137.0 Firefox/137.0",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_6_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/135.0.7049.53 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.1 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4.1 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) GSA/363.0.743255906 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2390.1919 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/28.0 Chrome/130.0.0.0 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.3515.1462 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1 Ddg/17.5",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.4131.1464 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.8719.1822 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.6133.1363 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.4678.1009 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.3144.1201 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_4_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/135.0.7049.83 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/135.0.7049.83 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.9344.1363 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0.1 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2213.1291 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) GSA/319.0.638705450 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.9834.1652 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.9908.1341 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.4 Mobile/15E148 Safari/605.1.15 BingSapphire/31.2.430402003",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.9567.1498 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.9578.1348 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_3_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/134.0.6998.99 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.3435.1443 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.6117.1333 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_6_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) FxiOS/137.0  Mobile/15E148 Safari/605.1.15",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.6073.1327 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.8260.1049 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.4383.1263 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.6110.1819 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.9962.1259 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/114.0.5735.124 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.5350.1673 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2714.1548 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2053.1015 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.3814.1083 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.3067.1438 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.1780.1552 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.9288.1527 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.2974.1730 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.7413.1607 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3798.1257 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_1_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/134.0.6998.33 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.8992.1957 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_3_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) GSA/353.1.720279278 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_4_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) EdgiOS/135.0.3179.54 Version/18.0 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.5593.1681 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.3317.1149 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.7457.1189 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.1062.1066 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/123.0.6312.52 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_3_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) GSA/360.1.737798518 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.4486.1408 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.1460.1022 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.5634.1748 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_4_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) GSA/363.0.743255906 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.8650.1649 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.2 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_6_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) GSA/363.0.743255906 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.9782.1042 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.3302.1402 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.3139.1047 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.3903.1646 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.6105.1311 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.3966.1648 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.3940.1328 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.4407.1353 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.8567.1790 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.4329.1844 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.8000.1002 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_6_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/135.0.7049.53 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.1414.1194 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.7 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) GSA/363.0.743255906 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 14_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.1 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.5496.1071 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/135.0.7049.53 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.1892.1577 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.1961.1608 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2554.1489 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.2 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.6799.1857 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.8650.1050 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.7889.1414 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.7951.1310 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_1_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) GSA/362.0.741018905 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_1_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/135.0.7049.53 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.1218.1541 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.3976.1113 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/115.0.5790.130 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_6_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/135.0.7049.83 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.7040.1307 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 11; moto g power (2022)) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0.1 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/128.0.6613.92 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.6020.1418 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_3_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) GSA/359.2.735510536 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3594.1013 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.8419.1071 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.4930.1813 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.6861.1933 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2628.1005 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.3 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.6856.1209 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.6110.1156 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.6526.1309 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.7953.1889 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.8480.1521 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.6451.1714 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.3457.1289 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2695.1020 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.4537.1538 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.4564.1193 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_2_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) EdgiOS/134.0.3124.95 Version/18.0 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.9661.1855 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Mobile Safari/537.36 EdgA/135.0.0.0",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.8793.1611 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_7_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.8 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.7838.1904 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.2462.1105 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.1116.1701 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.9756.1643 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.4076.1486 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/135.0.7049.83 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.6572.1938 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.1293.1023 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.4891.1057 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.4673.1681 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_2_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) GSA/363.0.743255906 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/135.0.7049.53 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.9951.1922 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.4823.1292 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 13; Pixel 6 Pro) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.5481.77 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.9364.1479 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.4304.1028 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.1395.1878 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.1387.1291 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.9263.1769 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.4940.1508 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.1972.1490 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_5_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) GSA/363.0.743255906 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) GSA/197.0.424131953 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2228.1468 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/133.0.6943.120 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.6866.1811 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.7488.1336 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) GSA/342.0.693598186 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.5249.1762 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.5628.1018 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.3499.1084 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.8517.1951 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.4236.1297 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.4213.1921 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_7_10 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/135.0.7049.83 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.3366.1958 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.9521.1985 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.6084.1869 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.4299.1205 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.1000.1752 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.9776.1564 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.9552.1553 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.3.1 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.1383.1267 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.9773.1685 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.8869.1107 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.3590.1632 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_1_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.1 Mobile/15E148 Safari/604.1 Ddg/18.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.5672.1032 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.4912.1069 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.5397.1109 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.1591.1485 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.7280.1007 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.3107.1325 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) GSA/317.0.634488990 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.5 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.2745.1965 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) GSA/363.0.743255906 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) GSA/327.0.656162734 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.5411.1984 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.3406.1368 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.4142.1282 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.6651.1925 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.1612.1036 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.5940.1692 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.8221.1227 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.1267.1114 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.8162.1878 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.9556.1583 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.5781.1551 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.6374.1446 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2308.1021 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.6721.1765 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2682.1185 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.1398.1586 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.1916.1170 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.5238.1046 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 10; SM-G973U1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.4681.1312 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.5813.1294 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.9988.1427 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/124.0.6367.111 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.9357.1350 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.8798.1867 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.7623.1842 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.2219.1397 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_3_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/133.0.6943.120 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.7721.1571 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.7046.1498 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.2533.1684 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2921.1957 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3394.1890 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.5459.1483 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.7271.1311 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.8949.1410 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.1522.1128 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.1989.1072 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_3_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) GSA/358.1.731895952 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Mobile Safari/537.36 EdgA/134.0.0.0",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.5895.1802 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.1934.1183 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.1629.1538 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2752.1789 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.5704.1718 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/135.0.0.0 Mobile DuckDuckGo/5 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.9372.1978 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_3_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) GSA/362.0.741018905 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.9128.1272 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.4319.1409 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.8125.1797 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) FxiOS/137.0  Mobile/15E148 Safari/605.1.15",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_3_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) GSA/359.1.734651750 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2862.1418 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_5_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/135.0.7049.53 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_3_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) GSA/363.0.743255906 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.9846.1973 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 12; SM-A125U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.88 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.3316.1643 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2202.1888 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.4936.1160 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_3_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) FxiOS/137.0  Mobile/15E148 Safari/605.1.15",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.1369.1439 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_1_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) GSA/362.0.741018905 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_2_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/135.0.7049.53 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_1_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/134.0.6998.99 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.4869.1970 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_6_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) GSA/363.0.743255906 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.9494.1733 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/135.0.7049.53 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_1_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/135.0.7049.53 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.6942.1057 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.6900.1521 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) GSA/333.0.671582647 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.3633.1595 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/129.0.6668.69 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.5823.1639 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.1798.1919 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.3381.1674 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.7100.1187 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.9401.1342 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.1539.1372 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_3_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/134.0.6998.33 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/132.0.6834.78 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.8457.1752 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.9121.1581 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.5498.1279 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2452.1264 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.7492.1719 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_3_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) EdgiOS/135.0.3179.54 Version/18.0 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.5 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/121.0.6167.138 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.6428.1383 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.3818.1635 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.8050.1773 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_6_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/134.0.6998.99 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_2_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/135.0.7049.83 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/135.0.7049.53 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.1598.1288 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.8769.1172 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2682.1243 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.4230.1383 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.1007.1579 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_3_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/132.0.6834.78 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.7773.1218 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.5415.1508 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.7513.1954 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.1289.1481 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_2_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/135.0.7049.53 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) GSA/339.0.686111475 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2860.1526 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.1609.1128 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.3956.1532 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.2590.1079 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.1986.1277 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Mobile/15E148 Safari/604.1 Ddg/18.3",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.6623.1159 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_7_10 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/133.0.6943.33 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_8_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.6.6 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2078.1966 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3388.1502 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2934.1490 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) EdgiOS/120.0.2210.116 Version/17.0 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.6598.1817 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.9931.1390 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.8899.1513 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.6105.1305 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.4305.1965 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.1375.1270 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.2255.1464 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2597.1073 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.4134.1277 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.6756.1566 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.7420.1792 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.8875.1496 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.9301.1782 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/122.0.6261.62 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) GSA/342.0.693598186 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.7730.1486 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.3355.1124 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.5877.1624 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.3691.1891 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.8490.1940 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/107.0.5304.66 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.8399.1101 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.3 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.6904.1489 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.9058.1401 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.6434.1069 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2296.1578 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.6481.1219 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.2408.1863 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.8006.1296 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.4114.1522 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.3 Mobile/15E148 Safari/604.1 Ddg/17.3",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.7525.1386 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.9450.1657 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.8440.1279 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) GSA/328.0.658461140 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.3232.1198 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.7838.1157 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.7273.1251 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.5707.1741 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.6616.1474 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.9332.1947 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.7550.1449 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2707.1053 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.4402.1176 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.4862.1083 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.9536.1764 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/135.0.7049.53 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.6897.1674 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.8465.1065 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.5329.1879 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.6881.1258 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.8866.1729 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.9616.1766 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.7879.1821 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.9224.1328 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.1781.1399 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2646.1518 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.8731.1840 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.1712.1592 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.8146.1655 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.2017.1724 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.7252.1920 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2266.1071 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.1681.1569 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.6076.1756 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3324.1602 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1.2 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.6630.1540 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.1577.1248 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.7376.1545 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.1678.1000 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_3_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Mobile/15E148 Safari/604.1 OPT/5.5.0",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.7355.1228 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.6 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.6347.1389 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.4277.1250 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.1184.1873 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_3_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/135.0.7049.53 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.3286.1522 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.4779.1118 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.8301.1045 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.7750.1323 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.8800.1258 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.3478.1899 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.6110.1785 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.4841.1333 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) FxiOS/137.0  Mobile/15E148 Safari/605.1.15",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.3316.1853 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.7824.1851 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_7_11 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6.1 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.8525.1786 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.5730.1285 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.6574.1107 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.8924.1582 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.9679.1252 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.3249.1039 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.4313.1254 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.4 Mobile/15E148 Safari/605.1.15 (Ecosia ios@11.0.2.2268)",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) GSA/363.0.743255906 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.9709.1314 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_6_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/131.0.6778.154 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.7041.1042 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.4580.1463 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.9166.1340 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.7269.1102 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.7619.1926 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.3933.1733 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.4907.1684 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.5385.1668 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.5052.1839 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.1847.1578 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.3253.1939 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.7919.1954 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.8832.1524 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.9461.1976 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.7209.1514 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.4047.1077 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_7_10 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) GSA/363.0.743255906 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.4205.1640 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.5160.1726 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.4122.1586 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.6633.1045 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.1704.1172 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.5431.1706 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.1093.1751 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.4 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.7109.1507 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.3629.1546 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.7200.1531 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.8721.1977 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.7097.1832 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.4263.1978 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.2466.1062 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.3880.1416 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) GSA/323.0.647062479 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.6505.1614 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.9213.1104 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.8128.1783 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) GSA/363.0.743255906 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.1224.1305 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.6580.1166 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 15; oBv8GzsDB8; U; en) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.6943.137 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.5171.1230 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_1_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/135.0.7049.83 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.1639.1109 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2619.1298 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/119.0.6045.169 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Android 15; Mobile; rv:137.0) Gecko/137.0 Firefox/137.0",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2922.1448 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2708.1875 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.5037.1308 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.1056.1310 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2437.1282 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.5013.1897 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3879.1647 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3417.1352 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.4262.1139 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.6644.1565 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.5954.1941 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.7381.1845 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.9244.1200 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2997.1769 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.7152.1265 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.3108.1882 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_3_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/131.0.6778.73 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.9099.1037 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2184.1797 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.7211.1563 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_3_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) GSA/361.0.737942756 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.5590.1780 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3402.1865 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3.1 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.7019.1213 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.8265.1259 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.3303.1187 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_3_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3.2 Mobile/15E148 Safari/605.1.15 BingSapphire/31.2.430402003",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.6777.1817 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.3341.1026 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.7924.1815 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.5783.1208 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.8191.1319 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_2_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) GSA/363.0.743255906 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/92.0.4515.90 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.9935.1258 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.9162.1368 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.5244.1563 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.7514.1426 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.9512.1691 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.7369.1685 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.6507.1985 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.8792.1538 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_7_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/131.0.6778.134 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 YaBrowser/24.1.8.486.10 SA/3 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.5531.1950 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.1470.1951 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.1029.1503 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_5_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.5.2 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.8469.1900 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.8441.1844 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2719.1336 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.4792.1679 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_1_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.1 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.5491.1986 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.1047.1013 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3.1 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.5285.1479 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/120.0.6099.119 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.9996.1335 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2230.1362 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.7947.1768 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2652.1149 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2893.1844 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.8520.1462 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.4301.1408 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2469.1901 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.8897.1426 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.3457.1736 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/133.0.6943.120 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.8210.1389 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.3438.1313 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.5213.1363 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.5891.1666 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 12; SM-G970U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.61 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.8555.1919 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.5115.1285 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.5283.1886 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.6950.1192 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.6647.1967 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.5981.1638 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Android 15; Mobile; rv:136.0) Gecko/136.0 Firefox/136.0",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.8853.1645 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.6188.1717 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.4407.1211 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.9272.1843 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.5487.1588 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0.0; SM-G965U Build/R16NW) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.111 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.3895.1585 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.6171.1906 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.1915.1844 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2632.1425 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) GSA/295.0.590048842 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.4884.1563 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.6448.1339 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.9784.1980 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.9318.1385 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.9910.1919 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.1 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.1383.1917 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.6469.1272 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.4841.1857 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/127.0.6533.77 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2169.1250 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_4_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.4 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.8829.1545 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.1433.1849 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.5917.1051 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.8331.1403 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.9918.1103 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 14_8_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.2 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2317.1361 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.3040.1249 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.8445.1494 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Mobile Safari/537.36 OPR/88.0.0.0",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.9695.1976 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.5814.1347 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.7200.1377 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.4694.1946 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.1961.1249 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.8427.1550 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 15) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/134.0.0.0 Mobile DuckDuckGo/5 Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.1555.1494 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.5547.1039 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) GSA/360.1.737798518 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.5182.1652 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.7235.1399 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.1057.1396 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 13; Pixel 6 Pro) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.6285.1498 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) GSA/294.0.588955078 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.5694.1352 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.4294.1377 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.6029.1807 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.5217.1456 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.9407.1738 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/123.0.6312.52 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_8 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/125.0.6422.80 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.1102.1564 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.7920.1766 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.2693.1915 Mobile Safari/537.36",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.6 Mobile/15E148 Safari/604.1",
       "weight": 7,
-      "profile": "safari_17_6_iphone"
+      "profile": "safari_17_6_iphone",
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 15; Pixel 9 Pro) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.7727.56 Mobile Safari/537.36",
       "weight": 12,
-      "profile": "chrome_148_android"
+      "profile": "chrome_148_android",
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 14; Pixel 8 Pro) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.6778.135 Mobile Safari/537.36",
       "weight": 6,
-      "profile": "chrome_131_android"
+      "profile": "chrome_131_android",
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 14; SM-S928B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.6723.58 Mobile Safari/537.36",
       "weight": 5,
-      "profile": "chrome_130_android"
+      "profile": "chrome_130_android",
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.6668.100 Mobile Safari/537.36",
       "weight": 4,
-      "profile": "chrome_129_android"
+      "profile": "chrome_129_android",
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Android 14; Mobile; rv:133.0) Gecko/133.0 Firefox/133.0",
       "weight": 4,
-      "profile": "firefox_133_android"
+      "profile": "firefox_133_android",
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 14; 23127PN0CC) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.6723.107 Mobile Safari/537.36",
       "weight": 3,
-      "profile": "chrome_130_android"
+      "profile": "chrome_130_android",
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 13; ALN-AL80) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.6668.100 Mobile Safari/537.36",
       "weight": 2,
-      "profile": "chrome_129_android"
+      "profile": "chrome_129_android",
+      "source": "builtin"
     }
   ],
   "tablet": [
     {
       "ua": "Mozilla/5.0 (iPad; CPU OS 18_3_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) GSA/363.0.743255906 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPad; CPU OS 18_3_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/135.0.7049.53 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPad; CPU OS 18_3_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3.1 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPad; CPU OS 18_3_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/135.0.7049.83 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPad; CPU OS 16_6_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/135.0.7049.83 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPad; CPU OS 18_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.4 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPad; CPU OS 18_4_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/135.0.7049.53 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPad; CPU OS 18_1_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/135.0.7049.53 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPad; CPU OS 18_3_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) EdgiOS/134.0.3124.95 Version/18.0 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPad; CPU OS 18_3_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/132.0.6834.100 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPad; CPU OS 18_4_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) GSA/363.0.743255906 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPad; CPU OS 17_4_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/135.0.7049.53 Mobile/15E148 Safari/604.1",
-      "weight": 5
+      "weight": 5,
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPad; CPU OS 18_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.1 Mobile/15E148 Safari/604.1",
       "weight": 5,
-      "profile": "safari_18_1_ipad"
+      "profile": "safari_18_1_ipad",
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (iPad; CPU OS 17_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.6 Mobile/15E148 Safari/604.1",
       "weight": 4,
-      "profile": "safari_17_6_ipad"
+      "profile": "safari_17_6_ipad",
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 15; SM-X920) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.7727.56 Safari/537.36",
       "weight": 6,
-      "profile": "chrome_148_tablet"
+      "profile": "chrome_148_tablet",
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 14; SM-X910) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.6778.135 Safari/537.36",
       "weight": 3,
-      "profile": "chrome_131_tablet"
+      "profile": "chrome_131_tablet",
+      "source": "builtin"
     },
     {
       "ua": "Mozilla/5.0 (Linux; Android 13; AGS6-W00) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.6723.58 Safari/537.36",
       "weight": 2,
-      "profile": "chrome_130_tablet"
+      "profile": "chrome_130_tablet",
+      "source": "builtin"
     }
   ]
 }

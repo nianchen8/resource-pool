@@ -483,10 +483,13 @@ class AsyncUserAgentPool(AsyncResourcePool):
     def _build_headers(entry: AgentEntry) -> dict[str, str]:
         """从 entry 构建完整请求头字典
 
-        直接委托给同步版 UserAgentPool._build_headers，
+        委托给同步版 UserAgentPool 实例（惰性单例），
         享受相同的优先级逻辑（内联 headers > 派系组装 > Profile 匹配）。
         """
-        return UserAgentPool._build_headers(entry)
+        # 惰性单例：避免每次创建新实例，共享一份 _ua_pools
+        if not hasattr(AsyncUserAgentPool, '_sync_builder'):
+            AsyncUserAgentPool._sync_builder = UserAgentPool()
+        return AsyncUserAgentPool._sync_builder._build_headers(entry)
 
     def _load_bundled_jsonl_sync(self) -> int:
         """同步加载 bundled headers_pool.jsonl（供 __init__ 阶段使用）
@@ -499,7 +502,6 @@ class AsyncUserAgentPool(AsyncResourcePool):
 
         search_paths = [
             _os.path.join(_os.path.dirname(__file__), "headers_pool.jsonl"),
-            _os.path.join(_os.getcwd(), "headers_pool.jsonl"),
         ]
 
         for path in search_paths:

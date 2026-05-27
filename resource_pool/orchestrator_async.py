@@ -159,7 +159,11 @@ class AsyncPoolOrchestrator:
                 method = getattr(pool, method_name)
                 if asyncio.iscoroutinefunction(method):
                     return await method()
-                return method()
+                result = method()
+                # isawaitable 兜底：某些方法虽非 async def 但返回 coroutine 对象
+                if inspect.isawaitable(result):
+                    return await result
+                return result
 
         # ── 2. hasattr 兜底（已弃用，将在未来版本移除） ──
         # 请使用 AsyncPoolOrchestrator.register_dispatch() 注册自定义池。

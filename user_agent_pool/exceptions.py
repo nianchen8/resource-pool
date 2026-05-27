@@ -1,6 +1,6 @@
 """User-Agent 池异常"""
 
-from resource_pool.exceptions import PoolExhaustedError
+from resource_pool.exceptions import PoolExhaustedError, ResourceUnhealthyError
 
 
 class PoolExhaustedException(PoolExhaustedError):
@@ -15,7 +15,7 @@ class PoolExhaustedException(PoolExhaustedError):
         super().__init__(msg)
 
 
-class InvalidAgentException(Exception):
+class InvalidAgentException(ResourceUnhealthyError):
     """传入无效的 User-Agent 时抛出"""
 
     def __init__(self, reason: str = "不合法的 User-Agent"):

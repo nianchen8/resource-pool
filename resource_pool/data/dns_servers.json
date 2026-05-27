@@ -1,0 +1,19 @@
+{
+  "format_version": 2,
+  "items": [
+    {"ip": "114.114.114.114", "name": "114DNS", "region": "domestic", "enabled": true, "weight": 10, "source": "builtin", "batch": null},
+    {"ip": "223.5.5.5", "name": "阿里 DNS", "region": "domestic", "enabled": true, "weight": 10, "source": "builtin", "batch": null},
+    {"ip": "223.6.6.6", "name": "阿里 DNS 备用", "region": "domestic", "enabled": true, "weight": 8, "source": "builtin", "batch": null},
+    {"ip": "119.29.29.29", "name": "DNSPod", "region": "domestic", "enabled": true, "weight": 9, "source": "builtin", "batch": null},
+    {"ip": "180.76.76.76", "name": "百度 DNS", "region": "domestic", "enabled": true, "weight": 7, "source": "builtin", "batch": null},
+    {"ip": "101.226.4.6", "name": "DNS派 电信", "region": "domestic", "enabled": true, "weight": 6, "source": "builtin", "batch": null},
+    {"ip": "218.30.118.6", "name": "DNS派 联通", "region": "domestic", "enabled": true, "weight": 6, "source": "builtin", "batch": null},
+    {"ip": "8.8.8.8", "name": "Google DNS", "region": "overseas", "enabled": true, "weight": 8, "source": "builtin", "batch": null},
+    {"ip": "8.8.4.4", "name": "Google DNS 备用", "region": "overseas", "enabled": true, "weight": 7, "source": "builtin", "batch": null},
+    {"ip": "1.1.1.1", "name": "Cloudflare", "region": "overseas", "enabled": true, "weight": 10, "source": "builtin", "batch": null},
+    {"ip": "1.0.0.1", "name": "Cloudflare 备用", "region": "overseas", "enabled": true, "weight": 8, "source": "builtin", "batch": null},
+    {"ip": "9.9.9.9", "name": "Quad9", "region": "overseas", "enabled": true, "weight": 6, "source": "builtin", "batch": null},
+    {"ip": "208.67.222.222", "name": "OpenDNS", "region": "overseas", "enabled": true, "weight": 6, "source": "builtin", "batch": null},
+    {"ip": "208.67.220.220", "name": "OpenDNS 备用", "region": "overseas", "enabled": true, "weight": 5, "source": "builtin", "batch": null}
+  ]
+}

@@ -1,9 +1,12 @@
 """DNS 解析器资源池 —— 可扩展核心"""
 
+import json
 import logging
+import os
 import threading
 import time
 import random
+import socket
 from collections import deque
 from enum import Enum
 
@@ -15,6 +18,7 @@ from dns_resolver_pool.servers import (
     ServerEntry,
     _DOMESTIC,
     _OVERSEAS,
+    _load_from_data_dir,
     HEALTH_CHECK_DOMAINS,
 )
 from resource_pool.base import DummyLock, ResourcePool, StrategyProtocol
@@ -91,6 +95,9 @@ class DNSResolverPool(ResourcePool):
         revive_after: int = 120,
         thread_safe: bool = True,
         fallback_to_system: bool = True,
+        data_dir: str | None = None,
+        load_builtin: bool = True,
+        load_fed: bool = True,
     ) -> None:
         self._servers: list[ServerState] = []
         self._cache: dict[str, tuple[list[str], float]] = {}
@@ -112,6 +119,11 @@ class DNSResolverPool(ResourcePool):
         ]
         self._rr_index = 0
         self._last_revive_check: float = 0.0
+        self._socket_patched: bool = False
+        self._original_getaddrinfo = None
+        self._data_dir = data_dir
+        self._load_builtin = load_builtin
+        self._load_fed = load_fed
         self._load_defaults(regions)
 
     # ── 公开 API ─────────────────────────────────────────────────────
@@ -243,7 +255,7 @@ class DNSResolverPool(ResourcePool):
         with self._lock:
             snapshot = list(self._servers)
         for state in snapshot:
-            ok = self._probe_server(state, timeout)
+            ok, elapsed_ms = self._probe_server(state, timeout)
             with self._lock:
                 # 重新校验 state 仍在池中且未被其他线程修改
                 if state not in self._servers:
@@ -252,12 +264,21 @@ class DNSResolverPool(ResourcePool):
                     # 仅在仍启用时才更新（避免覆盖并发隔离操作）
                     if state.enabled:
                         state.consecutive_fails = 0
+                        # 健康检查成功：用 EMA 更新延迟，使延迟加权策略生效
+                        state.latency_ms = (
+                            state.latency_ms * 0.7 + elapsed_ms * 0.3
+                            if state.latency_ms else elapsed_ms
+                        )
                         results[state.ip] = "OK"
                     else:
                         # 已被隔离但探测通过，保留隔离状态等待 _try_revive
                         results[state.ip] = "OK(隔离中)"
                 else:
                     state.consecutive_fails += 1
+                    # 健康检查失败：立即用实际耗时（超时值）更新延迟，
+                    # 避免延迟为 0 的不可用服务器在延迟加权策略中排到首位
+                    if state.latency_ms == 0 or elapsed_ms > state.latency_ms:
+                        state.latency_ms = elapsed_ms
                     if state.consecutive_fails >= self._max_fails:
                         state.enabled = False
                         logger.warning("DNS %s (%s) 连续失败 %d 次，已隔离", state.ip, state.name, state.consecutive_fails)
@@ -323,6 +344,101 @@ class DNSResolverPool(ResourcePool):
                 s.reset_resolvers()
         logger.info("已释放所有线程本地 Resolver 引用")
 
+    # ── Socket 补丁：透明接入 requests / urllib3 ──────────────────────
+
+    @property
+    def is_patched(self) -> bool:
+        """socket.getaddrinfo 是否已被 patch"""
+        return self._socket_patched
+
+    def patch_socket(self) -> None:
+        """Patch socket.getaddrinfo，全局 DNS 走池内 14 台服务器。
+
+        调用后，当前进程内所有通过 socket.getaddrinfo 发起的 DNS
+        解析（requests、urllib3、标准库 socket 等）将经由 DNS 池按
+        策略轮询 14 台 DNS 服务器解析，全部失败时回退到系统 DNS。
+
+        线程安全：patched 函数内部不持锁，直接委托给 resolve_all()
+        （内部自带缓存+分片锁），多线程安全。
+
+        使用示例::
+
+            dns = DNSResolverPool()
+            dns.patch_socket()
+            requests.get("https://www.baidu.com")  # DNS 走池
+            dns.unpatch_socket()
+        """
+        if self._socket_patched:
+            return
+        self._original_getaddrinfo = socket.getaddrinfo
+        pool_ref = self
+
+        def _patched_getaddrinfo(host, port, family=0, type=0, proto=0, flags=0):
+            # 非域名或不合法 → 直通原版
+            if not isinstance(host, str) or not host:
+                return pool_ref._original_getaddrinfo(
+                    host, port, family, type, proto, flags,
+                )
+            # AI_NUMERICHOST：调用方声明 host 已是数字地址
+            if flags & socket.AI_NUMERICHOST:
+                return pool_ref._original_getaddrinfo(
+                    host, port, family, type, proto, flags,
+                )
+            try:
+                ips = pool_ref.resolve_all(host)
+                if not ips:
+                    raise PoolExhaustedException(
+                        "DNS 服务器", f"resolve_all 返回空: {host}",
+                    )
+            except PoolExhaustedException:
+                # 池内 + 系统 DNS 全部失败
+                raise socket.gaierror(
+                    f"[DNS-Pool] all servers exhausted for {host}",
+                )
+            except Exception:
+                # 意外异常 → 降级到原始 getaddrinfo
+                return pool_ref._original_getaddrinfo(
+                    host, port, family, type, proto, flags,
+                )
+            # 将 IP 列表转成 getaddrinfo 元组格式
+            result = []
+            for ip in ips:
+                try:
+                    result.extend(
+                        pool_ref._original_getaddrinfo(
+                            ip, port, family, type, proto, flags,
+                        ),
+                    )
+                except socket.gaierror:
+                    continue
+            if result:
+                return result
+            raise socket.gaierror(
+                f"[DNS-Pool] no usable address for {host}",
+            )
+
+        socket.getaddrinfo = _patched_getaddrinfo
+        self._socket_patched = True
+        logger.info("socket.getaddrinfo 已接入 DNS 池 (%d 台)", len(self._servers))
+
+    def unpatch_socket(self) -> None:
+        """恢复 socket.getaddrinfo 为系统默认"""
+        if self._original_getaddrinfo is not None:
+            socket.getaddrinfo = self._original_getaddrinfo
+            self._original_getaddrinfo = None
+            self._socket_patched = False
+            logger.info("socket.getaddrinfo 已恢复为系统默认")
+
+    def __enter__(self):
+        """上下文管理器入口：自动 patch socket"""
+        self.patch_socket()
+        return self
+
+    def __exit__(self, *args: object) -> None:
+        """上下文管理器出口：自动 unpatch socket"""
+        self.unpatch_socket()
+        return None
+
     @property
     def strategy(self) -> SelectStrategy | StrategyProtocol:
         if self._strategy_enum is not None:
@@ -350,11 +466,55 @@ class DNSResolverPool(ResourcePool):
             self._strategy_fn = value
 
     def _load_defaults(self, regions: tuple[str, ...]) -> None:
-        region_map = {"domestic": _DOMESTIC, "overseas": _OVERSEAS}
-        for r in regions:
-            for entry in region_map.get(r, []):
-                if entry.get("enabled", True):
-                    self._servers.append(ServerState(entry))
+        # ── 优先从 data_dir 加载（如果指定）──
+        if self._data_dir:
+            path = os.path.join(self._data_dir, "dns_servers.json")
+            if os.path.isfile(path):
+                try:
+                    with open(path, "r", encoding="utf-8") as f:
+                        data = json.load(f)
+                    items = data.get("items", [])
+                    for item in items:
+                        if item.get("enabled", True):
+                            self._servers.append(ServerState({
+                                "ip": str(item["ip"]),
+                                "name": str(item.get("name", item["ip"])),
+                                "region": str(item.get("region", "unknown")),
+                                "enabled": bool(item.get("enabled", True)),
+                                "weight": int(item.get("weight", 5)),
+                            }))
+                    logger.info("已从 %s 加载 %d 台 DNS 服务器", path, len(self._servers))
+                    return
+                except Exception as e:
+                    logger.warning("加载 %s 失败: %s", path, e)
+
+        # ── 从 JSON 数据文件加载（含 fed 养成数据）──
+        loaded_from_json = False
+        if self._load_builtin or self._load_fed:
+            json_servers = _load_from_data_dir()
+            if json_servers:
+                for entry in json_servers:
+                    # 检查地域过滤
+                    if entry.get("region") not in regions:
+                        continue
+                    # 检查 source 过滤
+                    source = entry.get("source", "builtin")
+                    if source == "builtin" and not self._load_builtin:
+                        continue
+                    if source == "fed" and not self._load_fed:
+                        continue
+                    if entry.get("enabled", True):
+                        self._servers.append(ServerState(entry))
+                loaded_from_json = True
+
+        # ── 回退到硬编码（仅当 JSON 加载失败且 load_builtin=True）──
+        if not loaded_from_json and self._load_builtin:
+            region_map = {"domestic": _DOMESTIC, "overseas": _OVERSEAS}
+            for r in regions:
+                for entry in region_map.get(r, []):
+                    if entry.get("enabled", True):
+                        self._servers.append(ServerState(entry))
+
         logger.info("已加载 %d 台 DNS 服务器（地域: %s）", len(self._servers), ", ".join(regions))
 
     def _select_sequence(self):
@@ -404,19 +564,21 @@ class DNSResolverPool(ResourcePool):
         return [str(r) for r in answer]
 
     @staticmethod
-    def _probe_server(state: ServerState, timeout: float) -> bool:
-        """探测单台 DNS 是否可用（不影响 latency_ms）"""
+    def _probe_server(state: ServerState, timeout: float) -> tuple[bool, float]:
+        """探测单台 DNS 是否可用，返回 (可用, 延迟ms)"""
         domain = random.choice(HEALTH_CHECK_DOMAINS)
-        # 健康检查使用独立 Resolver，避免污染运行时延迟统计
         resolver = dns.resolver.Resolver()
         resolver.nameservers = [state.ip]
         resolver.timeout = timeout
         resolver.lifetime = timeout
+        start = time.monotonic()
         try:
             resolver.resolve(domain, "A")
-            return True
+            elapsed = (time.monotonic() - start) * 1000
+            return True, elapsed
         except dns.exception.DNSException:
-            return False
+            elapsed = (time.monotonic() - start) * 1000
+            return False, elapsed
 
     def _get_alive(self) -> list[ServerState]:
         with self._lock:
@@ -522,8 +684,10 @@ class DNSResolverPool(ResourcePool):
             total = len(self._servers)
         if self._strategy_enum is not None:
             strategy_name = self._strategy_enum.value
-        else:
+        elif self._strategy_fn is not None:
             strategy_name = type(self._strategy_fn).__name__
+        else:
+            strategy_name = "unknown"
         return f"DNSResolverPool(alive={alive}/{total}, strategy={strategy_name})"
 
     def __len__(self) -> int:

@@ -21,3 +21,6 @@ test_result.txt
 
 # Commit
 .commit_msg
+
+# Data files (not for distribution)
+headers_pool.jsonl

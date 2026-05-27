@@ -1,0 +1,11 @@
+{
+  "description": "导入 DNS 服务器时转换器能识别的字段。",
+  "fields": {
+    "ip": {"required": true, "type": "string", "example": "192.168.1.1"},
+    "name": {"required": false, "type": "string", "default": "同 ip"},
+    "region": {"required": false, "type": "string", "options": ["domestic", "overseas"], "default": "domestic"},
+    "weight": {"required": false, "type": "int", "default": 5, "range": "1-10"},
+    "enabled": {"required": false, "type": "bool", "default": true}
+  },
+  "accepted_input_formats": ["json数组", "纯文本(每行一个IP)"]
+}

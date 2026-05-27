@@ -163,14 +163,16 @@ class Proxy:
             self._init = True
 
     def _add_one(self, addr: str) -> None:
-        """将 "ip:port" 或 "ip:port:user:pass" 转为 ProxyEntry 并添加"""
-        parts = addr.rsplit(":", 1)
-        if len(parts) != 2:
-            raise ValueError(f"无效的代理地址格式: {addr!r}，应为 'ip:port'")
-        host, port = parts
-        entry: dict[str, Any] = {"scheme": "http", "host": host, "port": int(port)}
-        # 检查是否带鉴权 (ip:port:user:pass)
-        # 已在上面的 rsplit 处理后无需额外检查，主逻辑完成
+        """将代理地址转为 ProxyEntry 并添加
+
+        支持格式：ip:port / ip:port:user:pass / http://ip:port 等。
+        解析逻辑复用 ProxyPool._parse_proxy_str，保证与长路径行为一致。
+        """
+        from proxy_pool.pool import ProxyPool as _SyncPool
+
+        entry = _SyncPool._parse_proxy_str(addr, "http")
+        if not entry.get("host") or not entry.get("port"):
+            raise ValueError(f"无效的代理地址格式: {addr!r}")
         self._pool.add_proxy(entry)
 
     # ── 公开方法 ──
@@ -219,6 +221,15 @@ class DNS:
 
         # 解析域名（自动选取最快的 DNS 服务器，结果缓存 5 分钟）
         ip = dns.resolve("www.example.com")
+
+        # 透明接入 requests/urllib3：patch 后所有 HTTP 请求自动走池
+        dns.patch_socket()
+        requests.get("https://www.baidu.com")  # DNS 走 14 台服务器
+        dns.unpatch_socket()
+
+        # 上下文管理器：进入 with 自动 patch，退出自动 unpatch
+        with dns:
+            requests.get("https://www.baidu.com")
     """
 
     def __init__(self) -> None:
@@ -242,6 +253,27 @@ class DNS:
     def lookup(self, domain: str) -> str:
         """resolve 的别名"""
         return self.resolve(domain)
+
+    def patch_socket(self) -> None:
+        """接入 socket 层：之后 requests/urllib3 的 DNS 全走池"""
+        self._ensure()
+        self._pool.patch_socket()
+
+    def unpatch_socket(self) -> None:
+        """恢复系统默认 DNS"""
+        self._ensure()
+        self._pool.unpatch_socket()
+
+    def __enter__(self):
+        """上下文管理器入口：自动 patch socket"""
+        self._ensure()
+        self._pool.patch_socket()
+        return self
+
+    def __exit__(self, *args: object) -> None:
+        """上下文管理器出口：自动 unpatch socket"""
+        self._pool.unpatch_socket()
+        return None
 
     def __len__(self) -> int:
         if not self._init:

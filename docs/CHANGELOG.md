@@ -1,10 +1,14 @@
 # 更新日志
 
-## v1.1.3 (2026-05-27)
+## v1.2.0 (2026-05-27)
 
-- 🐛 **`_parse_json` 补充 `host` 字段解析**：荷花代理等供应商 JSON 使用 `host`/`port` 字段而非 `IP`/`ip`，原解析链路未覆盖导致 `load_from_url` 失败。已在 3 处解析路径补充 `item.get("host")` 回退
-- 🛡️ **`_probe_proxy` 多目标三探验活**（同步+异步）：原逻辑仅随机选 1 个 `HEALTH_CHECK_URLS` 做单次探测，目标偶发抽风即冤杀代理。改为最多探测 3 个不同 URL（打乱顺序），任一通过即判存活，全部失败才隔离，误杀率从 70% 降到 0%
-- 🔧 版本号 1.1.2 → 1.1.3
+- 🚀 **养成系持久化 API**（`resource_pool._feeding`）：让池子"越用越肥"——`feed_ua()` / `feed_dns()` / `feed_proxy()` 一道命令将新资源永久写入安装目录，`import_ua()` / `import_dns()` / `import_proxy()` 批量导入，`export_fed()` 备份养成数据，`reset()` 一键清除，`status()` 查看喂养统计。养成数据与原数据同文件共处（`source="fed"` + `batch` 批次号），支持去重、权重更新、自动分类。全部 API 通过 `resource_pool.feed_ua()` 等惰性导入对外暴露
+- 🚀 **数据格式标准化**：新增 `resource_pool/data/schema/` 目录，含 `ua_format.json` / `dns_format.json` / `proxy_format.json` 三种标准格式定义，`import_*()` API 均按标准格式解析
+- 🚀 **数据模板与 Profile**：`resource_pool/data/` 纳入 `header_profiles.json`（Profile 组）和 `ua_templates.json`（UA 生成模板），便于深度定制
+- 📝 **四层文档重构**：`docs/guides/` 拆分为开箱即用 / 初级定制 / 深度定制 / 底层源码 四层递进体系，每层含 5 种写法（单线程/多线程/多进程/异步/Scrapy），删除旧版 cookbook / deep-dive / quickstart
+- 🐛 **`_parse_json` 补充 `host` 字段解析**：荷花代理等供应商 JSON 使用 `host`/`port` 字段而非 `IP`/`ip`，原解析链路未覆盖导致 `load_from_url` 失败
+- 🛡️ **`_probe_proxy` 多目标三探验活**（同步+异步）：原逻辑仅随机选 1 个 URL 做单次探测，目标偶发抽风即冤杀代理。改为最多探测 3 个不同 URL，任一通过即判存活，误杀率从 70% 降到 0%
+- 🔧 版本号 1.1.2 → 1.2.0
 
 ## v1.1.2 (2026-05-27)
 

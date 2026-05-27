@@ -181,6 +181,7 @@ class PoolOrchestrator:
             try:
                 combo[name] = PoolOrchestrator._fetch_from_pool(name, pool)
             except PoolExhaustedError:
+                # 池耗尽是预期行为，直接向上传播由调用方决定兜底策略
                 raise
             except Exception as exc:
                 logger.error("编排器从 '%s' 获取资源失败: %s", name, exc)

@@ -87,6 +87,20 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "Proxy":                      ("resource_pool._shortcuts", "Proxy"),
     "DNS":                        ("resource_pool._shortcuts", "DNS"),
     "combo":                      ("resource_pool._shortcuts", "combo"),
+    # 养成系 API
+    "feed_ua":                    ("resource_pool._feeding", "feed_ua"),
+    "feed_proxy":                 ("resource_pool._feeding", "feed_proxy"),
+    "feed_dns":                   ("resource_pool._feeding", "feed_dns"),
+    "import_ua":                  ("resource_pool._feeding", "import_ua"),
+    "import_proxy":               ("resource_pool._feeding", "import_proxy"),
+    "import_dns":                 ("resource_pool._feeding", "import_dns"),
+    "export_fed":                 ("resource_pool._feeding", "export_fed"),
+    "status":                     ("resource_pool._feeding", "status"),
+    "list_fed":                   ("resource_pool._feeding", "list_fed"),
+    "get_stats":                  ("resource_pool._feeding", "get_stats"),
+    "remove_fed":                 ("resource_pool._feeding", "remove_fed"),
+    "reset":                      ("resource_pool._feeding", "reset"),
+    "sync_seeds":                 ("resource_pool._feeding", "sync_seeds"),
 }
 
 
@@ -137,4 +151,18 @@ __all__ = [
     "Proxy",
     "DNS",
     "combo",
+    # 养成系 API
+    "feed_ua",
+    "feed_proxy",
+    "feed_dns",
+    "import_ua",
+    "import_proxy",
+    "import_dns",
+    "export_fed",
+    "status",
+    "list_fed",
+    "get_stats",
+    "remove_fed",
+    "reset",
+    "sync_seeds",
 ]

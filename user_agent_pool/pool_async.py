@@ -45,28 +45,46 @@ class AsyncUserAgentPool(AsyncResourcePool):
                  thread_safe: bool = True) -> None:
         self._agents: dict[str, list[AgentEntry]] = {}
         self._strategy: UAStrategy = strategy
-        self._init_defaults()
         self._lock = asyncio.Lock() if thread_safe else AsyncDummyLock()
+        self._init_defaults()
 
     # ── 初始化 ───────────────────────────────────────────────────────
 
     def _init_defaults(self) -> None:
+        """从 agents.py 导入内置数据集 + 加载 headers_pool.jsonl
+
+        headers_pool.jsonl（800+ 条真实 UA）作为本地降级路径的基数数据源。
+        __init__ 阶段同步解析 jsonl 并直接扩展 self._agents, 无需走 async add()。
+        """
         for cat in ("desktop", "mobile", "tablet"):
             self._agents[cat] = [
                 self._copy_agent_entry(entry)
                 for entry in DEFAULT_AGENTS[cat]
             ]
+        # 加载 bundled headers_pool.jsonl 扩充默认池（同步解析 + 直接注入）
+        jsonl_loaded = self._load_bundled_jsonl_sync()
         total = sum(len(v) for v in self._agents.values())
-        logger.info("已加载 %d 个 User-Agent（desktop=%d, mobile=%d, tablet=%d）",
-                    total, len(self._agents["desktop"]), len(self._agents["mobile"]), len(self._agents["tablet"]))
+        logger.info("已加载 %d 个 User-Agent（desktop=%d, mobile=%d, tablet=%d, jsonl新增=%d）",
+                    total, len(self._agents["desktop"]), len(self._agents["mobile"]),
+                    len(self._agents["tablet"]), jsonl_loaded)
 
     @staticmethod
     def _copy_agent_entry(entry: AgentEntry) -> AgentEntry:
-        """创建 AgentEntry 的浅拷贝（类型安全），含元数据字段"""
+        """创建 AgentEntry 的浅拷贝（类型安全），含元数据字段
+
+        若原始 entry 缺少 browser/os/version 元数据，
+        自动从 UA 字符串解析补全，确保派系组装路径可用。
+        """
         copied: AgentEntry = {"ua": entry["ua"], "weight": entry.get("weight", 5)}
         for key in ("profile", "browser", "os", "version"):
             if key in entry:
                 copied[key] = entry[key]  # type: ignore[literal-required]
+        # 自动检测元数据（确保内置 DEFAULT_AGENTS 也能走派系组装）
+        if "browser" not in copied:
+            metadata = parse_ua_metadata(copied["ua"])
+            for key in ("browser", "os", "version"):
+                if key in metadata:
+                    copied[key] = metadata[key]  # type: ignore[literal-required]
         return copied
 
     # ── 公开 API ─────────────────────────────────────────────────────
@@ -125,7 +143,8 @@ class AsyncUserAgentPool(AsyncResourcePool):
         return self._build_headers(entry)
 
     async def add(self, ua: str, category: str, weight: int = 5,
-                  profile: str | None = None) -> None:
+                  profile: str | None = None,
+                  headers: dict[str, str] | None = None) -> None:
         """向指定分类添加一个 UA
 
         Args:
@@ -133,6 +152,7 @@ class AsyncUserAgentPool(AsyncResourcePool):
             category: desktop | mobile | tablet
             weight: 权重（≥1）
             profile: Header Profile 键名（可选）
+            headers: 内联完整请求头字典（可选），优先级最高，不包含 User-Agent
         """
         if category not in VALID_CATEGORIES or category == "all":
             raise ValueError(f"无效分类 '{category}'，可选: {VALID_CATEGORIES}")
@@ -143,6 +163,8 @@ class AsyncUserAgentPool(AsyncResourcePool):
         entry: AgentEntry = {"ua": ua_clean, "weight": max(1, weight)}
         if profile:
             entry["profile"] = profile
+        if headers:
+            entry["headers"] = dict(headers)
         # 自动检测浏览器/操作系统/版本号（用于细粒度筛选）
         metadata = parse_ua_metadata(ua_clean)
         for key in ("browser", "os", "version"):
@@ -213,15 +235,18 @@ class AsyncUserAgentPool(AsyncResourcePool):
         UserAgentPool.register_profile(key, headers)
 
     async def load_from_file(self, path: str) -> int:
-        """从 JSON 或 CSV 文件批量异步导入 User-Agent
+        """从 JSON / JSONL / CSV 文件批量异步导入 User-Agent
 
         解析逻辑复用同步版 UserAgentPool，通过 asyncio.to_thread
         在后台线程执行文件读取和解析，不阻塞事件循环。
 
-        支持的格式：JSON (*.json) 或 CSV (*.csv)
+        支持的格式：JSON (*.json)、JSONL (*.jsonl) 或 CSV (*.csv)
+
+        JSONL 格式中每行的完整 headers（Accept、Accept-Language 等）作为
+        原子单位保留，确保字段间语义一致不被反爬识别。
 
         Args:
-            path: JSON 或 CSV 文件路径
+            path: JSON / JSONL / CSV 文件路径
 
         Returns:
             成功导入的 UA 数量
@@ -237,11 +262,13 @@ class AsyncUserAgentPool(AsyncResourcePool):
             ext = _os.path.splitext(path)[1].lower()
             if ext == ".json":
                 return UserAgentPool._parse_json_file(path)
+            elif ext == ".jsonl":
+                return UserAgentPool._parse_jsonl_file(path)
             elif ext == ".csv":
                 return UserAgentPool._parse_csv_file(path)
             else:
                 raise ValueError(
-                    f"不支持的文件格式 '{ext}'，仅支持 .json 和 .csv"
+                    f"不支持的文件格式 '{ext}'，仅支持 .json、.jsonl 和 .csv"
                 )
 
         entries = await asyncio.to_thread(_load_sync)
@@ -252,11 +279,13 @@ class AsyncUserAgentPool(AsyncResourcePool):
         skipped = 0
         for entry in entries:
             try:
+                entry_headers = entry.get("headers")
                 await self.add(
                     ua=str(entry["ua"]),
                     category=str(entry.get("category", "desktop")),
                     weight=int(entry.get("weight", 5)),
                     profile=str(entry["profile"]) if entry.get("profile") else None,
+                    headers=dict(entry_headers) if isinstance(entry_headers, dict) else None,
                 )
                 added += 1
             except (ValueError, InvalidAgentException) as e:
@@ -454,44 +483,63 @@ class AsyncUserAgentPool(AsyncResourcePool):
     def _build_headers(entry: AgentEntry) -> dict[str, str]:
         """从 entry 构建完整请求头字典
 
-        优先级：
-        1. entry 显式指定 profile → 直接使用
-        2. entry 无 profile 但有 browser/os/version → 自动匹配最佳 Profile
-        3. 均无 → 仅返回 User-Agent
+        直接委托给同步版 UserAgentPool._build_headers，
+        享受相同的优先级逻辑（内联 headers > 派系组装 > Profile 匹配）。
         """
-        headers: dict[str, str] = {"User-Agent": entry["ua"]}
-        profile_key = entry.get("profile", "")
+        return UserAgentPool._build_headers(entry)
 
-        # 自动匹配：无显式 profile 但有元数据时，自动查找最佳匹配
-        if not profile_key:
-            browser = entry.get("browser", "")
-            os_name = entry.get("os", "")
-            version = entry.get("version", 0)
-            if browser and os_name and version:
-                matched = match_profile(
-                    browser=str(browser),
-                    os=str(os_name),
-                    version=int(version),
-                    ua=entry["ua"],
-                )
-                if matched:
-                    profile_key = matched
-                    logger.debug(
-                        "自动匹配 Profile: %s → %s (browser=%s, os=%s, v=%s)",
-                        entry["ua"][:50], matched, browser, os_name, version,
-                    )
+    def _load_bundled_jsonl_sync(self) -> int:
+        """同步加载 bundled headers_pool.jsonl（供 __init__ 阶段使用）
 
-        if profile_key:
-            # _PROFILE_LOCK 是 threading.Lock，用于保护模块级 _HEADER_PROFILES 访问
-            # 在 asyncio 单线程场景下不会阻塞事件循环（无竞争，仅 dict.get）
-            # 多线程+asyncio 场景下持锁时间极短（<1μs），对事件循环影响可忽略
-            with _PROFILE_LOCK:
-                profile_data = _HEADER_PROFILES.get(profile_key)
-            if profile_data is not None:
-                headers.update(profile_data)
-            else:
-                logger.warning("Profile '%s' 不存在，仅返回 User-Agent", profile_key)
-        return headers
+        直接解析 jsonl 并注入 self._agents，无需走 async add()。
+        每条 UA 自动通过 parse_ua_metadata 提取 browser/os/version，
+        并保留完整内联 headers（Accept/Accept-Language 等作为原子单位）。
+        """
+        import os as _os
+
+        search_paths = [
+            _os.path.join(_os.path.dirname(__file__), "headers_pool.jsonl"),
+            _os.path.join(_os.getcwd(), "headers_pool.jsonl"),
+        ]
+
+        for path in search_paths:
+            if _os.path.isfile(path):
+                logger.debug("AsyncUA 找到本地 headers_pool.jsonl: %s", path)
+                try:
+                    raw_entries = UserAgentPool._parse_jsonl_file(path)
+                except Exception as e:
+                    logger.warning("AsyncUA 解析 headers_pool.jsonl 失败: %s", e)
+                    continue
+
+                added = 0
+                seen: set[str] = set()
+                for cat_entries in self._agents.values():
+                    for e in cat_entries:
+                        seen.add(e["ua"])
+
+                for raw in raw_entries:
+                    ua_str = str(raw["ua"])
+                    if ua_str in seen:
+                        continue
+                    seen.add(ua_str)
+                    category = str(raw.get("category", UserAgentPool._guess_category(ua_str)))
+                    entry: AgentEntry = {"ua": ua_str, "weight": 5}
+                    metadata = parse_ua_metadata(ua_str)
+                    for key in ("browser", "os", "version"):
+                        if key in metadata:
+                            entry[key] = metadata[key]  # type: ignore[literal-required]
+                    # 保留完整内联 headers（来自 jsonl 同一行的 Accept/Accept-Language 等）
+                    raw_headers = raw.get("headers")
+                    if isinstance(raw_headers, dict):
+                        entry["headers"] = dict(raw_headers)  # type: ignore[typeddict-item]
+                    self._agents.setdefault(category, []).append(entry)
+                    added += 1
+
+                logger.info("AsyncUA headers_pool.jsonl: %d 导入", added)
+                return added
+
+        logger.debug("AsyncUA 未找到 headers_pool.jsonl 文件")
+        return 0
 
 
 class AsyncUAReserve:

@@ -30,7 +30,10 @@ print(ua.pick("mobile"))   # 限定移动端
 
 每次 `pick()` 返回不同 UA，自动加权随机——常用 UA 命中率更高。
 
-> 需要完整请求头？改用 `ua.headers()` 即可——返回包含 User-Agent、Accept、Sec-Ch-Ua 等的字典。
+> 池创建时已自动加载 854 条 UA 种子（ua_seeds.json），覆盖 Chrome/Edge/Firefox/Safari 4 引擎 × 7 平台。
+> 854 条 UA 拆解为 OS 串/版本令牌/WebKit/Mobile Build 四个零件维度，跨零件随机重组 → 31,496 独立 UA → 193,633 完整 headers 组合。
+
+> 需要完整请求头？改用 `ua.headers()` 即可——派系引擎实时组装 14 项请求头并随机选取可变字段。
 
 > 需要细粒度筛选（浏览器/版本号）？[cookbook → UA 池](cookbook.md#user-agent-池)。
 

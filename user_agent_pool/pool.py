@@ -10,7 +10,6 @@ from typing import Iterator
 
 from user_agent_pool.exceptions import PoolExhaustedException, InvalidAgentException
 from user_agent_pool.agents import (
-    DEFAULT_AGENTS,
     VALID_CATEGORIES,
     _HEADER_PROFILES,
     _PROFILE_LOCK,
@@ -18,6 +17,22 @@ from user_agent_pool.agents import (
     parse_ua_metadata,
     _invalidate_profile_cache,
     match_profile,
+    _build_sec_ch_ua,
+    _OS_PLATFORM_META,
+    AL_DESKTOP_5,
+    AL_MACOS,
+    AL_MOBILE_3,
+    AL_FIREFOX,
+    CACHE_CONTROL_VARIANTS,
+    UPGRADE_VARIANTS,
+    ACCEPT_CHROME,
+    ACCEPT_FIREFOX,
+    ACCEPT_SAFARI,
+    _CHROME_UA_DESKTOP,
+    _CHROME_UA_MOBILE,
+    _FIREFOX_UA_DESKTOP,
+    _FIREFOX_UA_MOBILE,
+    _EDGE_UA_DESKTOP,
 )
 from resource_pool.base import DummyReadWriteLock, ReadWriteLock, ResourcePool
 
@@ -35,7 +50,21 @@ CATEGORY_ALL: str = "all"  # 表示所有分类的特殊值
 
 # ── Sec-Ch-Ua 动态版本补丁 ──────────────────────────────────────────
 _SEC_CH_UA_VERSION_RE = re.compile(r'v="(\d+)"')
+# Sec-CH-UA 键名别名：jsonl 使用大写 CH（如 Sec-CH-UA），派系组装使用小写 Ch（如 Sec-Ch-Ua）
+_SEC_CH_UA_KEY_ALIASES: dict[str, list[str]] = {
+    "Sec-Ch-Ua": ["Sec-CH-UA"],
+    "Sec-Ch-Ua-Platform": ["Sec-CH-UA-Platform"],
+    "Sec-Ch-Ua-Mobile": ["Sec-CH-UA-Mobile"],
+}
 _UA_VERSION_RE = re.compile(r'(?:Chrome|Edg|Edge)/(\d+)', re.I)
+_UA_OS_RE = re.compile(r'\((.+?)\)')
+_FX_RV_RE = re.compile(r'\s*;\s*rv:\S+$')
+_UA_CHROME_VER_RE = re.compile(r'Chrome/[\d.]+', re.I)
+_UA_FX_VER_RE = re.compile(r'Firefox/[\d.]+', re.I)
+_UA_SAFARI_VER_RE = re.compile(r'Version/[\d.]+')
+_UA_EDGE_VER_RE = re.compile(r'Edg/[\d.]+', re.I)
+_WK_RE = re.compile(r'AppleWebKit/(\S+)')
+_MOBILE_BUILD_RE = re.compile(r'Mobile/(\S+)')
 
 
 def _extract_ua_version(ua: str) -> int | None:
@@ -47,6 +76,58 @@ def _extract_ua_version(ua: str) -> int | None:
         except ValueError:
             pass
     return None
+
+
+def _extract_ua_os(ua: str, browser: str) -> str:
+    """提取 UA 的 OS 平台串（第一个括号内的内容）
+
+    Firefox 需剥离末尾的 '; rv:VER' 部分。
+    """
+    m = _UA_OS_RE.search(ua)
+    if not m:
+        return ""
+    inner = m.group(1)
+    if browser == "firefox":
+        inner = _FX_RV_RE.sub("", inner)
+    return inner
+
+
+def _extract_ua_ver_token(ua: str, browser: str) -> str:
+    """提取完整版本令牌（如 Chrome/148.0.0.0）"""
+    if browser in ("chrome", "edge"):
+        pattern = _UA_EDGE_VER_RE if browser == "edge" else _UA_CHROME_VER_RE
+    elif browser == "firefox":
+        pattern = _UA_FX_VER_RE
+    elif browser == "safari":
+        pattern = _UA_SAFARI_VER_RE
+    else:
+        return ""
+    m = pattern.search(ua)
+    return m.group(0) if m else ""
+
+
+def _extract_num_from_ver(ver_token: str) -> str | int:
+    """从版本令牌提取数字部分：'Chrome/148.0.0.0' → 148"""
+    parts = ver_token.split("/", 1)
+    if len(parts) < 2:
+        return ""
+    num_str = parts[1]
+    try:
+        return int(num_str.split(".")[0])
+    except (ValueError, IndexError):
+        return num_str
+
+
+def _extract_webkit(ua: str) -> str:
+    """提取 AppleWebKit 版本号"""
+    m = _WK_RE.search(ua)
+    return m.group(1) if m else ""
+
+
+def _extract_mobile_build(ua: str) -> str:
+    """提取 Mobile/ 构建号（仅 Safari/WebKit 移动端）"""
+    m = _MOBILE_BUILD_RE.search(ua)
+    return m.group(1) if m else ""
 
 
 def _patch_sec_ch_ua(headers: dict[str, str], ua: str) -> None:
@@ -103,30 +184,49 @@ class UserAgentPool(ResourcePool):
                  thread_safe: bool = True) -> None:
         self._agents: dict[str, list[AgentEntry]] = {}
         self._strategy = strategy
-        self._init_defaults()
         self._thread_safe = thread_safe
         self._lock = ReadWriteLock() if thread_safe else DummyReadWriteLock()
+        self._ua_pools: dict[str, dict[str, list[str | int]]] = {}
+        self._init_defaults()
 
     # ── 初始化 ───────────────────────────────────────────────────────
 
     def _init_defaults(self) -> None:
-        """从 agents.py 导入内置数据集"""
-        for cat in ("desktop", "mobile", "tablet"):
-            self._agents[cat] = [
-                self._copy_agent_entry(entry)
-                for entry in DEFAULT_AGENTS[cat]
-            ]
+        """从 ua_seeds.json 统一配置文件加载全部 UA + Header Profiles
+
+        单一数据源：user_agent_pool/ua_seeds.json，包含：
+        - _header_profiles: 完整 Header Profile 定义（注册到 agents._HEADER_PROFILES）
+        - desktop / mobile / tablet: 各分类 UA 种子列表
+
+        每条 UA 通过 parse_ua_metadata 自动提取 browser/os/version 元数据，
+        在 get_headers() 时走派系即时组装，实现指数级 header 组合爆炸。
+        """
+        self._load_unified_seeds()
+        self._build_ua_component_pools()
         total = sum(len(v) for v in self._agents.values())
-        logger.info("已加载 %d 个 User-Agent（desktop=%d, mobile=%d, tablet=%d）",
-                    total, len(self._agents["desktop"]), len(self._agents["mobile"]), len(self._agents["tablet"]))
+        logger.info("已加载 %d 个 User-Agent（desktop=%d, mobile=%d, tablet=%d），零件池=%d 组",
+                    total, len(self._agents.get("desktop", [])),
+                    len(self._agents.get("mobile", [])),
+                    len(self._agents.get("tablet", [])),
+                    len(self._ua_pools))
 
     @staticmethod
     def _copy_agent_entry(entry: AgentEntry) -> AgentEntry:
-        """创建 AgentEntry 的浅拷贝（类型安全），含元数据字段"""
+        """创建 AgentEntry 的浅拷贝（类型安全），含元数据字段
+
+        若原始 entry 缺少 browser/os/version 元数据，
+        自动从 UA 字符串解析补全，确保派系组装路径可用。
+        """
         copied: AgentEntry = {"ua": entry["ua"], "weight": entry.get("weight", 5)}
         for key in ("profile", "headers", "browser", "os", "version"):
             if key in entry:
                 copied[key] = entry[key]  # type: ignore[literal-required]
+        # 自动检测元数据（确保内置 DEFAULT_AGENTS 也能走派系组装）
+        if "browser" not in copied:
+            metadata = parse_ua_metadata(copied["ua"])
+            for key in ("browser", "os", "version"):
+                if key in metadata:
+                    copied[key] = metadata[key]  # type: ignore[literal-required]
         return copied
 
     # ── 公开 API ─────────────────────────────────────────────────────
@@ -205,7 +305,8 @@ class UserAgentPool(ResourcePool):
             entry = random.choice(candidates)
         return self._build_headers(entry)
 
-    def add(self, ua: str, category: str, weight: int = 5, profile: str | None = None) -> None:
+    def add(self, ua: str, category: str, weight: int = 5, profile: str | None = None,
+            headers: dict[str, str] | None = None) -> None:
         """向指定分类添加一个 UA
 
         Args:
@@ -213,6 +314,7 @@ class UserAgentPool(ResourcePool):
             category: desktop | mobile | tablet
             weight: 权重（≥1）
             profile: Header Profile 键名（可选），见 agents._HEADER_PROFILES
+            headers: 内联完整请求头字典（可选），优先级最高，不包含 User-Agent
 
         Raises:
             ValueError: 分类不合法
@@ -227,6 +329,8 @@ class UserAgentPool(ResourcePool):
         entry: AgentEntry = {"ua": ua_clean, "weight": max(1, weight)}
         if profile:
             entry["profile"] = profile
+        if headers:
+            entry["headers"] = dict(headers)
         # 自动检测浏览器/操作系统/版本号（用于细粒度筛选）
         metadata = parse_ua_metadata(ua_clean)
         for key in ("browser", "os", "version"):
@@ -237,7 +341,7 @@ class UserAgentPool(ResourcePool):
         logger.debug("UA 已添加: %s → 分类 '%s'", ua_clean[:50], category)
 
     def load_from_file(self, path: str) -> int:
-        """从 JSON 或 CSV 文件批量导入 User-Agent
+        """从 JSON / JSONL / CSV 文件批量导入 User-Agent
 
         支持的格式：
 
@@ -247,6 +351,14 @@ class UserAgentPool(ResourcePool):
                 {"ua": "Mozilla/5.0 ...", "category": "desktop", "weight": 5, "profile": "chrome_120"},
                 {"ua": "Mozilla/5.0 ...", "category": "mobile", "weight": 3}
             ]
+
+        **JSONL**::
+
+            {"User-Agent": "Mozilla/5.0 ...", "Accept": "text/html,...", ...}
+            {"User-Agent": "Mozilla/5.0 ...", "Accept-Language": "en-US,...", ...}
+
+        JSONL 格式中每行的完整 headers（Accept、Accept-Language、Cache-Control 等）
+        作为原子单位保留，确保字段间语义一致不被反爬识别。
 
         **CSV**::
 
@@ -258,7 +370,7 @@ class UserAgentPool(ResourcePool):
         只需 ``ua`` 和 ``category`` 两列，``weight`` 和 ``profile`` 可选。
 
         Args:
-            path: JSON 或 CSV 文件路径
+            path: JSON / JSONL / CSV 文件路径
 
         Returns:
             成功导入的 UA 数量
@@ -294,6 +406,7 @@ class UserAgentPool(ResourcePool):
                     category=entry.get("category", "desktop"),
                     weight=entry.get("weight", 5),
                     profile=entry.get("profile"),
+                    headers=dict(entry.get("headers")) if isinstance(entry.get("headers"), dict) else None,
                 )
                 added += 1
             except (ValueError, InvalidAgentException) as e:
@@ -344,6 +457,11 @@ class UserAgentPool(ResourcePool):
             os=os or ["windows", "macos", "linux"],
         )
 
+        # 临时屏蔽 fake_useragent 内部的错误日志（远程源不稳定时避免刷屏）
+        _fua_logger = logging.getLogger('fake_useragent')
+        _fua_prev_level = _fua_logger.level
+        _fua_logger.setLevel(logging.CRITICAL)
+
         added = 0
         seen: set[str] = set()
         # 收集已有 UA 用于去重
@@ -352,32 +470,35 @@ class UserAgentPool(ResourcePool):
                 for e in entries:
                     seen.add(e["ua"])
 
-        for _ in range(limit * 2):  # 尝试 2× limit 以应对重复
-            if added >= limit:
-                break
-            try:
-                ua_str = fake_ua.random
-                if ua_str in seen:
+        try:
+            for _ in range(limit * 2):  # 尝试 2× limit 以应对重复
+                if added >= limit:
+                    break
+                try:
+                    ua_str = fake_ua.random
+                    if ua_str in seen:
+                        continue
+                    seen.add(ua_str)
+                    # 根据 UA 特征自动归类
+                    category = self._guess_category(ua_str)
+                    self.add(ua_str, category)
+                    added += 1
+                except Exception:
                     continue
-                seen.add(ua_str)
-                # 根据 UA 特征自动归类
-                category = self._guess_category(ua_str)
-                self.add(ua_str, category)
-                added += 1
-            except Exception:
-                continue
+        finally:
+            _fua_logger.setLevel(_fua_prev_level)
 
-        # ── 降级：fake_useragent 返回过少时，回退到本地 bundled 数据集 ──
+        # ── 降级：fake_useragent 返回过少时，回退到本地 ua_seeds.json ──
         FALLBACK_THRESHOLD = 5
         if added < FALLBACK_THRESHOLD:
             logger.warning(
-                "fake_useragent 仅返回 %d 条 UA（阈值=%d），降级到本地 headers_pool.jsonl",
+                "fake_useragent 仅返回 %d 条 UA（阈值=%d），降级到本地 ua_seeds.json",
                 added, FALLBACK_THRESHOLD,
             )
-            jsonl_added = self._load_bundled_jsonl()
+            jsonl_added = self._load_unified_seeds()
             if jsonl_added > 0:
                 logger.info(
-                    "降级成功：从本地 headers_pool.jsonl 加载 %d 条 UA（Profile 自动匹配）",
+                    "降级成功：从本地 ua_seeds.json 加载 %d 条 UA",
                     jsonl_added,
                 )
                 added += jsonl_added
@@ -388,52 +509,202 @@ class UserAgentPool(ResourcePool):
         )
         return added
 
-    def _load_bundled_jsonl(self) -> int:
-        """加载包内置的 headers_pool.jsonl 数据集
+    def _load_unified_seeds(self) -> int:
+        """从 ua_seeds.json 统一配置文件加载全部 UA + Header Profiles
 
-        仅提取 UA 字符串，其余请求头由架构的 Profile 匹配机制自动组装。
-        按优先级查找文件：
-        1. user_agent_pool/headers_pool.jsonl（包内）
-        2. ./headers_pool.jsonl（项目根目录）
+        配置文件格式::
+
+            {
+                "_meta": {...},
+                "_header_profiles": {"chrome_148_win": {...}, ...},
+                "desktop": [{"ua": "...", "weight": 5, "profile": "..."}, ...],
+                "mobile": [...],
+                "tablet": [...]
+            }
+
+        文件位置：user_agent_pool/ua_seeds.json（包内置）
+
+        Returns:
+            成功加载的 UA 总数
         """
         import os as _os
 
-        search_paths = [
-            _os.path.join(_os.path.dirname(__file__), "headers_pool.jsonl"),
-            _os.path.join(_os.getcwd(), "headers_pool.jsonl"),
-        ]
+        path = _os.path.join(_os.path.dirname(__file__), "ua_seeds.json")
+        if not _os.path.isfile(path):
+            logger.warning("未找到 ua_seeds.json: %s", path)
+            return 0
 
-        for path in search_paths:
-            if _os.path.isfile(path):
-                logger.debug("找到本地 headers_pool.jsonl: %s", path)
+        logger.debug("加载统一配置文件: %s", path)
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        except Exception as e:
+            logger.warning("解析 ua_seeds.json 失败: %s", e)
+            return 0
+
+        if not isinstance(data, dict):
+            logger.warning("ua_seeds.json 格式无效")
+            return 0
+
+        # ── 注册 Header Profiles ──
+        profile_data = data.get("_header_profiles", {})
+        if isinstance(profile_data, dict) and profile_data:
+            with _PROFILE_LOCK:
+                for key, headers in profile_data.items():
+                    if isinstance(headers, dict) and key not in _HEADER_PROFILES:
+                        _HEADER_PROFILES[key] = dict(headers)
+            _invalidate_profile_cache()
+            logger.debug("注册 %d 个 Header Profile", len(profile_data))
+
+        # ── 加载 UA 种子 ──
+        added = 0
+        skipped = 0
+        for cat in ("desktop", "mobile", "tablet"):
+            entries = data.get(cat, [])
+            if not isinstance(entries, list):
+                continue
+            self._agents.setdefault(cat, [])
+            for entry in entries:
+                if not isinstance(entry, dict) or "ua" not in entry:
+                    skipped += 1
+                    continue
                 try:
-                    entries = self._parse_jsonl_file(path)
-                except Exception as e:
-                    logger.warning("解析 headers_pool.jsonl 失败: %s", e)
+                    agent = self._copy_agent_entry({
+                        "ua": str(entry["ua"]),
+                        "weight": int(entry.get("weight", 5)),
+                        "profile": str(entry["profile"]) if entry.get("profile") else None,
+                    })
+                    self._agents[cat].append(agent)
+                    added += 1
+                except (ValueError, InvalidAgentException) as e:
+                    logger.warning("跳过无效 UA 条目: %s", e)
+                    skipped += 1
+
+        logger.info("ua_seeds.json: %d 导入, %d 跳过", added, skipped)
+        return added
+
+    # ── UA 零件池（拆解+重组）───────────────────────────────────────
+
+    def _build_ua_component_pools(self) -> None:
+        """从 854 条 UA 提取零件池，按 (派系, 设备类型) 分组
+
+        每个 UA 拆解为：
+        - os_string:     括号内平台标识串（如 Windows NT 10.0; Win64; x64）
+        - version_token: 完整版本令牌（如 Chrome/148.0.7727.56）
+        - webkit_ver:    AppleWebKit 版本（如 537.36 / 605.1.15）
+        - mobile_build:  Mobile/ 构建号（仅移动端 Safari）
+
+        重组时跨零件随机 cross-pick，实现指数级 UA 暴增。
+        """
+        pools: dict[str, dict[str, list[str]]] = {}
+
+        for entries in self._agents.values():
+            for entry in entries:
+                ua = entry.get("ua", "")
+                browser = entry.get("browser", "")
+                os_name = entry.get("os", "")
+                if not browser or not os_name or not ua:
                     continue
 
-                added = 0
-                skipped = 0
-                for entry in entries:
-                    try:
-                        self.add(
-                            ua=str(entry["ua"]),
-                            category=str(entry.get("category", "desktop")),
-                            weight=int(entry.get("weight", 5)),
-                        )
-                        added += 1
-                    except (ValueError, InvalidAgentException) as e:
-                        logger.warning("跳过无效 headers 条目: %s", e)
-                        skipped += 1
+                # 设备类型
+                device = UserAgentPool._detect_device_type(ua, os_name)
+                key = f"{browser}_{device}"
+                if key not in pools:
+                    pools[key] = {
+                        "os_strings": [],
+                        "version_tokens": [],
+                        "versions": [],
+                        "webkit_vers": [],
+                        "mobile_builds": [],
+                    }
 
-                logger.info(
-                    "本地 headers_pool.jsonl: %d 导入, %d 跳过",
-                    added, skipped,
-                )
-                return added
+                # 提取 OS 串
+                os_str = _extract_ua_os(ua, browser)
+                if os_str and os_str not in pools[key]["os_strings"]:
+                    pools[key]["os_strings"].append(os_str)
 
-        logger.warning("未找到 headers_pool.jsonl 文件")
-        return 0
+                # 提取版本令牌（完整，不去主版本去重）
+                ver_token = _extract_ua_ver_token(ua, browser)
+                if ver_token and ver_token not in pools[key]["version_tokens"]:
+                    pools[key]["version_tokens"].append(ver_token)
+
+                # 主版本号（保留用于降级）
+                ver = entry.get("version", 0)
+                if ver and ver not in pools[key]["versions"]:
+                    pools[key]["versions"].append(ver)
+
+                # WebKit 版本
+                wk = _extract_webkit(ua)
+                if wk and wk not in pools[key]["webkit_vers"]:
+                    pools[key]["webkit_vers"].append(wk)
+
+                # Mobile/ 构建号（仅移动端有意义）
+                mb = _extract_mobile_build(ua)
+                if mb and mb not in pools[key]["mobile_builds"]:
+                    pools[key]["mobile_builds"].append(mb)
+
+        self._ua_pools = pools
+        total_os = sum(len(p.get("os_strings", [])) for p in pools.values())
+        total_ver = sum(len(p.get("version_tokens", [])) for p in pools.values())
+        total_wk = sum(len(p.get("webkit_vers", [])) for p in pools.values())
+        logger.info(
+            "UA 零件池: %d 派系组 | OS=%d 版本=%d WebKit=%d",
+            len(pools), total_os, total_ver, total_wk,
+        )
+
+    def _generate_ua_from_faction(self, browser: str, os_name: str, version: int) -> str:
+        """从零件池随机组合生成一条新 UA 字符串
+
+        完整版号令牌（不去主版本去重）+ WebKit 版本 + Mobile Build 跨零件随机组合。
+        """
+        device = "mobile" if os_name in ("android", "ios") else "desktop"
+        key = f"{browser}_{device}"
+        pool = self._ua_pools.get(key)
+
+        if not pool or not pool.get("os_strings") or not pool.get("version_tokens"):
+            return ""
+
+        os_str: str = random.choice(pool["os_strings"])
+        ver_token: str = random.choice(pool["version_tokens"])
+        mb_pool = pool.get("mobile_builds") or []
+        mobile_suffix = ""
+
+        if browser in ("chrome", "edge"):
+            # Chromium 派系 —— WebKit 永远是 537.36（不从池取，防 Safari 污染）
+            wk_ver = "537.36"
+            mobile_suffix = " Mobile" if device != "desktop" else ""
+            ua = (
+                f"Mozilla/5.0 ({os_str}) AppleWebKit/{wk_ver}"
+                f" (KHTML, like Gecko) {ver_token}{mobile_suffix}"
+                f" Safari/{wk_ver}"
+            )
+            if browser == "edge":
+                edge_ver_num = _extract_num_from_ver(ver_token) or version
+                ua += f" Edg/{edge_ver_num}.0.0.0"
+            return ua
+
+        elif browser == "firefox":
+            # Firefox 派系 —— 无 WebKit，模板固定格式（Firefox/{v}.0 不存在 build 号差异）
+            ver_num = _extract_num_from_ver(ver_token) or version
+            if device != "desktop":
+                return _FIREFOX_UA_MOBILE.format(os=os_str, v=ver_num)
+            return _FIREFOX_UA_DESKTOP.format(os=os_str, v=ver_num)
+
+        elif browser == "safari":
+            # Safari 派系 —— WebKit + Version + Mobile Build 均可变
+            wk_pool = pool.get("webkit_vers") or ["605.1.15"]
+            wk_ver: str = random.choice(wk_pool)
+            safari_ver = _extract_num_from_ver(ver_token) or "18.1"
+            if mb_pool:
+                mobile_suffix = f" Mobile/{random.choice(mb_pool)}"
+            return (
+                f"Mozilla/5.0 ({os_str}) AppleWebKit/{wk_ver}"
+                f" (KHTML, like Gecko) Version/{safari_ver}{mobile_suffix}"
+                f" Safari/{wk_ver}"
+            )
+
+        return ""
+
     @staticmethod
     def _guess_category(ua: str) -> str:
         """根据 UA 字符串猜测设备分类"""
@@ -454,8 +725,10 @@ class UserAgentPool(ResourcePool):
 
             {"User-Agent": "...", "Accept": "...", ...}
 
-        仅提取 User-Agent 字段作为 UA 字符串，分类由 UA 字符串自动推断。
-        其余请求头字段不存储，由架构的 Profile 匹配机制在运行时组装。
+        提取 User-Agent 作为 UA 字符串，其余字段作为内联 headers（完整 Header Profile）
+        直接存入 entry["headers"]，确保同一行的 Accept/Accept-Language/Cache-Control
+        等字段作为原子单位使用，避免字段间不一致被反爬识别。
+        分类由 UA 字符串自动推断。
         """
         entries: list[dict[str, object]] = []
         with open(path, "r", encoding="utf-8") as f:
@@ -478,6 +751,9 @@ class UserAgentPool(ResourcePool):
                     "category": UserAgentPool._guess_category(ua),
                     "weight": 5,
                 }
+                # 保留剩余字段作为完整 Header Profile（原子单位）
+                if data:
+                    entry["headers"] = dict(data)
                 entries.append(entry)
         return entries
 
@@ -702,35 +978,187 @@ class UserAgentPool(ResourcePool):
         return UserAgentPool._weighted_pick(entries)["ua"]
 
     @staticmethod
-    def _build_headers(entry: AgentEntry) -> dict[str, str]:
+    def _detect_device_type(ua: str, os_name: str) -> str:
+        """根据 UA 字符串和 OS 名推断设备类型
+
+        Returns:
+            'desktop' | 'mobile' | 'tablet'
+        """
+        ua_lower = ua.lower()
+        if "ipad" in ua_lower or "tablet" in ua_lower:
+            return "tablet"
+        if os_name in ("android", "ios"):
+            return "mobile"
+        return "desktop"
+
+    @staticmethod
+    def _assemble_headers_from_faction(
+        ua: str,
+        browser: str,
+        os_name: str,
+        version: int,
+    ) -> dict[str, str] | None:
+        """派系化即时组装完整请求头
+
+        核心约束（自动保证）：
+        - UA 版本 == Sec-Ch-Ua 版本
+        - UA 平台 == Sec-Ch-Ua-Platform
+        - Accept-Language 段数匹配设备类型
+        - 派系模板不可交叉
+        - Firefox 无 Sec-Ch-Ua/Cache-Control，Safari 无 Sec-Ch-Ua/Upgrade
+
+        Args:
+            ua: 完整的 User-Agent 字符串
+            browser: chrome / firefox / safari / edge
+            os_name: windows / macos / linux / android / ios
+            version: 主版本号
+
+        Returns:
+            完整的 headers 字典，或 None（无法识别的 faction）
+        """
+        import random as _random
+
+        device_type = UserAgentPool._detect_device_type(ua, os_name)
+
+        # ── Identity Block ───────────────────────────────────────────
+        headers: dict[str, str] = {"User-Agent": ua}
+
+        if browser in ("chrome", "edge"):
+            # Chromium 派系
+            headers["Accept"] = ACCEPT_CHROME
+            headers["Accept-Encoding"] = "gzip, deflate, br"
+            headers["Connection"] = "keep-alive"
+            headers["Sec-Fetch-Dest"] = "document"
+            headers["Sec-Fetch-Mode"] = "navigate"
+            headers["Sec-Fetch-Site"] = "none"
+            headers["Sec-Fetch-User"] = "?1"
+
+            # Sec-Ch-Ua 系列（版本号与 UA 一致）
+            sec_ch_ua = _build_sec_ch_ua(browser, version)
+            if sec_ch_ua:
+                headers["Sec-Ch-Ua"] = sec_ch_ua
+            platform_meta = _OS_PLATFORM_META.get(os_name, {})
+            headers["Sec-Ch-Ua-Platform"] = platform_meta.get("platform", '"Windows"')
+            headers["Sec-Ch-Ua-Mobile"] = "?1" if device_type != "desktop" else "?0"
+
+            # 可变: Cache-Control（桌面端）
+            if device_type == "desktop":
+                cc = _random.choice(CACHE_CONTROL_VARIANTS)
+                if cc:
+                    headers["Cache-Control"] = cc
+
+            # 可变: Upgrade-Insecure-Requests
+            up = _random.choice(UPGRADE_VARIANTS)
+            if up:
+                headers["Upgrade-Insecure-Requests"] = up
+
+            # 可变: Accept-Language
+            if os_name == "macos":
+                headers["Accept-Language"] = _random.choice(AL_MACOS)
+            elif device_type == "desktop":
+                headers["Accept-Language"] = _random.choice(AL_DESKTOP_5)
+            else:
+                headers["Accept-Language"] = _random.choice(AL_MOBILE_3)
+
+        elif browser == "firefox":
+            # Firefox 派系（无 Sec-Ch-Ua / Cache-Control）
+            headers["Accept"] = ACCEPT_FIREFOX
+            headers["Accept-Language"] = _random.choice(AL_FIREFOX)
+            headers["Accept-Encoding"] = "gzip, deflate, br"
+            headers["Connection"] = "keep-alive"
+            headers["Sec-Fetch-Dest"] = "document"
+            headers["Sec-Fetch-Mode"] = "navigate"
+            headers["Sec-Fetch-Site"] = "none"
+            headers["Sec-Fetch-User"] = "?1"
+
+            # 可变: Upgrade-Insecure-Requests
+            up = _random.choice(UPGRADE_VARIANTS)
+            if up:
+                headers["Upgrade-Insecure-Requests"] = up
+
+        elif browser == "safari":
+            # Safari 派系（无 Sec-Ch-Ua / Upgrade）
+            headers["Accept"] = ACCEPT_SAFARI
+            headers["Accept-Encoding"] = "gzip, deflate, br"
+            headers["Connection"] = "keep-alive"
+            headers["Sec-Fetch-Dest"] = "document"
+            headers["Sec-Fetch-Mode"] = "navigate"
+            headers["Sec-Fetch-Site"] = "none"
+            headers["Sec-Fetch-User"] = "?1"
+
+            # 可变: Cache-Control
+            cc = _random.choice(CACHE_CONTROL_VARIANTS)
+            if cc:
+                headers["Cache-Control"] = cc
+
+            # 可变: Accept-Language
+            if os_name == "macos":
+                headers["Accept-Language"] = _random.choice(AL_MACOS)
+            else:
+                headers["Accept-Language"] = _random.choice(AL_MOBILE_3)
+
+        else:
+            return None  # 无法识别的 faction
+
+        return headers
+
+    def _build_headers(self, entry: AgentEntry) -> dict[str, str]:
         """从 entry 构建完整请求头字典
 
-        优先级：
-        1. entry 有内联 headers → 直接使用（最高优先级）
-        2. entry 显式指定 profile → 直接使用
-        3. entry 无 profile 但有 browser/os/version → 自动匹配最佳 Profile
+        优先级（四级降级）：
+        1. entry 有 browser/os/version 元数据 → 派系即时组装（jsonl 条目也走这里）
+        2. entry 有内联 headers 但无元数据（用户注入）→ 直接使用（兜底）
+        3. entry 有显式 profile → 旧 Profile 匹配（向后兼容）
         4. 均无 → 仅返回 User-Agent
 
-        自动修正：若 Profile 中 Sec-Ch-Ua 版本号与 UA 不一致，
-        动态替换版本号，避免指纹不匹配被反爬识别。
+        派系组装为每次调用即时随机：Accept-Language / Cache-Control / Upgrade
+        每个 UA 每次 3~20 种变体。jsonl 中 830 条 UA 种子也会过组装，
+        Accept 按派系自动匹配，Sec-Ch-Ua 版本号自动对齐。
         """
-        # ── 最高优先级：内联 headers（含完整请求头字典）──
+        # ── 派系即时组装（最高优先级：包括 jsonl 条目也动态生成）──
+        browser = entry.get("browser", "")
+        os_name = entry.get("os", "")
+        version = entry.get("version", 0)
+
+        if browser and os_name and version:
+            # ── 第一层：UA 零件池随机重组（数量暴增）──
+            ua = self._generate_ua_from_faction(browser, os_name, version)
+            if not ua:
+                ua = entry["ua"]  # 降级：无零件池时用原始 UA
+            # 从生成的 UA 重提取版本号，保证 Sec-Ch-Ua 一致
+            gen_version = _extract_ua_version(ua) or version
+            faction_headers = UserAgentPool._assemble_headers_from_faction(
+                ua=ua,
+                browser=str(browser),
+                os_name=str(os_name),
+                version=int(gen_version),
+            )
+            if faction_headers:
+                logger.debug(
+                    "派系组装 headers: faction=%s os=%s v=%s",
+                    browser, os_name, version,
+                )
+                return faction_headers
+
+        # ── 内联 headers（兜底：无元数据但有内联 headers 的条目）──
         inline_headers = entry.get("headers")
         if inline_headers:
             result = dict(inline_headers)
-            # 以 entry 的 UA 为准，防止内联 headers 中 UA 不一致
             result["User-Agent"] = entry["ua"]
+            for canonical, variants in _SEC_CH_UA_KEY_ALIASES.items():
+                for v in variants:
+                    if v in result and v != canonical:
+                        result[canonical] = result.pop(v)
+                        break
             _patch_sec_ch_ua(result, entry["ua"])
             return result
 
+        # ── 旧 Profile 匹配（向后兼容：显式指定 profile 或自动匹配）──
         headers: dict[str, str] = {"User-Agent": entry["ua"]}
         profile_key = entry.get("profile", "")
 
         # 自动匹配：无显式 profile 但有元数据时，自动查找最佳匹配
         if not profile_key:
-            browser = entry.get("browser", "")
-            os_name = entry.get("os", "")
-            version = entry.get("version", 0)
             if browser and os_name and version:
                 matched = match_profile(
                     browser=str(browser),

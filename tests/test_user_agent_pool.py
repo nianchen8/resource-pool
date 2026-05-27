@@ -4,6 +4,7 @@ import pytest
 
 from user_agent_pool import UserAgentPool
 from user_agent_pool.exceptions import PoolExhaustedException, InvalidAgentException
+from user_agent_pool.pool import _extract_ua_version
 
 
 class TestUserAgentPool:
@@ -14,9 +15,9 @@ class TestUserAgentPool:
         assert len(pool) > 0
         stats = pool.count()
         assert isinstance(stats, dict)  # type: ignore[unreachable]
-        assert stats["desktop"] == 10
-        assert stats["mobile"] == 8
-        assert stats["tablet"] == 4
+        assert stats["desktop"] >= 10
+        assert stats["mobile"] >= 8
+        assert stats["tablet"] >= 4
 
     def test_get_returns_string(self):
         pool = UserAgentPool()
@@ -45,7 +46,7 @@ class TestUserAgentPool:
     def test_get_all(self):
         pool = UserAgentPool()
         uas = pool.get_all("desktop")
-        assert len(uas) == 10
+        assert len(uas) >= 10
         assert all(isinstance(ua, str) for ua in uas)
 
     def test_get_headers(self):
@@ -335,3 +336,205 @@ class TestUAEdgeCases:
         pool = UserAgentPool(strategy=UAStrategy.WEIGHTED)
         headers = pool.get_headers("desktop")
         assert "User-Agent" in headers
+
+    def test_all_profiles_have_required_headers(self):
+        """所有 Profile 必须包含浏览器必带的 8 个请求头"""
+        from user_agent_pool.agents import _HEADER_PROFILES
+
+        def _is_standard_profile_key(key: str) -> bool:
+            """判断是否标准命名 Profile（排除测试桩）"""
+            known_browsers = ("chrome_", "firefox_", "safari_", "edge_")
+            return key.startswith(known_browsers) and key.count("_") >= 2
+
+        REQUIRED = {
+            "Accept", "Accept-Language", "Accept-Encoding",
+            "Connection",
+            "Sec-Fetch-Dest", "Sec-Fetch-Mode", "Sec-Fetch-Site", "Sec-Fetch-User",
+        }
+        CHROMIUM_REQUIRED = {"Sec-Ch-Ua", "Sec-Ch-Ua-Platform", "Sec-Ch-Ua-Mobile"}
+
+        # 只检查遵循命名规范的 Profile（排除测试桩如 custom_test/dup_test）
+        for key, profile in _HEADER_PROFILES.items():
+            # 标准命名: {browser}_{version}_{platform} 如 chrome_131_win
+            if not _is_standard_profile_key(key):
+                continue
+            missing = REQUIRED - set(profile.keys())
+            assert not missing, f"Profile '{key}' 缺失必带头: {missing}"
+
+            # Chromium 系浏览器还应有 Sec-Ch-Ua 系列
+            if key.startswith(("chrome_", "edge_")):
+                missing_ch = CHROMIUM_REQUIRED - set(profile.keys())
+                assert not missing_ch, f"Profile '{key}' 缺失 Chromium 头: {missing_ch}"
+
+
+class TestFactionAssembly:
+    """派系组装架构测试 —— 即时生成 Header 的合法性验证"""
+
+    def test_faction_isolation_chrome_vs_firefox(self):
+        """Chrome 派系不应出现 Firefox 特征（如缺失 Sec-Ch-Ua）"""
+        pool = UserAgentPool()
+        headers = pool.get_headers("desktop", browser="chrome")
+        # Chrome/Chromium 必须有 Sec-Ch-Ua 系列
+        assert "Sec-Ch-Ua" in headers, f"Chrome headers 缺失 Sec-Ch-Ua: {sorted(headers.keys())}"
+        assert "Sec-Ch-Ua-Platform" in headers
+        assert "Sec-Ch-Ua-Mobile" in headers
+        # Chrome 的 Accept 含 image/avif,image/webp (与 Firefox 的 */* 不同)
+        assert "image/avif" in headers["Accept"]
+        assert "image/apng" in headers["Accept"]
+
+    def test_faction_isolation_firefox(self):
+        """Firefox 派系不应有 Chrome 特征 Sec-Ch-Ua"""
+        pool = UserAgentPool()
+        headers = pool.get_headers("desktop", browser="firefox")
+        # Firefox 无 Sec-Ch-Ua 系列
+        assert "Sec-Ch-Ua" not in headers
+        assert "Sec-Ch-Ua-Platform" not in headers
+        assert "Sec-Ch-Ua-Mobile" not in headers
+        # Firefox 的 Accept 不含 image/apng (Chrome 特征)
+        assert "image/apng" not in headers.get("Accept", "")
+
+    def test_faction_isolation_safari(self):
+        """Safari 派系不应有 Chromium 特征"""
+        pool = UserAgentPool()
+        headers = pool.get_headers("desktop", browser="safari")
+        # Safari 无 Sec-Ch-Ua
+        assert "Sec-Ch-Ua" not in headers
+        # Safari 的 Accept 不含 image/avif (更简洁)
+        assert "image/apng" not in headers.get("Accept", "")
+
+    def test_ua_version_consistency(self):
+        """Chromium 派系：UA 版本号 必须与 Sec-Ch-Ua 版本号一致"""
+        import re
+        pool = UserAgentPool()
+        headers = pool.get_headers("desktop", browser="chrome")
+        ua = headers["User-Agent"]
+        sec_ch_ua = headers.get("Sec-Ch-Ua", "")
+        if not sec_ch_ua:
+            return  # 非 Chromium 跳过
+        # 从 UA 提取 Chrome 版本号
+        ua_match = re.search(r"Chrome/(\d+)", ua)
+        assert ua_match, f"UA 中未找到 Chrome 版本: {ua}"
+        ua_version = ua_match.group(1)
+        # 从 Sec-Ch-Ua 提取版本号（取第一个 v="N"）
+        sec_match = re.search(r'v="(\d+)"', sec_ch_ua)
+        assert sec_match, f"Sec-Ch-Ua 中未找到版本号: {sec_ch_ua}"
+        sec_version = sec_match.group(1)
+        assert ua_version == sec_version, (
+            f"UA 版本 ({ua_version}) != Sec-Ch-Ua 版本 ({sec_version})\n"
+            f"  UA: {ua}\n  Sec-Ch-Ua: {sec_ch_ua}"
+        )
+
+    def test_platform_consistency(self):
+        """Chromium 派系：UA 操作系统 必须与 Sec-Ch-Ua-Platform 一致"""
+        pool = UserAgentPool()
+        # Windows
+        headers = pool.get_headers("desktop", browser="chrome", os="windows")
+        assert '"Windows"' in headers.get("Sec-Ch-Ua-Platform", "")
+        # macOS
+        headers = pool.get_headers("desktop", browser="chrome", os="macos")
+        assert '"macOS"' in headers.get("Sec-Ch-Ua-Platform", "")
+        # Android mobile
+        headers = pool.get_headers("mobile", browser="chrome", os="android")
+        assert '"Android"' in headers.get("Sec-Ch-Ua-Platform", "")
+        assert headers.get("Sec-Ch-Ua-Mobile") == "?1"
+
+    def test_device_language_match(self):
+        """Accept-Language 段数应匹配设备类型（desktop≥5 段, mobile≤3 段）"""
+        pool = UserAgentPool()
+        # Desktop
+        headers = pool.get_headers("desktop", browser="chrome", os="windows")
+        al = headers.get("Accept-Language", "")
+        segments = al.count(",")
+        assert segments >= 4, f"Desktop Accept-Language 应 ≥5 段: '{al}' (只有 {segments+1} 段)"
+        # Mobile
+        headers = pool.get_headers("mobile", browser="chrome", os="android")
+        al = headers.get("Accept-Language", "")
+        segments = al.count(",")
+        assert segments <= 3, f"Mobile Accept-Language 应 ≤3 段: '{al}' (有 {segments+1} 段)"
+
+    def test_multiple_calls_produce_variations(self):
+        """多次调用 get_headers 应产生不同的 Header 组合（可变字段随机化）"""
+        pool = UserAgentPool()
+        headers_set: set[str] = set()
+        for _ in range(100):
+            h = pool.get_headers("desktop", browser="chrome")
+            # 用关键可变字段签名做指纹
+            sig = f"{h.get('Accept-Language','')}|{h.get('Cache-Control','')}|{h.get('Upgrade-Insecure-Requests','')}"
+            headers_set.add(sig)
+        # 100 次调用中应该产生多种不同组合（至少 3 种）
+        assert len(headers_set) >= 3, (
+            f"100 次调用只产生了 {len(headers_set)} 种变体，预期 ≥3"
+        )
+
+    def test_firefox_no_cache_control(self):
+        """Firefox 派系不应包含 Cache-Control 头"""
+        pool = UserAgentPool()
+        # 多次采样确保不是碰巧
+        for _ in range(20):
+            headers = pool.get_headers("desktop", browser="firefox")
+            assert "Cache-Control" not in headers, (
+                f"Firefox headers 不应有 Cache-Control: {headers}"
+            )
+
+    def test_online_path_fakeua_ua_with_faction_assembly(self):
+        """模拟在线路径：fake_useragent 提供的 UA + 派系组装补充头
+
+        验证：当 entry 有 browser/os/version 元数据时，
+        _build_headers 走派系组装而非旧 Profile 匹配。
+        """
+        pool = UserAgentPool()
+        # 清空 desktop
+        for ua in pool.get_all("desktop"):
+            pool.remove(ua, "desktop")
+        # 模拟 fake_useragent 导入：添加一个带元数据的 UA（无 profile）
+        fake_ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36"
+        pool.add(fake_ua, "desktop", weight=5)
+        headers = pool.get_headers("desktop")
+        # 应有完整的 Chrome 派系请求头
+        assert "User-Agent" in headers
+        assert "Sec-Ch-Ua" in headers
+        assert "Accept" in headers
+        assert "Accept-Language" in headers
+        # 版本号一致：Sec-Ch-Ua 的 v= 与 UA 中 Chrome/ 版本一致
+        ua_version = _extract_ua_version(headers["User-Agent"])
+        assert ua_version is not None
+        assert f'v="{ua_version}"' in headers["Sec-Ch-Ua"]
+        # 平台匹配
+        assert '"Windows"' in headers.get("Sec-Ch-Ua-Platform", "")
+
+    def test_local_fallback_uses_default_agents_with_faction_assembly(self):
+        """验证本地降级路径：内置 DEFAULT_AGENTS 走派系组装
+
+        默认 UAs 有 browser/os/version 元数据，应自动走派系组装产生可变 headers。
+        """
+        pool = UserAgentPool()
+        # 正常初始化后直接调用
+        headers = pool.get_headers("desktop")
+        assert "User-Agent" in headers
+        assert "Accept" in headers
+        assert "Accept-Language" in headers
+        # 多个调用应产生不同 Accept-Language/Cache-Control 组合
+        al_values: set[str] = set()
+        for _ in range(30):
+            h = pool.get_headers("desktop", browser="chrome")
+            al_values.add(h.get("Accept-Language", ""))
+        assert len(al_values) >= 2, f"只产生 {len(al_values)} 种 Accept-Language 变体"
+
+    def test_generate_ua_basic(self):
+        """generate_ua() 基本功能验证"""
+        from user_agent_pool.agents import generate_ua
+        # Chrome desktop
+        ua = generate_ua("chrome", "windows", 148)
+        assert "Chrome/148" in ua
+        assert "Mozilla/5.0" in ua
+        # Firefox desktop
+        ua = generate_ua("firefox", "windows", 150)
+        assert "Firefox/150" in ua
+        assert "rv:150" in ua
+        # Edge desktop
+        ua = generate_ua("edge", "windows", 148)
+        assert "Edg/148" in ua
+        # Safari desktop
+        ua = generate_ua("safari", "macos", 0)
+        assert "Safari" in ua
+        assert "Version/18.1" in ua

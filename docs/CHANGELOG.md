@@ -1,5 +1,37 @@
 # 更新日志
 
+## v1.0.9 (2026-05-27)
+
+- 🚀 **UA 零件池深度拆解 + 动态重组**：854 条 UA 拆解为 OS 串、完整版本令牌、WebKit 版本、Mobile Build 四个零件维度，跨零件随机 cross-pick，UA 数量从 3,160 暴增至 **31,496** 个独立 UA（×10 倍），完整请求头 **193,633** 种组合
+  - 保留完整版号令牌（如 `Chrome/148.0.7727.56`），不再仅做主版本去重
+  - Safai / WebKit 版本动态组合，移动端 `Mobile/` Build 随机选取
+  - Chromium 派系 WebKit 硬固定 `537.36`，防止 Safari `605.1.15` 污染
+- 🛡️ **DNS 系统 DNS 降级**：`resolve()` / `resolve_all()` 新增 `fallback_to_system=True`，14 台 DNS 全部失败后自动回退到操作系统 DNS，避免 `PoolExhaustedException` 中断业务
+  - 同步版 `DNSResolverPool._system_resolve()` + 异步版 `AsyncDNSResolverPool._system_resolve()`
+- 🔧 版本号 1.0.8 → 1.0.9
+
+## v1.0.8 (2026-05-27)
+
+- 🚀 **JSONL 完整 Header Profile 原子化利用**：`headers_pool.jsonl` 每行的完整请求头（Accept / Accept-Language / Cache-Control / Sec-Ch-Ua 等）作为原子单位直接存入 `entry["headers"]`，`_build_headers` 优先级 ① 直接命中，确保同一真实设备的字段组合不被拆散，杜绝拼凑 header 的不一致被反爬识别
+- 🚀 **`add()` / `AsyncUserAgentPool.add()` 新增 `headers` 参数**：支持直接注入完整请求头字典，优先级最高
+- 🚀 **`AsyncUserAgentPool.load_from_file()` 支持 JSONL**：异步版同步补齐 `.jsonl` 格式导入，与同步版 API 完全对齐
+- 🔧 `_load_bundled_jsonl` / `_load_bundled_jsonl_sync` 自动传递 jsonl 内联 headers
+- 🔧 `load_from_file` (同步/异步) 支持 jsonl 中保留的 headers 字段
+- 🔧 版本号统一修复：`pyproject.toml` (1.0.6→1.0.8) + `README` badge (1.0.7→1.0.8)
+- 📝 文档同步更新：deep-dive 数据流图反映 jsonl→优先级①、PRODUCTION/cookbook/quickstart 版本号和 API 说明更新
+
+## v1.0.7 (2026-05-27)
+
+- 🚀 **派系化 Header 组装引擎**：按浏览器引擎家族（Chromium/Chrome+Edge × Firefox × Safari × 6 平台：Windows/macOS/Linux/Android/iOS/ChromeOS）独立组装请求头，每次调用随机选取可变字段，实现指数级 header 组合爆炸（~850 基础 UA × 可变字段池 ≈ 12 万+ 种合法组合）
+- 🚀 **headers_pool.jsonl 自动加载**：覆盖 4 引擎 × 7 平台，Chrome on Android(389)、Safari on iOS(200+)、Chrome on macOS(140)、Chrome on Windows(34)、Linux X11(19)、ChromeOS(12)、Firefox(24)、Edge(9)。池初始化时自动加载全部 830+ 条真实 UA
+- 🚀 **ChromeOS / iPad GSA / CriOS 覆盖修复**：`_OS_PATTERNS` 新增 `CrOS` 检测，`_BROWSER_PATTERNS` 新增 `GSA/` 和 `CriOS/` 模式，确保 100% jsonl 条目可解析 browser/os/version 元数据并走派系组装路径
+- 🚀 **双路径 header 组装**：在线路径（fake_useragent UA + 派系组装补充请求头）+ 本地降级路径（内置 UA + 派系模板即时生成），两条路径共享同一套派系引擎
+- 🛡️ **`_build_headers` 4级优先级**：内联 headers > 派系即时组装 > Profile 匹配（向后兼容）> 仅 UA
+- 🛡️ **派系约束自动保证**：UA 版本 == Sec-Ch-Ua 版本、UA 平台 == Sec-Ch-Ua-Platform、Accept-Language 段数匹配设备类型、Firefox 无 Sec-Ch-Ua/Cache-Control、Safari 无 Sec-Ch-Ua/Upgrade
+- 🔧 `generate_ua()` 即时生成函数：从派系模板 + OS 参数池动态生成 UA 字符串
+- 🔧 `_copy_agent_entry` 自动元数据检测：UA 字符串自动解析 browser/os/version，确保所有条目可走派系组装路径
+- 🔧 `_OS_PLATFORM_META` 新增 `chromeos` 平台映射（`Sec-Ch-Ua-Platform: "Chrome OS"`）
+
 ## v1.0.6 (2026-05-26)
 
 - 🚀 **本地 UA 数据集（headers_pool.jsonl）**：打包 830 条多浏览器/多平台 UA 到 `user_agent_pool/headers_pool.jsonl`，`load_from_fakeua()` 不可用时自动降级

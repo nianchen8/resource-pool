@@ -16,6 +16,8 @@
 from user_agent_pool import UserAgentPool
 
 ua = UserAgentPool()
+# 创建时刻自动加载 854 条 UA 种子（ua_seeds.json），覆盖 Chrome/Edge/Firefox/Safari + 桌面/移动/平板
+# 零件池随机重组 → 31,496 独立 UA → 193,633 完整 headers
 for _ in range(10):
     print(ua.get())
 # 每次输出不同 UA，加权随机（权重高的更常出现）
@@ -23,9 +25,9 @@ for _ in range(10):
 
 ### 完整请求头（反反爬推荐）
 
-单换 UA 不够——真实浏览器携带 Accept、Sec-Ch-Ua、Accept-Language 等 20 项请求头。
+单换 UA 不够——真实浏览器携带 Accept、Sec-Ch-Ua、Accept-Language 等 14 项请求头。
 
-**所有数据源统一走 Profile 自动匹配**：无论 UA 来自内置预设、fake_useragent 还是本地 jsonl 数据集，`get_headers()` 都会根据 UA 的浏览器/版本号自动匹配最接近的 Header Profile 组——不使用预制 headers，确保指纹一致性。
+**v1.0.9 零件池深度拆解**：`get_headers()` 将 854 条 UA 拆解为 OS 串/版本令牌/WebKit/Mobile Build 四个维度，跨零件随机重组 → 31,496 独立 UA → 193,633 完整 headers 组合。引擎约束自动保证：Chrome 的 Sec-Ch-Ua 不会错配 Firefox 的 Accept-Language，UA 版本号与 Sec-Ch-Ua 版本号始终同步。
 
 ```python
 headers = ua.get_headers("desktop")
@@ -33,7 +35,7 @@ headers = ua.get_headers("desktop")
 requests.get(url, headers=headers)
 ```
 
-支持 `desktop` / `mobile` / `tablet` 三类设备分组。Profile 组会根据 UA 的浏览器+版本号自动匹配。
+支持 `desktop` / `mobile` / `tablet` 三类设备分组，自动选取对应派系模板。
 
 ### 按浏览器/系统/版本筛选
 
@@ -42,7 +44,9 @@ ua.get(browser="chrome", os="windows", min_version=120)
 ua.get(browser="firefox", os="macos")
 ```
 
-前提是 UA 已带元数据——`add()` 时自动检测，或通过 `load_from_fakeua()` 导入。
+前提是 UA 已带元数据——`add()` 时自动检测（`parse_ua_metadata`），内置 UA 和 jsonl 加载时自动补全。
+
+> 854 条 UA 种子已全部标注元数据，`browser`/`os`/`min_version` 筛选零等待。
 
 ### 暂存器模式（取出用完自动归还）
 
@@ -61,15 +65,17 @@ with ua.reserve("desktop") as agent:
 # JSON 格式：[{"ua": "...", "category": "desktop", "weight": 5}]
 ua.load_from_file("ua_list.json")
 
-# JSONL 格式：每行一个 JSON 对象（如 headers_pool.jsonl）
+# JSONL 格式：每行一个完整 headers JSON 对象（如 headers_pool.jsonl）
+# jsonl 每行将完整请求头（Accept/Accept-Language/Cache-Control 等）作为原子单位导入
+# ✅ 字段间语义一致，不会出现 Chrome 的 Accept 配 Firefox 的 Accept-Language
 ua.load_from_file("headers_pool.jsonl")
 
 # CSV 格式：ua,category,weight
 ua.load_from_file("ua_list.csv")
 
 # 从 fake_useragent 库导入（需先 pip install fake_useragent）
-# 远程优先：fake_useragent 可用时取其 UA + Profile 组装请求头
-# 自动降级：fake_useragent 返回 < 5 条时，自动回退本地 headers_pool.jsonl
+# 在线路径：fake_useragent UA + 派系引擎组装请求头
+# 本地降级：返回 < 5 条时自动回退内置 830+ 条 jsonl UA
 ua.load_from_fakeua(limit=100, browsers=["chrome", "firefox"])
 ```
 
@@ -333,7 +339,7 @@ except ResourceUnhealthyError:
 | `get(category, weighted, exclude, browser, os, min_version) → str` | 获取 UA |
 | `get_headers(category, ...) → dict` | 完整 Header Profile |
 | `get_all(category, ...) → list[str]` | 全部 UA |
-| `add(ua, category, weight=5, profile=None)` | 添加 UA |
+| `add(ua, category, weight=5, profile=None, headers=None)` | 添加 UA（可附带内联完整请求头） |
 | `remove(ua, category=None) → int` | 移除 |
 | `count(category=None) → dict[str,int] \| int` | 统计 |
 | `reserve(category, weighted=None) → UAReserve` | 暂存器 |

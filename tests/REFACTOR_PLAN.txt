@@ -1,0 +1,153 @@
+╔══════════════════════════════════════════════════════════════╗
+║  UA/Header 派系模板化重构 —— 任务清单                       ║
+╚══════════════════════════════════════════════════════════════╝
+
+【 当前状态 】
+  - 31 条固定 UA + 31 个固定 Header Profile，一一绑定
+  - 每次 get_headers() 从固定列表中加权抽取
+  - 所有测试通过（194 passed）
+
+【 目标架构 】
+  三个浏览器派系，各有独立的 Identity Block + 可变字段池：
+  派系间绝不交叉，保证每条 Header 指纹一致性。
+
+  派系1: Chrome/Chromium（占大头）
+  派系2: Firefox
+  派系3: Safari
+
+  每个派系 = Identity Block（固定头）× 可变字段（按参数随机组合）
+
+  Identity Block（派系内固定，不可拆分）：
+    Chrome:  Sec-Ch-Ua*, Sec-Ch-Ua-Platform, Sec-Ch-Ua-Mobile,
+             Accept-Encoding, Connection, Sec-Fetch-*×4
+    Firefox: Accept-Encoding, Connection, Sec-Fetch-*×4
+    Safari:  Accept-Encoding, Connection, Sec-Fetch-*×4
+
+  可变字段（可跨派系共用，也可派系专属）：
+    - UA 字符串（模板即时生成，非固定列表）
+    - Accept-Language（5段desktop × 3段mobile × 其他）
+    - Cache-Control（max-age=0 / no-cache）
+    - Upgrade-Insecure-Requests（有/无）
+    - Accept（派系固有，2-3变体）
+
+【 预期收益 】
+  从 31 种固定组合 → 最大约 4,400 种合法 Header 组合
+  （详见 tests/calc_header_combos.py，可直接运行查看）
+
+═══════════════════════════════════════════════════════════════
+
+【 任务1：agents.py —— 数据层重构 】
+  文件: user_agent_pool/agents.py
+
+  现状：_HEADER_PROFILES 是 31 个完整 Profile 字典
+        _DESKTOP/_MOBILE/_TABLET 是 31 条硬编码 UA 列表
+
+  改为：
+  1. 定义三个派系的 UA 模板：
+     - CHROME_UA_TPL = "Mozilla/5.0 ({os}) AppleWebKit/537.36 ... Chrome/{v}.0.0.0 ..."
+     - FIREFOX_UA_TPL = "Mozilla/5.0 ({os}; rv:{v}.0) Gecko/20100101 Firefox/{v}.0"
+     - SAFARI_UA_TPL = "..."
+     - EDGE_UA_TPL = Chrome 模板 + " Edg/{v}.0.0.0" 后缀
+
+  2. 定义每个派系的 OS 参数池：
+     - Chrome Desktop OS: Win10x64, Win10x86, macOS, Linux
+     - Chrome Mobile Devices: Pixel 9Pro(Android15), Pixel 8Pro(14), SM-S928B, ...
+     - Chrome Tablet Devices: SM-X920(Android15), SM-X910, AGS6-W00
+     - Firefox OS: Win10x64, Win10x86, macOS, Linux, Android...
+     - Safari Devices: macOS, iPhone 18.1/17.6, iPad 18.1/17.6
+
+  3. 定义每个派系的 Sec-Ch-Ua 版本格式（4组格式）：
+     Group A (v129):   Not=A?Brand;v="8"
+     Group B (v130):   Not?A_Brand;v="99"
+     Group C (v131-139): Not_A Brand;v="24"
+     Group D (v140-148): Not_A Brand;v="99"
+
+  4. 定义可变字段池：
+     - AL_DESKTOP_5: 5段 Accept-Language（桌面特征），5个变体
+     - AL_MACOS: macOS 专用 4 段
+     - AL_MOBILE_3: 移动端 3 段，3个变体
+     - CACHE_CONTROL_VARIANTS: ["max-age=0", "no-cache"]
+     - UPGRADE_VARIANTS: [有, 无]
+
+  5. 实现 generate_ua(browser, os, version) → str
+     根据模板 + 参数即时生成 UA 字符串
+
+  6. 保留原有的 Profile 匹配机制（match_profile）作为向后兼容
+
+  参考文件: tests/calc_header_combos.py（含完整的参数定义和组合数计算）
+
+═══════════════════════════════════════════════════════════════
+
+【 任务2：pool.py —— 生成层重构 】
+  文件: user_agent_pool/pool.py
+
+  现状：_build_headers 从 _HEADER_PROFILES 取固定字典 + _patch_sec_ch_ua
+
+  改为：
+  1. 随机选取派系（加权：Chrome 60%, Firefox 25%, Safari 10%, Edge 5%）
+  2. 随机选取该派系内的 OS + version 参数
+  3. 调用 generate_ua() 生成 UA 字符串
+  4. 从可变字段池随机选取 Accept-Language / Cache-Control / Upgrade
+  5. 组装 Identity Block + 可变字段 = 最终 headers
+
+  关键约束（必须保证）：
+    - UA 版本 == Sec-Ch-Ua 版本
+    - UA 平台 == Sec-Ch-Ua-Platform
+    - Accept-Language 段数 == 设备类型
+    - 派系模板不可交叉
+    - 保留 _patch_sec_ch_ua 作为安全兜底
+
+  向后兼容：
+    - get() 方法返回随机生成的 UA 字符串（行为不变）
+    - get_headers() 返回随机生成的完整 headers（行为不变）
+    - add() / remove() / reserve() API 不变
+    - load_from_file / load_from_fakeua 保持不变
+    - 原有的 DEFAULT_AGENTS 可标记为 deprecated 但保留
+
+═══════════════════════════════════════════════════════════════
+
+【 任务3：测试更新 】
+  文件: tests/test_user_agent_pool.py
+
+  需要调整的测试：
+  - test_init_loads_defaults: 数量断言改为 >= 原值（因为即时生成，概念变了）
+  - test_get_all: 同上
+  - test_all_profiles_have_required_headers: 改为验证模板完整性
+  - 新增: test_faction_isolation（验证派系间不交叉）
+  - 新增: test_ua_version_consistency（验证 UA 版本 == Sec-Ch-Ua 版本）
+  - 新增: test_device_language_match（验证 Accept-Language 段数匹配设备）
+
+  保留不动的测试（API 行为不变）：
+  - test_get_returns_string, test_get_by_category, test_get_uniform_random
+  - test_get_headers, test_add_ua, test_remove_ua, test_count, test_len
+  - test_exhausted_category
+  - test_weighted_distribution
+  - TestUAReserve 全部
+
+═══════════════════════════════════════════════════════════════
+
+【 关键文件清单 】
+  主修改:
+    user_agent_pool/agents.py    ← 数据层：从固定列表 → 模板+参数池
+    user_agent_pool/pool.py      ← 生成层：_build_headers 改为即时组装
+
+  测试:
+    tests/test_user_agent_pool.py  ← 更新断言 + 新增派系隔离测试
+
+  参考（不改，只读）:
+    tests/calc_header_combos.py       ← 参数定义来源 + 组合数计算
+    user_agent_pool/__init__.py       ← 公开 API，大概率不用改
+    user_agent_pool/exceptions.py     ← 不用改
+
+  清理（可选）:
+    tests/import_fakeua.py            ← 采数据用的临时脚本，可删
+    tests/fakeua_export.json          ← 同上
+
+═══════════════════════════════════════════════════════════════
+
+【 不要做的事 】
+  ✗ 不要改 __init__.py 的公开 API 签名
+  ✗ 不要引入新的外部依赖
+  ✗ 不要删除 match_profile / _patch_sec_ch_ua（保留作为兜底）
+  ✗ 不要把 Chrome 模板用到 Firefox 上（派系隔离是核心底线）
+  ✗ 不要依赖 fake_useragent 库（缓存过期不可靠）

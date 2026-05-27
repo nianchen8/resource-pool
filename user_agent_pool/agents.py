@@ -497,19 +497,188 @@ DEFAULT_AGENTS: dict[str, list[AgentEntry]] = {
 
 VALID_CATEGORIES = ("desktop", "mobile", "tablet", "all")
 
+
+# ═══════════════════════════════════════════════════════════════
+# 派系化架构 —— UA 模板、参数池、可变字段
+# ═══════════════════════════════════════════════════════════════
+
+# ── UA 模板（{os}/{v}/{device}/{cpu_os}/{wk_ver}/{safari_ver} 为占位符）──
+_CHROME_UA_DESKTOP = (
+    "Mozilla/5.0 ({os}) AppleWebKit/537.36 (KHTML, like Gecko)"
+    " Chrome/{v}.0.0.0 Safari/537.36"
+)
+_CHROME_UA_MOBILE = (
+    "Mozilla/5.0 ({os}) AppleWebKit/537.36 (KHTML, like Gecko)"
+    " Chrome/{v}.0.0.0 Mobile Safari/537.36"
+)
+_FIREFOX_UA_DESKTOP = (
+    "Mozilla/5.0 ({os}; rv:{v}.0) Gecko/20100101 Firefox/{v}.0"
+)
+_FIREFOX_UA_MOBILE = (
+    "Mozilla/5.0 ({os}; rv:{v}.0) Gecko/{v}.0 Firefox/{v}.0"
+)
+_SAFARI_UA_DESKTOP = (
+    "Mozilla/5.0 ({os}) AppleWebKit/{wk_ver} (KHTML, like Gecko)"
+    " Version/{safari_ver} Safari/{wk_ver}"
+)
+_SAFARI_UA_MOBILE = (
+    "Mozilla/5.0 ({device}; CPU {cpu_os} like Mac OS X)"
+    " AppleWebKit/{wk_ver} (KHTML, like Gecko)"
+    " Version/{safari_ver} Mobile/15E148 Safari/{wk_ver}"
+)
+_EDGE_UA_DESKTOP = (
+    "Mozilla/5.0 ({os}) AppleWebKit/537.36 (KHTML, like Gecko)"
+    " Chrome/{v}.0.0.0 Safari/537.36 Edg/{v}.0.0.0"
+)
+
+# ── Sec-Ch-Ua not_brand 格式（按版本范围分4组）───────────────────────
+# Group A (v129):     Not=A?Brand;v="8"
+# Group B (v130):     Not?A_Brand;v="99"
+# Group C (v131-139): Not_A Brand;v="24"
+# Group D (v140+):    Not_A Brand;v="99"
+
+_CHROME_NOT_BRAND_MAP: dict[tuple[int, int], str] = {
+    (0, 129):   'Not=A?Brand;v="8"',
+    (130, 130): 'Not?A_Brand;v="99"',
+    (131, 139): 'Not_A Brand;v="24"',
+    (140, 999): 'Not_A Brand;v="99"',
+}
+
+
+def _get_chrome_not_brand(version: int) -> str:
+    """根据 Chrome 版本号返回对应 not_brand 格式"""
+    for (lo, hi), fmt in _CHROME_NOT_BRAND_MAP.items():
+        if lo <= version <= hi:
+            return fmt
+    return 'Not_A Brand;v="99"'  # 兜底
+
+
+def _build_sec_ch_ua(browser: str, version: int) -> str | None:
+    """构建 Sec-Ch-Ua 请求头值（Chrome/Edge 派系）"""
+    not_brand = _get_chrome_not_brand(version)
+    if browser == "chrome":
+        return f'"Google Chrome";v="{version}", "Chromium";v="{version}", {not_brand}'
+    if browser == "edge":
+        return f'"Microsoft Edge";v="{version}", "Chromium";v="{version}", {not_brand}'
+    return None
+
+
+# ── OS 平台映射（OS 短名 → Sec-Ch-Ua-Platform + Sec-Ch-Ua-Mobile）──
+_OS_PLATFORM_META: dict[str, dict[str, str]] = {
+    "windows":  {"platform": '"Windows"',   "mobile": "?0"},
+    "macos":    {"platform": '"macOS"',     "mobile": "?0"},
+    "chromeos": {"platform": '"Chrome OS"', "mobile": "?0"},
+    "linux":    {"platform": '"Linux"',     "mobile": "?0"},
+    "android":  {"platform": '"Android"',   "mobile": "?1"},
+    "ios":      {"platform": '"iOS"',       "mobile": "?1"},
+}
+
+# ── Accept-Language 可变字段池 ─────────────────────────────────────
+AL_DESKTOP_5: list[str] = [
+    "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+    "en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7,ja;q=0.6",
+    "zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7,ko;q=0.6",
+    "en-US,en;q=0.9,es;q=0.8,fr;q=0.7,de;q=0.6",
+    "ja;q=0.9,en-US;q=0.8,en;q=0.7,zh-CN;q=0.6,ko;q=0.5",
+]
+
+AL_MACOS: list[str] = [
+    "zh-CN,zh-Hans;q=0.9,en;q=0.8",
+    "en-US,en;q=0.9,zh-Hans;q=0.8",
+    "zh-Hant,zh;q=0.9,en-US;q=0.8",
+]
+
+AL_MOBILE_3: list[str] = [
+    "zh-CN,zh;q=0.9,en-US;q=0.8",
+    "en-US,en;q=0.9,zh-CN;q=0.8",
+    "zh-CN,zh;q=0.9,en;q=0.7",
+]
+
+AL_FIREFOX: list[str] = [
+    "zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3",
+    "en-US,en;q=0.5,zh-CN;q=0.3",
+    "zh-CN,zh;q=0.9,en;q=0.5",
+]
+
+# ── Cache-Control / Upgrade-Insecure-Requests 变体 ────────────────
+CACHE_CONTROL_VARIANTS: list[str | None] = ["max-age=0", "no-cache"]
+UPGRADE_VARIANTS: list[str | None] = ["1", None]  # None=不包含该头
+
+# ── Accept 头（派系固有）──────────────────────────────────────────
+ACCEPT_CHROME = (
+    "text/html,application/xhtml+xml,application/xml;q=0.9,"
+    "image/avif,image/webp,image/apng,*/*;q=0.8,"
+    "application/signed-exchange;v=b3;q=0.7"
+)
+ACCEPT_FIREFOX = (
+    "text/html,application/xhtml+xml,application/xml;q=0.9,"
+    "image/avif,image/webp,*/*;q=0.8"
+)
+ACCEPT_SAFARI = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+
+# ── Chrome/Edge Desktop OS 参数池 ──────────────────────────────────
+CHROME_DESKTOP_OS_LIST: list[str] = [
+    "Windows NT 10.0; Win64; x64",
+    "Windows NT 10.0; WOW64",
+    "Macintosh; Intel Mac OS X 10_15_7",
+    "X11; Linux x86_64",
+]
+
+# ── Chrome Mobile 设备参数池 ───────────────────────────────────────
+CHROME_MOBILE_DEVICES: list[str] = [
+    "Linux; Android 15; Pixel 9 Pro",
+    "Linux; Android 14; Pixel 8 Pro",
+    "Linux; Android 14; SM-S928B",
+    "Linux; Android 13; Pixel 7",
+    "Linux; Android 14; 23127PN0CC",
+    "Linux; Android 13; ALN-AL80",
+]
+
+# ── Chrome Tablet 设备参数池 ───────────────────────────────────────
+CHROME_TABLET_DEVICES: list[str] = [
+    "Linux; Android 15; SM-X920",
+    "Linux; Android 14; SM-X910",
+    "Linux; Android 13; AGS6-W00",
+]
+
+# ── Firefox Desktop OS 参数池 ─────────────────────────────────────
+FIREFOX_DESKTOP_OS_LIST: list[str] = [
+    "Windows NT 10.0; Win64; x64",
+    "Windows NT 10.0; WOW64",
+    "Macintosh; Intel Mac OS X 10.15",
+    "X11; Linux x86_64",
+]
+
+# ── Firefox Mobile 参数池 ──────────────────────────────────────────
+FIREFOX_MOBILE_DEVICES: list[str] = [
+    "Android 14; Mobile",
+    "Android 15; Mobile",
+]
+
+# ── Chrome 版本范围（用于派系组装时的随机选取）───────────────
+CHROME_VERSION_RANGE: tuple[int, int] = (129, 148)
+FIREFOX_VERSION_RANGE: tuple[int, int] = (132, 151)
+EDGE_VERSION_RANGE: tuple[int, int] = (131, 148)
+
+
 # ── UA 元数据解析 ────────────────────────────────────────────────────
 # 用于从 UA 字符串中提取浏览器、操作系统和版本号，支持细粒度筛选
 
 _BROWSER_PATTERNS: list[tuple[str, re.Pattern]] = [
     ("edge", re.compile(r"Edg(?:e)?/(\d+)", re.I)),
     ("chrome", re.compile(r"Chrome/(\d+)", re.I)),
+    # Chrome on iOS（CriOS = Chrome for iOS，WebKit 引擎）
+    ("chrome", re.compile(r"CriOS/(\d+)", re.I)),
     ("firefox", re.compile(r"Firefox/(\d+)", re.I)),
     ("safari", re.compile(r"Version/(\d+)\.\d+.*Safari/", re.I)),
+    # iPad GSA（Google Search App）使用 GSA/ 替代 Version/
+    ("safari", re.compile(r"GSA/\d+.*Safari/(\d+)", re.I)),
 ]
 
 _OS_PATTERNS: list[tuple[str, re.Pattern]] = [
     ("windows", re.compile(r"Windows NT \d+\.\d+", re.I)),
     ("macos", re.compile(r"Mac OS X \d+[._]\d+", re.I)),
+    ("chromeos", re.compile(r"CrOS", re.I)),
     ("linux", re.compile(r"Linux(?!.*Android)", re.I)),
     ("android", re.compile(r"Android \d+", re.I)),
     ("ios", re.compile(r"iPhone OS \d+[._]\d+|CPU (?:iPhone )?OS \d+[._]\d+", re.I)),
@@ -546,6 +715,74 @@ def parse_ua_metadata(ua: str) -> dict[str, object]:
             break
 
     return result
+
+
+def generate_ua(browser: str, os_name: str, version: int) -> str:
+    """根据派系模板 + 参数即时生成 UA 字符串
+
+    用于本地降级路径（fake_useragent 不可用时的派系随机组合）。
+
+    Args:
+        browser: chrome / firefox / safari / edge
+        os_name: windows / macos / linux / android / ios
+        version: 主版本号（如 148）
+
+    Returns:
+        即时生成的 User-Agent 字符串
+    """
+    import random as _random
+
+    v = str(version)
+
+    if browser == "chrome":
+        if os_name in ("windows", "macos", "linux"):
+            os_str = _random.choice(CHROME_DESKTOP_OS_LIST)
+            return _CHROME_UA_DESKTOP.format(os=os_str, v=v)
+        elif os_name == "android":
+            os_str = _random.choice(CHROME_MOBILE_DEVICES)
+            return _CHROME_UA_MOBILE.format(os=os_str, v=v)
+        else:  # ios
+            os_str = _random.choice(CHROME_MOBILE_DEVICES)
+            return _CHROME_UA_MOBILE.format(os=os_str, v=v)
+
+    elif browser == "firefox":
+        if os_name in ("windows", "macos", "linux"):
+            os_str = _random.choice(FIREFOX_DESKTOP_OS_LIST)
+            return _FIREFOX_UA_DESKTOP.format(os=os_str, v=v)
+        else:  # android
+            os_str = _random.choice(FIREFOX_MOBILE_DEVICES)
+            return _FIREFOX_UA_MOBILE.format(os=os_str, v=v)
+
+    elif browser == "safari":
+        # Safari 版本号映射（简化为主要版本）
+        if os_name in ("macos", "windows", "linux"):
+            return _SAFARI_UA_DESKTOP.format(
+                os="Macintosh; Intel Mac OS X 10_15_7",
+                wk_ver="605.1.15",
+                safari_ver="18.1",
+            )
+        elif os_name == "ios":
+            return _SAFARI_UA_MOBILE.format(
+                device="iPhone",
+                cpu_os="iPhone OS 18_1 like Mac OS X",
+                wk_ver="605.1.15",
+                safari_ver="18.1",
+            )
+        else:
+            return _SAFARI_UA_MOBILE.format(
+                device="iPhone",
+                cpu_os="iPhone OS 18_1 like Mac OS X",
+                wk_ver="605.1.15",
+                safari_ver="18.1",
+            )
+
+    elif browser == "edge":
+        os_str = _random.choice(CHROME_DESKTOP_OS_LIST)
+        return _EDGE_UA_DESKTOP.format(os=os_str, v=v)
+
+    # 无法识别的浏览器，降级为 Chrome
+    os_str = _random.choice(CHROME_DESKTOP_OS_LIST)
+    return _CHROME_UA_DESKTOP.format(os=os_str, v=v)
 
 
 def get_available_profiles() -> tuple[str, ...]:

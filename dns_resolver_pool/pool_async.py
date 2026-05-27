@@ -101,6 +101,7 @@ class AsyncDNSResolverPool(AsyncResourcePool):
         max_consecutive_fails: int = 3,
         revive_after: int = 120,
         thread_safe: bool = True,
+        fallback_to_system: bool = True,
     ) -> None:
         self._servers: list[AsyncServerState] = []
         self._cache: dict[str, tuple[list[str], float]] = {}
@@ -109,6 +110,7 @@ class AsyncDNSResolverPool(AsyncResourcePool):
         self._cache_order: deque[str] = deque()
         self._max_fails = max_consecutive_fails
         self._revive_after = revive_after
+        self._fallback_to_system = fallback_to_system
         self._strategy_enum: SelectStrategy | None = None
         self._strategy_fn: StrategyProtocol | None = None
         self._set_strategy(strategy)
@@ -126,7 +128,10 @@ class AsyncDNSResolverPool(AsyncResourcePool):
 
     async def resolve(self, domain: str, record_type: str = "A",
                       timeout: float = 5.0) -> str:
-        """解析域名，返回单个最优 IP"""
+        """解析域名，返回单个最优 IP
+
+        优先使用池内 DNS 服务器，全部失败则回退到系统 DNS。
+        """
         cache_key = f"{domain}:{record_type}"
         cached = await self._cache_get(cache_key)
         if cached is not None:
@@ -147,14 +152,33 @@ class AsyncDNSResolverPool(AsyncResourcePool):
                 last_err = exc
                 continue
 
+        # ── 全部 DNS 服务器失败 → 回退到系统 DNS ──
+        if self._fallback_to_system:
+            try:
+                logger.warning(
+                    "全部 %d 台 DNS 服务器解析 %s 失败，回退到系统 DNS",
+                    len(self._servers), domain,
+                )
+                ips = await self._system_resolve(domain, record_type, timeout)
+                await self._cache_set(cache_key, ips)
+                return ips[0]
+            except Exception as exc:
+                raise PoolExhaustedException(
+                    "DNS 服务器",
+                    f"全部池内+系统 DNS 失败: {exc}"
+                ) from exc
+
         raise PoolExhaustedException(
             "DNS 服务器",
-            str(last_err) if last_err else "全部健康检查失败"
+            str(last_err) if last_err else "全部 DNS 服务器失败"
         )
 
     async def resolve_all(self, domain: str, record_type: str = "A",
                           timeout: float = 5.0) -> list[str]:
-        """解析域名，返回全部 IP 列表"""
+        """解析域名，返回全部 IP 列表
+
+        优先使用池内 DNS 服务器，全部失败则回退到系统 DNS。
+        """
         cache_key = f"{domain}:{record_type}"
         cached = await self._cache_get(cache_key)
         if cached is not None:
@@ -174,9 +198,25 @@ class AsyncDNSResolverPool(AsyncResourcePool):
                 last_err = exc
                 continue
 
+        # ── 全部 DNS 服务器失败 → 回退到系统 DNS ──
+        if self._fallback_to_system:
+            try:
+                logger.warning(
+                    "全部 %d 台 DNS 服务器 resolve_all %s 失败，回退到系统 DNS",
+                    len(self._servers), domain,
+                )
+                ips = await self._system_resolve(domain, record_type, timeout)
+                await self._cache_set(cache_key, ips)
+                return ips
+            except Exception as exc:
+                raise PoolExhaustedException(
+                    "DNS 服务器",
+                    f"全部池内+系统 DNS 失败: {exc}"
+                ) from exc
+
         raise PoolExhaustedException(
             "DNS 服务器",
-            str(last_err) if last_err else "全部健康检查失败"
+            str(last_err) if last_err else "全部 DNS 服务器失败"
         )
 
     async def add_server(self, entry: ServerEntry) -> None:
@@ -370,6 +410,15 @@ class AsyncDNSResolverPool(AsyncResourcePool):
             return [str(r) for r in answer]
         except dns.exception.DNSException as exc:
             raise ResourceUnhealthyException(state.ip, str(exc)) from exc
+
+    @staticmethod
+    async def _system_resolve(domain: str, record_type: str, timeout: float) -> list[str]:
+        """使用系统 DNS 异步解析（不指定 nameservers，走 OS 配置）"""
+        resolver = dns.asyncresolver.Resolver()
+        resolver.timeout = timeout
+        resolver.lifetime = timeout
+        answer = await resolver.resolve(domain, record_type)
+        return [str(r) for r in answer]
 
     @staticmethod
     async def _probe_server(state: AsyncServerState, timeout: float) -> bool:

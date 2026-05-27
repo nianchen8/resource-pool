@@ -1,6 +1,6 @@
 # 生产环境部署指南
 
-> 适用版本：v1.0.6+ | 最后更新：2026-05-26
+> 适用版本：v1.0.9+ | 最后更新：2026-05-27
 
 本指南覆盖 resource-pool 在生产环境中的配置、监控、排障和最佳实践。
 
@@ -25,8 +25,8 @@ thread_safe = true
 
 [ua_pool.fake_useragent]
 # 是否使用 fake_useragent 扩充 UA 数据库
-# 远程优先策略：fake_useragent 可用时取其 UA + Profile 组装请求头
-# 返回 UA 数量 < 5 时自动降级到包内置 headers_pool.jsonl (830 条)
+# 在线路径：fake_useragent 可用时取其 UA + 派系引擎组装请求头
+# 本地降级：返回 UA 数量 < 5 时自动降级到内置 ua_seeds.json（已自动加载 854 条）
 enabled = false
 browsers = ["chrome", "firefox", "safari", "edge"]
 os = ["windows", "macos", "linux"]
@@ -323,7 +323,7 @@ graph TB
 
     subgraph "资源池层"
         UA_P --> |策略| UA_S[加权 / 均匀]
-        UA_P --> |Profile| HP[Header Profile 组]
+        UA_P --> |派系组装| HP[Chromium×Firefox×Safari 三维路由引擎]
         UA_P --> |暂存器| RSV[UAReserve]
         
         DNS_P --> |策略| DNS_S[延迟加权 / 轮询 / 随机]
@@ -436,4 +436,4 @@ graph TB
 - [x] 异步 API 独立命名空间（`Async*` 类不冲突）
 - [x] `thread_safe` 参数默认 True
 - [x] 异常类 `PoolExhaustedException` / `ResourceUnhealthyException` 不变
-- [x] Profile 自动匹配为透明增强，不影响现有 profile 指定行为
+- [x] 派系即时组装为透明增强，不影响现有 profile 指定行为（优先级 ③）

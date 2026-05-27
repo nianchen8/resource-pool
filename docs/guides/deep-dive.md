@@ -53,39 +53,93 @@ ua.pick()                        # → ua._pool.get("desktop")
 ua.headers()                     # → ua._pool.get_headers("desktop")
 ```
 
-### UA 数据源与 Header 组装链路
+### UA 数据源与 Header 组装链路（v1.0.9 零件池架构）
 
-`UserAgentPool` 支持多数据源，所有来源的 UA 统一走同一套 Profile 匹配管道：
+`UserAgentPool` 初始化时自动加载 854 条 UA 种子（`ua_seeds.json`），
+覆盖 4 浏览器引擎家族 × 7 平台 × 3 设备类型。
+每条 UA 拆解为 OS 串/版本令牌/WebKit/Mobile Build 四个零件维度，
+跨零件随机重组 → 31,496 独立 UA → 193,633 完整 headers 组合。
+所有来源的 UA 统一走**零件池+派系组装管道**：
 
 ```
-fake_useragent (远程)                 headers_pool.jsonl (本地 830 条)
-        │                                        │
-        │  返回 UA < 5 条时自动降级               │
-        └────────────────→  ─────────────────────→│
-                         │                       │
-                         ▼                       ▼
-                   self.add(ua, ...)
-                         │
-                         ▼
-                parse_ua_metadata()
-                  → browser / os / version
-                         │
-                         ▼
-         get_headers() → _build_headers()
-                         │
-                         ▼
-                  match_profile()
-             → 最近版本号匹配 + Sec-CH-UA 版本修正
-                         │
-                         ▼
-              组装完整的 20 项请求头
+                     UserAgentPool()
+                           │
+              ┌────────────┼────────────┐
+              ▼            ▼            ▼
+         ua_seeds.json 854条  fake_useragent
+         (自动加载)   (load_from_
+                       fakeua)
+              │            │
+              │            │            │
+              └─────┬──────┘            │
+                    │                   │
+                    ▼                   ▼
+           _copy_agent_entry()   parse_ua_metadata()
+           → 自动补全 browser / os / version 元数据
+                    │
+                    ▼
+              get_headers()
+                    │
+                    ▼
+            _build_headers()
+           ┌────────────────────────────────────────────┐
+           │  3级降级                                   │
+           │  ① 元数据 → 零件池重组 + 派系即时组装       │
+           │  ② 内联 headers（用户注入兜底）             │
+           │  ③ Profile 匹配（向后兼容）                 │
+           └────────────────────────────────────────────┘
+                    │ (全部走 ①)
+                    ▼
+       _assemble_headers_from_faction()
+       ┌──────────────────────────────────────┐
+       │ 引擎家族 → 平台 → 设备类型 三维路由     │
+       │                                      │
+       │ Chromium (Chrome/Edge/CriOS)          │
+       │   ├─ Desktop: Windows/macOS/Linux     │
+       │   ├─ Mobile:  Android                │
+       │   └─ ChromeOS                         │
+       │ Firefox                               │
+       │   ├─ Desktop: Windows/macOS/Linux     │
+       │   └─ Mobile:  Android                │
+       │ Safari (WebKit)                       │
+       │   ├─ Desktop: macOS                   │
+       │   └─ Mobile:  iOS (iPhone/iPad/GSA)   │
+       └──────────────────────────────────────┘
+                    │
+                    ▼
+       ┌──────────────────────────────────┐
+       │ Identity Block (引擎家族固有)      │
+       │  Accept / Accept-Encoding /       │
+       │  Connection / Sec-Fetch-*×4       │
+       │  Sec-Ch-Ua* (仅 Chromium)         │
+       ├──────────────────────────────────┤
+       │ 可变字段（每次随机选取）            │
+       │  Accept-Language: 5 种池          │
+       │  Cache-Control: max-age=0/no-cache│
+       │  Upgrade-Insecure-Requests: 有/无 │
+       └──────────────────────────────────┘
+                    │
+                    ▼
+           完整 headers (指数级变化)
 ```
 
-**关键设计**：jsonl 仅作为 UA 池扩充（830 条），不存储预制 headers。
-所有请求头字段由 `_HEADER_PROFILES` 模板 + `match_profile()` 运行时组装，
-确保不同数据源产出的 headers 指纹一致性。
+**双路径**：
+- **零件池路径**：ua_seeds.json 每条 UA 拆解为 OS 串/版本令牌/WebKit/Mobile Build → 跨零件随机重组 → 31,496 独立 UA → 派系引擎组装 14 项请求头
+- **在线路径**：fake_useragent 提供 UA → 零件池重组 + 派系引擎组装请求头
+- **本地降级**：内置 UA → 零件池重组 + 派系引擎组装（自动，零配置）
 
-> `load_from_fakeua()` 降级阈值 = 5，用户可通过 `_load_bundled_jsonl()` 显式触发本地加载。
+**关键约束自动保证**：
+- UA 版本 == Sec-Ch-Ua 版本（`_build_sec_ch_ua` 动态生成）
+- UA 平台 == Sec-Ch-Ua-Platform（`_OS_PLATFORM_META` 映射 6 平台）
+- Accept-Language 段数匹配设备类型（桌面 ≥5 段，移动 ≤3 段）
+- Firefox 不包含 Sec-Ch-Ua / Cache-Control
+- Safari 不包含 Sec-Ch-Ua / Upgrade-Insecure-Requests
+- 引擎家族不可交叉（Chrome ←/→ Firefox ←/→ Safari 不会混用）
+
+**组合爆炸**：854 UA 种子 → 零件池随机重组 → 31,496 独立 UA → 每次生成即时组装 14 项请求头 → 193,633 种完整 headers 组合。
+
+> `_build_headers` v1.0.9 改为：元数据存在时走零件池随机重组 + 派系组装（最高优先级），
+> 内联 headers 兜底，Profile 匹配为向后兼容。
 
 ---
 

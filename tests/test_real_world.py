@@ -128,12 +128,17 @@ class TestUARealWorld:
     def test_strategy_uniform(self):
         """UNIFORM 策略下各 UA 被选中的概率接近"""
         pool = UserAgentPool(strategy=UAStrategy.UNIFORM)
+        desktop_count = len(pool._agents["desktop"])
         counts: dict[str, int] = {}
-        for _ in range(200):
+        # 采样次数足够覆盖 70% 的池容量（适配 jsonl 扩充后的大池）
+        iterations = max(200, desktop_count * 4)
+        for _ in range(iterations):
             ua = pool.get("desktop")
             counts[ua] = counts.get(ua, 0) + 1
         # 每个都有被选中
-        assert len(counts) >= len(pool._agents["desktop"]) * 0.7
+        assert len(counts) >= desktop_count * 0.7
+        # 额外验证：至少覆盖了一半
+        assert len(counts) >= desktop_count * 0.5
 
     def test_reserve_restores(self):
         """reserve 取出后归还"""

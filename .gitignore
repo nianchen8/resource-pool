@@ -22,5 +22,13 @@ test_result.txt
 # Commit
 .commit_msg
 
+# Temp
+1.py
+test_output.txt
+tests/calc_header_combos.py
+tests/live_demo/
+tests/ssr2.py
+
 # Data files (not for distribution)
 headers_pool.jsonl
+data/

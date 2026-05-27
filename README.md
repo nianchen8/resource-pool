@@ -27,6 +27,22 @@ with dns:                               # patch socket，requests 的 DNS 走池
 
 > 每次请求自动换一套完整的浏览器请求头（14 字段）。有代理加一行 `resource_pool.Proxy("ip:port")`。
 
+养成——让池子越用越肥：
+
+```python
+# 喂一条新 UA，下次启动自动加载
+resource_pool.feed_ua("Mozilla/5.0 (Windows NT 10.0; Win64; x64) ... Chrome/148.0.0.0 ...")
+
+# 喂一个代理（支持 ip:port:user:pass）
+resource_pool.feed_proxy("1.2.3.4:8080:user:pass", weight=8)
+
+# 查看喂养统计
+print(resource_pool.status())
+# → {"ua": {"builtin": 854, "fed": 2, "total": 856}, ...}
+```
+
+> 养成数据写入安装目录。pip upgrade 前务必 `resource_pool.export_fed("proxy", "./backup/")` 备份。
+
 ## 按你的深度开始
 
 四层文档，每层都有**单线程 / 多线程 / 多进程 / 异步 / Scrapy** 五种写法的完整可运行代码：
@@ -47,6 +63,7 @@ with dns:                               # patch socket，requests 的 DNS 走池
 | UA 请求头 | 固定一条，秒封 | 854 种子 → 零件重组 → 31,496 UA → 193,633 headers，引擎家族约束保证一致性 |
 | DNS | 单台 DNS，频次高被限流 | 14 台轮换 + LRU 缓存 + 故障隔离 + socket 透明 patch |
 | 代理 | 单代理，一封全挂 | 评分淘汰 + 自动补充 + 9 种供应商格式自动识别 |
+| 养成 | 每次重装丢数据 | feed_ua/proxy/dns 持久化 + export_fed 备份 + reset 清除 |
 
 ## 架构速览
 
@@ -56,13 +73,16 @@ with dns:                               # patch socket，requests 的 DNS 走池
 | 线程安全 | UA 池 ReadWriteLock（读并发 N 倍）、DNS 16 路缓存分片 |
 | 异步对等 | Async* 全系列，API 与同步版一致 |
 | 可插拔 | 内置枚举 + StrategyProtocol callable + isinstance 分派注册表 |
-| 故障隔离 | 连续失败隔离 → 定时复活 → 健康检查，全自动 |
+| 故障隔离 | 连续失败隔离 → 定时复活 → 健康检查（三探验活），全自动 |
+| 数据持久化 | 养成 API 写入安装目录 → 下次启动自动加载 → export_fed 跨项目迁移 |
 | 零开销 | `thread_safe=False` 关闭所有锁，单线程无锁竞争 |
 
 ## 项目结构
 
 ```
-resource_pool/        ← 统一入口 + 框架层 (ABC / 编排器 / 锁)
+resource_pool/        ← 统一入口 + 框架层 (ABC / 编排器 / 锁 / 养成API)
+│   ├── _feeding.py   ← 养成系持久化 (feed/import/export/reset)
+│   ├── data/         ← 养成数据 + schema + 模板
 user_agent_pool/      ← UA 池 (派系引擎 + 零件重组 + 细粒度筛选)
 dns_resolver_pool/    ← DNS 池 (14 服务器 + 16路缓存 + socket patch)
 proxy_pool/           ← 代理池 (评分系统 + 9 格式解析 + 持久化)

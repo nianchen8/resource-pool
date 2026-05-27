@@ -5,7 +5,9 @@ UAReserve 改为 async with 上下文管理器。
 """
 
 import asyncio
+import json
 import logging
+import os
 import random
 from typing import AsyncIterator
 
@@ -42,31 +44,102 @@ class AsyncUserAgentPool(AsyncResourcePool):
     """
 
     def __init__(self, strategy: UAStrategy = UAStrategy.WEIGHTED,
-                 thread_safe: bool = True) -> None:
+                 thread_safe: bool = True,
+                 data_dir: str | None = None,
+                 load_builtin: bool = True,
+                 load_fed: bool = True,
+                 raw_only: bool = False) -> None:
         self._agents: dict[str, list[AgentEntry]] = {}
         self._strategy: UAStrategy = strategy
         self._lock = asyncio.Lock() if thread_safe else AsyncDummyLock()
+        self._data_dir = data_dir
+        self._load_builtin = load_builtin
+        self._load_fed = load_fed
+        self._raw_only = raw_only
         self._init_defaults()
 
     # ── 初始化 ───────────────────────────────────────────────────────
 
     def _init_defaults(self) -> None:
-        """从 agents.py 导入内置数据集 + 加载 headers_pool.jsonl
+        """加载 UA 种子数据
 
-        headers_pool.jsonl（800+ 条真实 UA）作为本地降级路径的基数数据源。
-        __init__ 阶段同步解析 jsonl 并直接扩展 self._agents, 无需走 async add()。
+        加载优先级：
+        1. data_dir 目录（若指定）
+        2. ua_seeds.json（安装目录，含 fed 养成数据）
+        3. DEFAULT_AGENTS + headers_pool.jsonl（内置回退）
+
+        raw_only=True 时不加载 headers_pool.jsonl（仅内置种子）。
         """
-        for cat in ("desktop", "mobile", "tablet"):
-            self._agents[cat] = [
-                self._copy_agent_entry(entry)
-                for entry in DEFAULT_AGENTS[cat]
-            ]
-        # 加载 bundled headers_pool.jsonl 扩充默认池（同步解析 + 直接注入）
-        jsonl_loaded = self._load_bundled_jsonl_sync()
+        loaded_from_data = False
+
+        # 1) data_dir 优先
+        if self._data_dir:
+            path = os.path.join(self._data_dir, "ua_seeds.json")
+            if os.path.isfile(path):
+                try:
+                    with open(path, "r", encoding="utf-8") as f:
+                        data = json.load(f)
+                    for cat in ("desktop", "mobile", "tablet"):
+                        entries = data.get(cat, [])
+                        parsed: list[AgentEntry] = []
+                        for item in entries:
+                            if not isinstance(item, dict) or "ua" not in item:
+                                continue
+                            source = str(item.get("source", "builtin"))
+                            if source == "builtin" and not self._load_builtin:
+                                continue
+                            if source == "fed" and not self._load_fed:
+                                continue
+                            parsed.append(self._copy_agent_entry({"ua": item["ua"], "weight": item.get("weight", 5), "profile": item.get("profile", "") or None, "browser": item.get("browser", "") or None, "os": item.get("os", "") or None, "version": item.get("version", 0) or None}))
+                        if parsed:
+                            self._agents[cat] = parsed
+                    loaded_from_data = True
+                    logger.info("已从 %s 加载 UA 种子", path)
+                except Exception as e:
+                    logger.warning("加载 %s 失败: %s", path, e)
+
+        # 2) 从安装目录 ua_seeds.json 加载（含 fed 养成数据）
+        if not loaded_from_data and (self._load_builtin or self._load_fed):
+            try:
+                seeds_path = os.path.join(os.path.dirname(__file__), "ua_seeds.json")
+                if os.path.isfile(seeds_path):
+                    with open(seeds_path, "r", encoding="utf-8") as f:
+                        data = json.load(f)
+                    for cat in ("desktop", "mobile", "tablet"):
+                        entries = data.get(cat, [])
+                        parsed: list[AgentEntry] = []
+                        for item in entries:
+                            if not isinstance(item, dict) or "ua" not in item:
+                                continue
+                            source = str(item.get("source", "builtin"))
+                            if source == "builtin" and not self._load_builtin:
+                                continue
+                            if source == "fed" and not self._load_fed:
+                                continue
+                            parsed.append(self._copy_agent_entry({"ua": item["ua"], "weight": item.get("weight", 5), "profile": item.get("profile", "") or None, "browser": item.get("browser", "") or None, "os": item.get("os", "") or None, "version": item.get("version", 0) or None}))
+                        if parsed:
+                            self._agents[cat] = parsed
+                    loaded_from_data = True
+                    logger.info("已从 %s 加载 UA 种子", seeds_path)
+            except Exception as e:
+                logger.warning("加载 ua_seeds.json 失败: %s，回退到内置", e)
+
+        # 3) 回退到内置 DEFAULT_AGENTS
+        if not loaded_from_data and self._load_builtin:
+            for cat in ("desktop", "mobile", "tablet"):
+                self._agents[cat] = [
+                    self._copy_agent_entry(entry)
+                    for entry in DEFAULT_AGENTS[cat]
+                ]
+
+        # 加载 bundled headers_pool.jsonl 扩充默认池（raw_only 模式下跳过）
+        jsonl_loaded = 0
+        if not self._raw_only:
+            jsonl_loaded = self._load_bundled_jsonl_sync()
         total = sum(len(v) for v in self._agents.values())
         logger.info("已加载 %d 个 User-Agent（desktop=%d, mobile=%d, tablet=%d, jsonl新增=%d）",
-                    total, len(self._agents["desktop"]), len(self._agents["mobile"]),
-                    len(self._agents["tablet"]), jsonl_loaded)
+                    total, len(self._agents.get("desktop", [])), len(self._agents.get("mobile", [])),
+                    len(self._agents.get("tablet", [])), jsonl_loaded)
 
     @staticmethod
     def _copy_agent_entry(entry: AgentEntry) -> AgentEntry:

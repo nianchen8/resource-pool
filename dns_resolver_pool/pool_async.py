@@ -8,7 +8,9 @@
 
 import asyncio
 import contextvars
+import json
 import logging
+import os
 import random
 import socket
 import time
@@ -24,6 +26,7 @@ from dns_resolver_pool.servers import (
     _DOMESTIC,
     _OVERSEAS,
     HEALTH_CHECK_DOMAINS,
+    _load_from_data_dir,
 )
 from resource_pool.base import StrategyProtocol
 from resource_pool.base_async import AsyncDummyLock, AsyncResourcePool
@@ -103,6 +106,9 @@ class AsyncDNSResolverPool(AsyncResourcePool):
         revive_after: int = 120,
         thread_safe: bool = True,
         fallback_to_system: bool = True,
+        data_dir: str | None = None,
+        load_builtin: bool = True,
+        load_fed: bool = True,
     ) -> None:
         self._servers: list[AsyncServerState] = []
         self._cache: dict[str, tuple[list[str], float]] = {}
@@ -123,6 +129,10 @@ class AsyncDNSResolverPool(AsyncResourcePool):
         ]
         self._rr_index = 0
         self._last_revive_check: float = 0.0
+        # 养成系
+        self._data_dir = data_dir
+        self._load_builtin = load_builtin
+        self._load_fed = load_fed
         self._load_defaults(regions)
 
     # ── 公开 API ─────────────────────────────────────────────────────
@@ -251,23 +261,34 @@ class AsyncDNSResolverPool(AsyncResourcePool):
         return False
 
     async def health_check(self, timeout: float = 3.0) -> dict[str, str]:
-        """全量异步健康检查"""
+        """全量异步健康检查，返回 {ip: 'OK'|'FAIL'}"""
         results: dict[str, str] = {}
         async with self._lock:
             snapshot = list(self._servers)
         for state in snapshot:
-            ok = await self._probe_server(state, timeout)
+            ok, elapsed_ms = await self._probe_server(state, timeout)
             async with self._lock:
                 if state not in self._servers:
                     continue
                 if ok:
+                    # 仅在仍启用时才更新（避免覆盖并发隔离操作）
                     if state.enabled:
                         state.consecutive_fails = 0
+                        # 健康检查成功：用 EMA 更新延迟，使延迟加权策略生效
+                        state.latency_ms = (
+                            state.latency_ms * 0.7 + elapsed_ms * 0.3
+                            if state.latency_ms else elapsed_ms
+                        )
                         results[state.ip] = "OK"
                     else:
+                        # 已被隔离但探测通过，保留隔离状态等待 _try_revive
                         results[state.ip] = "OK(隔离中)"
                 else:
                     state.consecutive_fails += 1
+                    # 健康检查失败：立即用实际耗时（超时值）更新延迟，
+                    # 避免延迟为 0 的不可用服务器在延迟加权策略中排到首位
+                    if state.latency_ms == 0 or elapsed_ms > state.latency_ms:
+                        state.latency_ms = elapsed_ms
                     if state.consecutive_fails >= self._max_fails:
                         state.enabled = False
                         logger.warning(
@@ -415,11 +436,56 @@ class AsyncDNSResolverPool(AsyncResourcePool):
     # ── 内部 ─────────────────────────────────────────────────────────
 
     def _load_defaults(self, regions: tuple[str, ...]) -> None:
-        region_map = {"domestic": _DOMESTIC, "overseas": _OVERSEAS}
-        for r in regions:
-            for entry in region_map.get(r, []):
-                if entry.get("enabled", True):
-                    self._servers.append(AsyncServerState(entry))
+        """加载默认 DNS 服务器（三层：data_dir → JSON 数据文件 → 硬编码回退）"""
+        # 1) data_dir 优先
+        if self._data_dir:
+            path = os.path.join(self._data_dir, "dns_servers.json")
+            if os.path.isfile(path):
+                try:
+                    with open(path, "r", encoding="utf-8") as f:
+                        data = json.load(f)
+                    items = data.get("items", [])
+                    for item in items:
+                        if item.get("enabled", True):
+                            self._servers.append(AsyncServerState({
+                                "ip": str(item["ip"]),
+                                "name": str(item.get("name", item["ip"])),
+                                "region": str(item.get("region", "unknown")),
+                                "enabled": bool(item.get("enabled", True)),
+                                "weight": int(item.get("weight", 5)),
+                            }))
+                    logger.info("已从 %s 加载 %d 台 DNS 服务器", path, len(self._servers))
+                    return
+                except Exception as e:
+                    logger.warning("加载 %s 失败: %s", path, e)
+
+        # 2) 从 JSON 数据文件加载（含 fed 养成数据）
+        loaded_from_json = False
+        if self._load_builtin or self._load_fed:
+            json_servers = _load_from_data_dir()
+            if json_servers:
+                for entry in json_servers:
+                    # 检查地域过滤
+                    if entry.get("region") not in regions:
+                        continue
+                    # 检查 source 过滤
+                    source = entry.get("source", "builtin")
+                    if source == "builtin" and not self._load_builtin:
+                        continue
+                    if source == "fed" and not self._load_fed:
+                        continue
+                    if entry.get("enabled", True):
+                        self._servers.append(AsyncServerState(entry))
+                loaded_from_json = True
+
+        # 3) 回退到硬编码（仅当 JSON 加载失败且 load_builtin=True）
+        if not loaded_from_json and self._load_builtin:
+            region_map = {"domestic": _DOMESTIC, "overseas": _OVERSEAS}
+            for r in regions:
+                for entry in region_map.get(r, []):
+                    if entry.get("enabled", True):
+                        self._servers.append(AsyncServerState(entry))
+
         logger.info("已加载 %d 台 DNS 服务器（地域: %s）", len(self._servers), ", ".join(regions))
 
     def _set_strategy(self, value: SelectStrategy | StrategyProtocol) -> None:
@@ -475,18 +541,21 @@ class AsyncDNSResolverPool(AsyncResourcePool):
         return [str(r) for r in answer]
 
     @staticmethod
-    async def _probe_server(state: AsyncServerState, timeout: float) -> bool:
-        """异步探测单台 DNS 是否可用"""
+    async def _probe_server(state: AsyncServerState, timeout: float) -> tuple[bool, float]:
+        """异步探测单台 DNS 是否可用，返回 (可用, 延迟ms)"""
         domain = random.choice(HEALTH_CHECK_DOMAINS)
         resolver = dns.asyncresolver.Resolver()
         resolver.nameservers = [state.ip]
         resolver.timeout = timeout
         resolver.lifetime = timeout
+        start = time.monotonic()
         try:
             await resolver.resolve(domain, "A")
-            return True
+            elapsed = (time.monotonic() - start) * 1000
+            return True, elapsed
         except dns.exception.DNSException:
-            return False
+            elapsed = (time.monotonic() - start) * 1000
+            return False, elapsed
 
     def _get_alive(self) -> list[AsyncServerState]:
         return [s for s in self._servers if s.enabled]

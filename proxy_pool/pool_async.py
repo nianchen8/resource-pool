@@ -9,16 +9,19 @@
 import asyncio
 import json
 import logging
+import os
 import random
 import time
 import urllib.request
 import urllib.error
+from enum import Enum
 
 from proxy_pool.exceptions import PoolExhaustedException
 from proxy_pool.servers import (
     ProxyEntry,
     VALID_SCHEMES,
     HEALTH_CHECK_URLS,
+    _load_from_data_dir,
 )
 from resource_pool.base import StrategyProtocol
 from resource_pool.base_async import AsyncDummyLock, AsyncResourcePool
@@ -27,22 +30,11 @@ from resource_pool.orchestrator_async import AsyncPoolOrchestrator
 logger = logging.getLogger(__name__)
 
 
-class ProxyStrategy:
-    """代理选择策略（与同步版共用枚举值）
-
-    注意：异步版不导入同步版的 ProxyStrategy Enum，避免意外耦合。
-    使用字符串常量保持接口一致。
-    """
+class ProxyStrategy(str, Enum):
+    """代理选择策略（与同步版共用枚举值）"""
     LATENCY_WEIGHTED = "latency_weighted"
     ROUND_ROBIN = "round_robin"
     RANDOM = "random"
-
-    _ALL = frozenset({LATENCY_WEIGHTED, ROUND_ROBIN, RANDOM})
-
-    @classmethod
-    def _validate(cls, value: str) -> None:
-        if value not in cls._ALL:
-            raise ValueError(f"无效策略 '{value}'，可选: {sorted(cls._ALL)}")
 
 
 class AsyncProxyState:
@@ -101,18 +93,24 @@ class AsyncProxyPool(AsyncResourcePool):
 
     def __init__(
         self,
-        strategy: str | StrategyProtocol = ProxyStrategy.LATENCY_WEIGHTED,
+        strategy: ProxyStrategy | str | StrategyProtocol = ProxyStrategy.LATENCY_WEIGHTED,
         max_consecutive_fails: int = 3,
         revive_after: int = 120,
         thread_safe: bool = True,
         min_alive: int = 0,
         auto_refill_url: str = "",
+        data_dir: str | None = None,
+        load_builtin: bool = True,
+        load_fed: bool = True,
     ) -> None:
-        if isinstance(strategy, str):
-            ProxyStrategy._validate(strategy)
+        if isinstance(strategy, str) and not isinstance(strategy, ProxyStrategy):
+            try:
+                strategy = ProxyStrategy(strategy)
+            except ValueError:
+                raise ValueError(f"无效策略 '{strategy}'，可选: {[e.value for e in ProxyStrategy]}") from None
         self._proxies: list[AsyncProxyState] = []
-        self._strategy: str | StrategyProtocol = strategy
-        self._strategy_enum: str | None = strategy if isinstance(strategy, str) else None
+        self._strategy: ProxyStrategy | str | StrategyProtocol = strategy
+        self._strategy_enum: ProxyStrategy | None = strategy if isinstance(strategy, ProxyStrategy) else None
         self._strategy_fn: StrategyProtocol | None = strategy if callable(strategy) else None
         self._max_fails = max_consecutive_fails
         self._revive_after = revive_after
@@ -124,6 +122,60 @@ class AsyncProxyPool(AsyncResourcePool):
         self._min_alive = min_alive
         self._auto_refill_url = auto_refill_url
         self._last_auto_maintain: float = 0.0
+        # 养成系
+        self._data_dir = data_dir
+        self._load_builtin = load_builtin
+        self._load_fed = load_fed
+        self._load_defaults()
+
+    # ── 初始化 ───────────────────────────────────────────────────────
+
+    def _load_defaults(self) -> None:
+        """加载默认代理（data_dir / JSON 数据文件 / 回退空列表）"""
+        # 1) data_dir 优先
+        if self._data_dir:
+            path = os.path.join(self._data_dir, "proxy_servers.json")
+            if os.path.isfile(path):
+                try:
+                    with open(path, "r", encoding="utf-8") as f:
+                        data = json.load(f)
+                    items = data.get("items", []) if isinstance(data, dict) else []
+                    for item in items:
+                        if not isinstance(item, dict) or "host" not in item or "port" not in item:
+                            continue
+                        source = str(item.get("source", "builtin"))
+                        if source == "builtin" and not self._load_builtin:
+                            continue
+                        if source == "fed" and not self._load_fed:
+                            continue
+                        self._proxies.append(AsyncProxyState({
+                            "scheme": str(item.get("scheme", "http")),
+                            "host": str(item["host"]),
+                            "port": int(item["port"]),
+                            "username": str(item.get("username", "")),
+                            "password": str(item.get("password", "")),
+                            "region": str(item.get("region", "unknown")),
+                            "enabled": bool(item.get("enabled", True)),
+                            "weight": int(item.get("weight", 5)),
+                        }))
+                    logger.info("已从 %s 加载 %d 个代理", path, len(self._proxies))
+                    return
+                except Exception as e:
+                    logger.warning("data_dir 代理加载失败: %s，回退", e)
+
+        # 2) 安装目录 JSON（含 fed 养成数据）
+        if self._load_builtin or self._load_fed:
+            json_proxies = _load_from_data_dir()
+            if json_proxies:
+                for entry in json_proxies:
+                    source = entry.get("source", "builtin")
+                    if source == "builtin" and not self._load_builtin:
+                        continue
+                    if source == "fed" and not self._load_fed:
+                        continue
+                    self._proxies.append(AsyncProxyState(entry))
+
+        logger.info("已加载 %d 个代理", len(self._proxies))
 
     # ── 公开 API ─────────────────────────────────────────────────────
 
@@ -593,17 +645,21 @@ class AsyncProxyPool(AsyncResourcePool):
     # ── 魔术方法 ─────────────────────────────────────────────────────
 
     @property
-    def strategy(self) -> str | StrategyProtocol:
+    def strategy(self) -> ProxyStrategy | StrategyProtocol:
         """当前选择策略"""
         if self._strategy_fn is not None:
             return self._strategy_fn
         return self._strategy_enum or self._strategy
 
     @strategy.setter
-    def strategy(self, value: str | StrategyProtocol) -> None:
+    def strategy(self, value: ProxyStrategy | str | StrategyProtocol) -> None:
         """运行时切换策略"""
-        if isinstance(value, str):
-            ProxyStrategy._validate(value)
+        if isinstance(value, str) and not isinstance(value, ProxyStrategy):
+            try:
+                value = ProxyStrategy(value)
+            except ValueError:
+                raise ValueError(f"无效策略 '{value}'，可选: {[e.value for e in ProxyStrategy]}") from None
+        if isinstance(value, ProxyStrategy):
             self._strategy_enum = value
             self._strategy_fn = None
         elif callable(value):

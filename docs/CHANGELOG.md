@@ -1,5 +1,25 @@
 # 更新日志
 
+## v1.2.1 (2026-05-28)
+
+全量代码审查修复版本 —— 同步/异步双路径功能对齐。
+
+### 🔴 同步/异步功能对齐
+- 🐛 **AsyncDNSResolverPool `_probe_server` 返回类型修复**：返回类型从 `bool` 改为 `tuple[bool, float]`，与同步版一致。`health_check` 现在正确更新 `latency_ms`（EMA 加权），`LATENCY_WEIGHTED` 策略在异步版中实际生效
+- 🐛 **AsyncDNSResolverPool 养成系参数补齐**：`__init__` 新增 `data_dir` / `load_builtin` / `load_fed` 参数，`_load_defaults` 实现三层加载（data_dir → JSON 数据文件 → 硬编码回退），`feed_dns()` 写入的养成数据对异步池可见
+- 🐛 **AsyncUserAgentPool 养成系参数补齐**：`__init__` 新增 `data_dir` / `load_builtin` / `load_fed` / `raw_only` 参数，`_init_defaults` 实现三层加载（data_dir → ua_seeds.json → DEFAULT_AGENTS），支持按 source 过滤和 raw_only 模式
+- 🐛 **AsyncProxyPool 养成系参数补齐**：`__init__` 新增 `data_dir` / `load_builtin` / `load_fed` 参数，新增 `_load_defaults` 实现两层加载（data_dir → JSON 数据文件），`feed_proxy()` 写入的代理对异步池可见
+- 🐛 **AsyncProxyPool `ProxyStrategy` 改为 Enum**：从普通类改为 `class ProxyStrategy(str, Enum)`，与同步版 Enum 语义一致，同时保持字符串兼容性
+
+### 🧹 冗余清理
+- 🔧 删除根部冗余 `data/` 目录（`dns_servers.json` / `proxy_servers.json` / `header_profiles.json`），代码引用统一指向 `resource_pool/data/`
+- 🔧 删除无引用文件 `resource_pool/data/header_profiles.json`（374 行无人引用）
+- 🔧 移动杂散文件 `1.py` → `examples/quickstart.py`
+- 🔧 修复测试文件名拼写错误 `test_stress_benchmark.py` → `test_stress_benchmark.py`
+
+### 🔧 其他
+- 🔧 版本号 1.2.0 → 1.2.1
+
 ## v1.2.0 (2026-05-27)
 
 - 🚀 **养成系持久化 API**（`resource_pool._feeding`）：让池子"越用越肥"——`feed_ua()` / `feed_dns()` / `feed_proxy()` 一道命令将新资源永久写入安装目录，`import_ua()` / `import_dns()` / `import_proxy()` 批量导入，`export_fed()` 备份养成数据，`reset()` 一键清除，`status()` 查看喂养统计。养成数据与原数据同文件共处（`source="fed"` + `batch` 批次号），支持去重、权重更新、自动分类。全部 API 通过 `resource_pool.feed_ua()` 等惰性导入对外暴露

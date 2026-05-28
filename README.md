@@ -1,4 +1,10 @@
-# Nurture Pool ![version](https://img.shields.io/badge/version-1.3.1-blue)
+# Nurture Pool
+
+[![PyPI](https://img.shields.io/pypi/v/nurture-pool?color=blue)](https://pypi.org/project/nurture-pool/)
+[![CI](https://img.shields.io/github/actions/workflow/status/nianchen8/nurture-pool/test.yml?branch=master)](https://github.com/nianchen8/nurture-pool/actions)
+[![Python](https://img.shields.io/pypi/pyversions/nurture-pool)](https://pypi.org/project/nurture-pool/)
+[![License](https://img.shields.io/pypi/l/nurture-pool)](https://github.com/nianchen8/nurture-pool/blob/master/LICENSE)
+[![Downloads](https://img.shields.io/pypi/dm/nurture-pool)](https://pypi.org/project/nurture-pool/)
 
 > 养成系资源池——UA 请求头、DNS、代理，越用越肥的三件套。
 

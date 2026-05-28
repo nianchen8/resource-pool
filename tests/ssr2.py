@@ -1,4 +1,4 @@
-import resource_pool
+import nurture_pool
 import requests
 
 # ═══════════════════════════════════════════════
@@ -23,9 +23,9 @@ manual = {
 }
 
 # ═══════════════════════════════════════════════
-# 2. resource_pool 生成的 headers
+# 2. nurture_pool 生成的 headers
 # ═══════════════════════════════════════════════
-ua = resource_pool.UA()
+ua = nurture_pool.UA()
 pool = ua.headers()
 
 # ═══════════════════════════════════════════════
@@ -33,7 +33,7 @@ pool = ua.headers()
 # ═══════════════════════════════════════════════
 all_keys = sorted(set(manual.keys()) | set(pool.keys()))
 
-print(f"{'请求头':40s} {'手动复制':35s} {'resource_pool':35s}")
+print(f"{'请求头':40s} {'手动复制':35s} {'nurture_pool':35s}")
 print("-" * 110)
 
 missing_from_pool = []
@@ -50,8 +50,8 @@ for key in all_keys:
 
 print()
 print(f"手动复制: {len(manual)} 个请求头")
-print(f"resource_pool: {len(pool)} 个请求头")
-print(f"resource_pool 缺失: {missing_from_pool}")
+print(f"nurture_pool: {len(pool)} 个请求头")
+print(f"nurture_pool 缺失: {missing_from_pool}")
 
 print()
 print("=" * 60)
@@ -59,7 +59,7 @@ print("手动复制 → 发请求")
 resp1 = requests.get('https://ssr2.scrape.center/', headers=manual)
 print(f"  状态码: {resp1.status_code}")
 
-print("resource_pool → 发请求")
+print("nurture_pool → 发请求")
 resp2 = requests.get('https://ssr2.scrape.center/', headers=pool)
 print(f"  状态码: {resp2.status_code}")
 

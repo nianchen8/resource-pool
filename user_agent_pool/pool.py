@@ -31,7 +31,7 @@ from user_agent_pool.agents import (
     _FIREFOX_UA_DESKTOP,
     _FIREFOX_UA_MOBILE,
 )
-from resource_pool.base import DummyReadWriteLock, ReadWriteLock, ResourcePool
+from nurture_pool.base import DummyReadWriteLock, ReadWriteLock, ResourcePool
 
 logger = logging.getLogger(__name__)
 
@@ -201,7 +201,7 @@ class UserAgentPool(ResourcePool):
 
         加载优先级：
         1. data_dir 目录（若指定）
-        2. resource_pool/data/ua_seeds.json（安装目录，含 fed 养成数据）
+        2. nurture_pool/data/ua_seeds.json（安装目录，含 fed 养成数据）
         3. user_agent_pool/ua_seeds.json（内置回退）
 
         raw_only=True 时不拆零件，fed 种子原样循环使用。
@@ -520,7 +520,7 @@ class UserAgentPool(ResourcePool):
 
         加载优先级：
         1. data_dir 目录（若指定）
-        2. resource_pool/data/ua_seeds.json（安装目录，含 fed）
+        2. nurture_pool/data/ua_seeds.json（安装目录，含 fed）
         3. user_agent_pool/ua_seeds.json（内置回退）
 
         支持两种格式：旧格式(desktop/mobile/tablet 键)和新格式(items 列表)。
@@ -537,10 +537,10 @@ class UserAgentPool(ResourcePool):
                 if data is not None:
                     source_label = path
 
-        # 2) 安装目录 JSON（resource_pool/data/ua_seeds.json，含 fed）
+        # 2) 安装目录 JSON（nurture_pool/data/ua_seeds.json，含 fed）
         if data is None:
             fed_path = os.path.join(
-                os.path.dirname(__file__), "..", "resource_pool", "data", "ua_seeds.json"
+                os.path.dirname(__file__), "..", "nurture_pool", "data", "ua_seeds.json"
             )
             if os.path.isfile(fed_path):
                 data = self._try_load_json(fed_path)

@@ -36,10 +36,10 @@ dev = ["pytest>=8.0", "pytest-timeout>=2.3", "pytest-cov>=6.0"]
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["resource_pool*", "user_agent_pool*", "dns_resolver_pool*", "proxy_pool*"]
+include = ["nurture_pool*", "user_agent_pool*", "dns_resolver_pool*", "proxy_pool*"]
 
 [tool.setuptools.package-data]
-"resource_pool" = ["py.typed", "data/*.json", "data/schema/*.json"]
+"nurture_pool" = ["py.typed", "data/*.json", "data/schema/*.json"]
 "user_agent_pool" = ["py.typed", "headers_pool.jsonl", "ua_seeds.json"]
 "dns_resolver_pool" = ["py.typed"]
 "proxy_pool" = ["py.typed"]

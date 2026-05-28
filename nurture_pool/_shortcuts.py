@@ -1,7 +1,7 @@
 """短别名封装层 —— 为新手和日常用户提供极简 API
 
 每个封装类仅在首次使用时加载底层模块（惰性），不使用则零开销。
-高级用户仍可通过 ``from resource_pool import UserAgentPool`` 访问完整 API。
+高级用户仍可通过 ``from nurture_pool import UserAgentPool`` 访问完整 API。
 """
 
 from __future__ import annotations
@@ -54,9 +54,9 @@ class UA:
 
     使用示例::
 
-        import resource_pool
+        import nurture_pool
 
-        ua = resource_pool.UA()
+        ua = nurture_pool.UA()
 
         # 获取一个 UA 字符串
         ua_string = ua.pick()              # 默认 desktop
@@ -128,13 +128,13 @@ class Proxy:
 
     使用示例::
 
-        import resource_pool
+        import nurture_pool
 
         # 方式一：创建时直接传入代理
-        proxy = resource_pool.Proxy("1.2.3.4:8080")
+        proxy = nurture_pool.Proxy("1.2.3.4:8080")
 
         # 方式二：先创建，再添加
-        proxy = resource_pool.Proxy()
+        proxy = nurture_pool.Proxy()
         proxy.add("1.2.3.4:8080")
         proxy.add("5.6.7.8:3128")
 
@@ -215,9 +215,9 @@ class DNS:
 
     使用示例::
 
-        import resource_pool
+        import nurture_pool
 
-        dns = resource_pool.DNS()
+        dns = nurture_pool.DNS()
 
         # 解析域名（自动选取最快的 DNS 服务器，结果缓存 5 分钟）
         ip = dns.resolve("www.example.com")
@@ -295,23 +295,23 @@ def combo(**pools: Any) -> Any:
 
     使用示例::
 
-        import resource_pool
+        import nurture_pool
 
-        ua = resource_pool.UA()
-        proxy = resource_pool.Proxy("1.2.3.4:8080")
-        dns = resource_pool.DNS()
+        ua = nurture_pool.UA()
+        proxy = nurture_pool.Proxy("1.2.3.4:8080")
+        dns = nurture_pool.DNS()
 
         # 三件事一起做
-        c = resource_pool.combo(ua=ua, dns=dns, proxy=proxy)
+        c = nurture_pool.combo(ua=ua, dns=dns, proxy=proxy)
         # c.ua      → dict (完整请求头)
         # c.dns     → str (DNS 服务器 IP)
         # c.proxy   → dict (requests 兼容的 proxies)
         # {**c}     → 解包为 dict
 
         # 只用 UA + Proxy
-        c = resource_pool.combo(ua=ua, proxy=proxy)
+        c = nurture_pool.combo(ua=ua, proxy=proxy)
     """
-    from resource_pool.orchestrator import PoolOrchestrator
+    from nurture_pool.orchestrator import PoolOrchestrator
 
     inner: dict[str, Any] = {}
     for name, p in pools.items():

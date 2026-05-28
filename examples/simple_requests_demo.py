@@ -25,10 +25,10 @@ except ImportError:
     print("请先安装 requests: pip install requests")
     raise
 
-from resource_pool import (
+from nurture_pool import (
     UserAgentPool, DNSResolverPool, ProxyPool, PoolOrchestrator,
 )
-from resource_pool import UAStrategy
+from nurture_pool import UAStrategy
 from proxy_pool import ProxyStrategy
 from dns_resolver_pool import SelectStrategy
 

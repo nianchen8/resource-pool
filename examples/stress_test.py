@@ -1,4 +1,4 @@
-"""极端压力验证 — 往死里刁难 resource-pool
+"""极端压力验证 — 往死里刁难 nurture-pool
 
 设计原则：
   - 不依赖任何外部 HTTP 服务，纯本地验证
@@ -16,7 +16,7 @@ import random
 from datetime import datetime
 from collections import Counter
 
-from resource_pool import (
+from nurture_pool import (
     UserAgentPool, UAStrategy,
     DNSResolverPool, SelectStrategy,
     ProxyPool, ProxyStrategy,
@@ -790,7 +790,7 @@ def test_stress_combo() -> int:
 def main() -> None:
     print()
     print("╔" + "═" * 62 + "╗")
-    print("║  resource-pool  极端压力验证                                   ║")
+    print("║  nurture-pool  极端压力验证                                   ║")
     print("║  原则: 怎么狠怎么来，往死里刁难                                 ║")
     print("╚" + "═" * 62 + "╝")
     print()
@@ -824,7 +824,7 @@ def main() -> None:
     print()
 
     if total_fails == 0:
-        print("  🎉 全部通过！resource-pool 经得起极端刁难。")
+        print("  🎉 全部通过！nurture-pool 经得起极端刁难。")
         print("     可以放心上真实爬虫了。")
     else:
         print(f"  ⚠️  {total_fails} 个失败，请检查上面的 ❌ 标记。")

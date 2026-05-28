@@ -1,6 +1,6 @@
 """代理服务器注册表 —— 内置公开代理（仅供测试，生产请用自建代理）
 
-优先从 resource_pool/data/proxy_servers.json 加载，
+优先从 nurture_pool/data/proxy_servers.json 加载，
 找不到或解析失败则回退到空列表。
 """
 
@@ -27,12 +27,12 @@ class ProxyEntry(TypedDict, total=False):
 
 
 def _load_from_data_dir() -> list[ProxyEntry] | None:
-    """尝试从 resource_pool/data/proxy_servers.json 加载代理
+    """尝试从 nurture_pool/data/proxy_servers.json 加载代理
 
     返回 None 表示数据文件不可用，调用方应回退到空列表。
     """
     try:
-        data_dir = os.path.join(os.path.dirname(__file__), "..", "resource_pool", "data")
+        data_dir = os.path.join(os.path.dirname(__file__), "..", "nurture_pool", "data")
         path = os.path.join(data_dir, "proxy_servers.json")
         if not os.path.isfile(path):
             return None

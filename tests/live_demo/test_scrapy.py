@@ -1,5 +1,5 @@
 """Scrapy 中间件测试 —— UA + DNS patch/unpatch"""
-import resource_pool
+import nurture_pool
 import requests
 from user_agent_pool import UserAgentPool
 
@@ -11,7 +11,7 @@ print("=" * 55)
 class ResourcePoolMiddleware:
     def __init__(self):
         self.ua = UserAgentPool()
-        self.dns = resource_pool.DNS()
+        self.dns = nurture_pool.DNS()
 
     def process_request(self, request, spider):
         self.dns.__enter__()

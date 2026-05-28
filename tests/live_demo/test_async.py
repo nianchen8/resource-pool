@@ -3,7 +3,7 @@ import asyncio
 import aiohttp
 from user_agent_pool.pool_async import AsyncUserAgentPool
 from dns_resolver_pool.pool_async import AsyncDNSResolverPool
-from resource_pool.orchestrator_async import AsyncPoolOrchestrator
+from nurture_pool.orchestrator_async import AsyncPoolOrchestrator
 
 print("=" * 55)
 print("  异步：create_resolver() 10并发验证")

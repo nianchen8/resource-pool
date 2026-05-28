@@ -4,9 +4,9 @@ import asyncio
 
 import pytest
 
-from resource_pool.base_async import AsyncDummyLock, AsyncResourcePool
-from resource_pool.exceptions import PoolExhaustedError
-from resource_pool.orchestrator_async import AsyncPoolOrchestrator
+from nurture_pool.base_async import AsyncDummyLock, AsyncResourcePool
+from nurture_pool.exceptions import PoolExhaustedError
+from nurture_pool.orchestrator_async import AsyncPoolOrchestrator
 from user_agent_pool.pool_async import AsyncUserAgentPool
 from dns_resolver_pool.pool_async import AsyncDNSResolverPool
 from proxy_pool.pool_async import AsyncProxyPool

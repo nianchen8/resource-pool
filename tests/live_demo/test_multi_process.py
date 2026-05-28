@@ -1,5 +1,5 @@
 """多进程脚本 —— 子进程独立建池 + thread_safe=False"""
-import resource_pool
+import nurture_pool
 import requests
 from concurrent.futures import ProcessPoolExecutor
 from user_agent_pool import UserAgentPool
@@ -11,10 +11,10 @@ print("=" * 55)
 # ── 每个进程独立建池，thread_safe=False 消除锁开销 ──
 def fetch(i):
     ua_pool = UserAgentPool(thread_safe=False)
-    dns = resource_pool.DNS()
+    dns = nurture_pool.DNS()
 
     with dns:
-        c = resource_pool.combo(ua=ua_pool, dns=dns)
+        c = nurture_pool.combo(ua=ua_pool, dns=dns)
         resp = requests.get("https://www.baidu.com",
                             headers=c.ua, timeout=10)
     return i, resp.status_code, len(resp.text)

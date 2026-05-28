@@ -4,9 +4,9 @@ import pytest
 from user_agent_pool import UserAgentPool
 from proxy_pool import ProxyPool
 
-from resource_pool.base import ResourcePool
-from resource_pool.exceptions import PoolExhaustedError
-from resource_pool.orchestrator import PoolOrchestrator
+from nurture_pool.base import ResourcePool
+from nurture_pool.exceptions import PoolExhaustedError
+from nurture_pool.orchestrator import PoolOrchestrator
 
 
 # ── 用于 _fetch_from_pool 分派测试的 Mock 池 ──────────────────────────

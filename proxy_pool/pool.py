@@ -19,7 +19,7 @@ from proxy_pool.servers import (
     _load_from_data_dir,
     HEALTH_CHECK_URLS,
 )
-from resource_pool.base import DummyLock, ResourcePool, StrategyProtocol
+from nurture_pool.base import DummyLock, ResourcePool, StrategyProtocol
 
 logger = logging.getLogger(__name__)
 

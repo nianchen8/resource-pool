@@ -1,4 +1,4 @@
-"""实战爬虫验证 — 用 resource-pool 驱动真实 HTTP 请求
+"""实战爬虫验证 — 用 nurture-pool 驱动真实 HTTP 请求
 
 验证四大核心能力：
   1. UA 轮换        — 20 次请求，httpbin 返回多种不同 UA
@@ -18,7 +18,7 @@ import threading
 import time
 import urllib.request
 
-from resource_pool import (
+from nurture_pool import (
     UserAgentPool,
     DNSResolverPool,
 )
@@ -212,7 +212,7 @@ def test_concurrency(ua_pool: UserAgentPool) -> bool:
 
 def main() -> None:
     print("=" * 62)
-    print("  resource-pool 实战爬虫验证")
+    print("  nurture-pool 实战爬虫验证")
     print("  目标: httpbin.org | 验证 UA轮换/DNS缓存/故障隔离/并发安全")
     print("=" * 62)
 
@@ -243,7 +243,7 @@ def main() -> None:
     print(f"\n  {passed}/{total} 项通过")
 
     if passed == total:
-        print("\n  🎉 全部通过！resource-pool 已通过实战爬虫验证。")
+        print("\n  🎉 全部通过！nurture-pool 已通过实战爬虫验证。")
     else:
         print(f"\n  ⚠️  {total - passed} 项未通过，请检查。")
 

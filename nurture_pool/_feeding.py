@@ -4,8 +4,8 @@
 
 数据文件位置：
 - UA  : user_agent_pool/ua_seeds.json（与内置种子同一文件）
-- DNS : resource_pool/data/dns_servers.json
-- Proxy: resource_pool/data/proxy_servers.json
+- DNS : nurture_pool/data/dns_servers.json
+- Proxy: nurture_pool/data/proxy_servers.json
 
 每条养成数据标记 source="fed" + batch 批次号，与内置数据写在一起。
 """
@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 # ── 路径解析 ──────────────────────────────────────────────────────────
 
-_FEEDING_DIR = os.path.dirname(os.path.abspath(__file__))       # resource_pool/
+_FEEDING_DIR = os.path.dirname(os.path.abspath(__file__))       # nurture_pool/
 _ROOT_DIR = os.path.dirname(_FEEDING_DIR)                       # 项目根
 _UA_DATA_PATH = os.path.join(_ROOT_DIR, "user_agent_pool", "ua_seeds.json")
 _DNS_DATA_PATH = os.path.join(_FEEDING_DIR, "data", "dns_servers.json")
@@ -38,7 +38,7 @@ _DATA_PATHS: dict[str, str] = {
 
 _BACKUP_WARNING = (
     "⚠ 养成数据将写入安装目录。pip install --upgrade 会覆盖安装目录文件。\n"
-    "  建议定期执行 resource_pool.export_fed() 备份养成数据。"
+    "  建议定期执行 nurture_pool.export_fed() 备份养成数据。"
 )
 
 _WARNED: set[str] = set()  # 同进程内同类型只提醒一次
@@ -212,7 +212,7 @@ def feed_ua(
 
     示例::
 
-        resource_pool.feed_ua(
+        nurture_pool.feed_ua(
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) ... Chrome/148.0.0.0 ...",
             weight=8,
             profile="chrome_148_win",
@@ -748,10 +748,10 @@ def export_fed(
     示例::
 
         # 导出所有养成 UA
-        path = resource_pool.export_fed("ua", "./backup/")
+        path = nurture_pool.export_fed("ua", "./backup/")
 
         # 按批次导出
-        path = resource_pool.export_fed("proxy", "./jd_project/", batch="20260527_001")
+        path = nurture_pool.export_fed("proxy", "./jd_project/", batch="20260527_001")
     """
     pool_type = pool_type.lower()
     if pool_type not in _DATA_PATHS:
@@ -838,8 +838,8 @@ def status() -> dict[str, dict[str, int]]:
 
     示例::
 
-        import resource_pool
-        print(resource_pool.status())
+        import nurture_pool
+        print(nurture_pool.status())
     """
     result: dict[str, dict[str, int]] = {}
 
@@ -1114,7 +1114,7 @@ def probe_proxy(proxy: str, timeout: float = 5.0) -> tuple[bool, str]:
             opener = request.build_opener(proxy_handler)
             req = request.Request(
                 "http://httpbin.org/ip",
-                headers={"User-Agent": "resource_pool-probe/1.0"},
+                headers={"User-Agent": "nurture_pool-probe/1.0"},
             )
             resp = opener.open(req, timeout=timeout)
             resp.read()

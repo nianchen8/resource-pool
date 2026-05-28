@@ -3,7 +3,7 @@ import threading
 import time
 import pytest
 
-from resource_pool import (
+from nurture_pool import (
     UserAgentPool, DNSResolverPool,
     UAStrategy, SelectStrategy, PoolOrchestrator,
 )

@@ -4,8 +4,8 @@ import threading
 import logging
 from typing import Any, Iterator, Mapping
 
-from resource_pool.base import DummyLock, ResourcePool
-from resource_pool.exceptions import PoolExhaustedError
+from nurture_pool.base import DummyLock, ResourcePool
+from nurture_pool.exceptions import PoolExhaustedError
 
 logger = logging.getLogger(__name__)
 
@@ -87,7 +87,7 @@ class PoolOrchestrator:
 
     使用示例::
 
-        from resource_pool import PoolOrchestrator, UserAgentPool, DNSResolverPool
+        from nurture_pool import PoolOrchestrator, UserAgentPool, DNSResolverPool
 
         ua = UserAgentPool()
         dns = DNSResolverPool()

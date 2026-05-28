@@ -2,24 +2,24 @@
 
 短路径（日常使用）::
 
-    import resource_pool
+    import nurture_pool
 
-    ua = resource_pool.UA()
+    ua = nurture_pool.UA()
     ua.pick()                        # 轮换 User-Agent
     ua.headers()                      # 完整反爬请求头
 
-    proxy = resource_pool.Proxy("1.2.3.4:8080")
+    proxy = nurture_pool.Proxy("1.2.3.4:8080")
     proxy.pick()                      # 轮换代理
 
-    dns = resource_pool.DNS()
+    dns = nurture_pool.DNS()
     dns.resolve("www.example.com")    # 轮换 DNS 解析
 
-    c = resource_pool.combo(ua=ua, dns=dns, proxy=proxy)
+    c = nurture_pool.combo(ua=ua, dns=dns, proxy=proxy)
     # c.ua / c.dns / c.proxy
 
 长路径（深度定制）::
 
-    from resource_pool import UserAgentPool, DNSResolverPool, ProxyPool, PoolOrchestrator
+    from nurture_pool import UserAgentPool, DNSResolverPool, ProxyPool, PoolOrchestrator
 
     ua_pool = UserAgentPool(strategy=UAStrategy.WEIGHTED)
     dns_pool = DNSResolverPool(strategy=SelectStrategy.LATENCY_WEIGHTED)
@@ -36,12 +36,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from resource_pool.exceptions import PoolExhaustedError, ResourceUnhealthyError
+from nurture_pool.exceptions import PoolExhaustedError, ResourceUnhealthyError
 
 # ── IDE / 类型检查器可见的静态导入（运行时仍走惰性加载）─────────────
 if TYPE_CHECKING:
-    from resource_pool.base import ResourcePool, StrategyProtocol
-    from resource_pool.orchestrator import PoolOrchestrator, PoolCombo
+    from nurture_pool.base import ResourcePool, StrategyProtocol
+    from nurture_pool.orchestrator import PoolOrchestrator, PoolCombo
     from user_agent_pool.pool import UserAgentPool, UAStrategy, UAReserve
     from user_agent_pool.agents import VALID_CATEGORIES, AVAILABLE_PROFILES, get_available_profiles
     from user_agent_pool.exceptions import PoolExhaustedException as UAPoolExhaustedException, InvalidAgentException
@@ -72,37 +72,37 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "ResourceUnhealthyException": ("dns_resolver_pool.exceptions", "ResourceUnhealthyException"),
     # DNSUnhealthyException 是 ResourceUnhealthyException 的别名，指向同一个底层类
     "DNSUnhealthyException":      ("dns_resolver_pool.exceptions", "ResourceUnhealthyException"),
-    "PoolExhaustedError":         ("resource_pool.exceptions", "PoolExhaustedError"),
-    "ResourceUnhealthyError":     ("resource_pool.exceptions", "ResourceUnhealthyError"),
-    "ResourcePool":               ("resource_pool.base", "ResourcePool"),
-    "StrategyProtocol":           ("resource_pool.base", "StrategyProtocol"),
-    "PoolOrchestrator":           ("resource_pool.orchestrator", "PoolOrchestrator"),
-    "PoolCombo":                  ("resource_pool.orchestrator", "PoolCombo"),
+    "PoolExhaustedError":         ("nurture_pool.exceptions", "PoolExhaustedError"),
+    "ResourceUnhealthyError":     ("nurture_pool.exceptions", "ResourceUnhealthyError"),
+    "ResourcePool":               ("nurture_pool.base", "ResourcePool"),
+    "StrategyProtocol":           ("nurture_pool.base", "StrategyProtocol"),
+    "PoolOrchestrator":           ("nurture_pool.orchestrator", "PoolOrchestrator"),
+    "PoolCombo":                  ("nurture_pool.orchestrator", "PoolCombo"),
     "ProxyPool":                  ("proxy_pool", "ProxyPool"),
     "ProxyStrategy":              ("proxy_pool", "ProxyStrategy"),
     "ProxyPoolExhaustedException":("proxy_pool.exceptions", "PoolExhaustedException"),
     "ProxyUnhealthyException":    ("proxy_pool.exceptions", "ProxyUnhealthyException"),
     # 短别名（日常使用）
-    "UA":                         ("resource_pool._shortcuts", "UA"),
-    "Proxy":                      ("resource_pool._shortcuts", "Proxy"),
-    "DNS":                        ("resource_pool._shortcuts", "DNS"),
-    "combo":                      ("resource_pool._shortcuts", "combo"),
+    "UA":                         ("nurture_pool._shortcuts", "UA"),
+    "Proxy":                      ("nurture_pool._shortcuts", "Proxy"),
+    "DNS":                        ("nurture_pool._shortcuts", "DNS"),
+    "combo":                      ("nurture_pool._shortcuts", "combo"),
     # 养成系 API
-    "feed_ua":                    ("resource_pool._feeding", "feed_ua"),
-    "feed_proxy":                 ("resource_pool._feeding", "feed_proxy"),
-    "feed_dns":                   ("resource_pool._feeding", "feed_dns"),
-    "import_ua":                  ("resource_pool._feeding", "import_ua"),
-    "import_proxy":               ("resource_pool._feeding", "import_proxy"),
-    "import_dns":                 ("resource_pool._feeding", "import_dns"),
-    "export_fed":                 ("resource_pool._feeding", "export_fed"),
-    "status":                     ("resource_pool._feeding", "status"),
-    "list_fed":                   ("resource_pool._feeding", "list_fed"),
-    "get_stats":                  ("resource_pool._feeding", "get_stats"),
-    "remove_fed":                 ("resource_pool._feeding", "remove_fed"),
-    "reset":                      ("resource_pool._feeding", "reset"),
-    "sync_seeds":                 ("resource_pool._feeding", "sync_seeds"),
-    "probe_proxy":                ("resource_pool._feeding", "probe_proxy"),
-    "validate_fed_proxies":       ("resource_pool._feeding", "validate_fed_proxies"),
+    "feed_ua":                    ("nurture_pool._feeding", "feed_ua"),
+    "feed_proxy":                 ("nurture_pool._feeding", "feed_proxy"),
+    "feed_dns":                   ("nurture_pool._feeding", "feed_dns"),
+    "import_ua":                  ("nurture_pool._feeding", "import_ua"),
+    "import_proxy":               ("nurture_pool._feeding", "import_proxy"),
+    "import_dns":                 ("nurture_pool._feeding", "import_dns"),
+    "export_fed":                 ("nurture_pool._feeding", "export_fed"),
+    "status":                     ("nurture_pool._feeding", "status"),
+    "list_fed":                   ("nurture_pool._feeding", "list_fed"),
+    "get_stats":                  ("nurture_pool._feeding", "get_stats"),
+    "remove_fed":                 ("nurture_pool._feeding", "remove_fed"),
+    "reset":                      ("nurture_pool._feeding", "reset"),
+    "sync_seeds":                 ("nurture_pool._feeding", "sync_seeds"),
+    "probe_proxy":                ("nurture_pool._feeding", "probe_proxy"),
+    "validate_fed_proxies":       ("nurture_pool._feeding", "validate_fed_proxies"),
 }
 
 

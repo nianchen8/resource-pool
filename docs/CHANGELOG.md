@@ -9,14 +9,14 @@
 - 🔧 **`test_consecutive_fail_isolation` 修复**：第一次 resolve 失败后系统 DNS 兜底成功 → 结果被缓存 → 第二次 resolve 命中缓存 → 坏 DNS 未被第二次尝试 → `consecutive_fails` 仍为 1 → 未触发隔离 → 添加 `fallback_to_system=False` 确保每次都走池内失败计数
 - 🔧 **`ServerState.last_health` 假复活修复**（同步+异步）：`last_health` 初始化为 `0.0` → `_try_revive` 中 `now - 0.0 > revive_after` 恒为真 → 被 `remove_server` / `mark_failed` 禁用的服务器会立即复活。已修复为 `last_health = time.time()`
 - 🔒 **`auto_maintain` 竞态窗口缩小**：`load_from_url` 调用前重新获取锁读取最新 `alive`，避免锁释放后另一线程添加/移除代理导致 `alive` 判断偏旧
-- 🚀 **`resource_pool.import_proxy()` 新增 `auto_validate` 参数**：默认为 `True`，导入时自动探测代理连通性
+- 🚀 **`nurture_pool.import_proxy()` 新增 `auto_validate` 参数**：默认为 `True`，导入时自动探测代理连通性
 
 ### 🧹 冗余清理
 - 🧹 **`user_agent_pool/pool.py`** 移除 `_load_unified_seeds()` 内冗余的 `import os as _os`（`os` 已在模块级导入），改用模块级 `os`
 - 🧹 **`dns_resolver_pool/servers.py`** `_DOMESTIC`/`_OVERSEAS` 上方增加同步注释，提醒与 `dns_servers.json` 保持一致性
 
 ### 📝 发布就绪
-- 📝 **README** 安装命令更新为 `pip install resource-pool`（PyPI 发布后可用）
+- 📝 **README** 安装命令更新为 `pip install nurture-pool`（PyPI 发布后可用）
 - 📝 **LICENSE** 添加 MIT 许可证文件
 
 ## v1.2.2 (2026-05-28)
@@ -27,13 +27,13 @@
 - 🐛 **`DNSResolverPool._load_defaults` TypeError 修复**：本地开发时 `__init__` 向 `_load_defaults()` 多传了 `data_dir` / `load_builtin` / `load_fed` 三个参数（方法签名仅接受 `regions`），导致 `DNSResolverPool()` 实例化立即崩溃、CI 4 个 Python 版本矩阵全部测试失败。已恢复为 `_load_defaults(regions)`，`_data_dir` / `_load_builtin` / `_load_fed` 由方法内部通过 `self` 访问（与异步版一致）
 
 ### 🚀 新功能
-- 🚀 **`resource_pool.probe_proxy()` 代理探测**：单代理连通性检测（socket 连接 + HTTP 代理验证），支持 http/https/socks5
-- 🚀 **`resource_pool.validate_fed_proxies()` 养成代理批量验证**：三次失败测试 + 失败列表自动导出到 `proxy_failed_export.json`
-- 两个新函数通过 `resource_pool.__init__` 惰性导入对外暴露
+- 🚀 **`nurture_pool.probe_proxy()` 代理探测**：单代理连通性检测（socket 连接 + HTTP 代理验证），支持 http/https/socks5
+- 🚀 **`nurture_pool.validate_fed_proxies()` 养成代理批量验证**：三次失败测试 + 失败列表自动导出到 `proxy_failed_export.json`
+- 两个新函数通过 `nurture_pool.__init__` 惰性导入对外暴露
 
 ### 🔧 修复
-- 🔧 **CI lint 修复**：8 个 F401 未使用导入（`user_agent_pool` sync/async + `resource_pool._feeding`）
-- 🔧 **`.gitignore` 规则修复**：`data/` → `/data/`，仅忽略根目录 `data/`，避免误伤 `resource_pool/data/` 关键数据文件
+- 🔧 **CI lint 修复**：8 个 F401 未使用导入（`user_agent_pool` sync/async + `nurture_pool._feeding`）
+- 🔧 **`.gitignore` 规则修复**：`data/` → `/data/`，仅忽略根目录 `data/`，避免误伤 `nurture_pool/data/` 关键数据文件
 - 🔧 **`orchestrator_async.py` 尾部多余空行清理**
 
 ### 🧹 冗余与对齐
@@ -56,8 +56,8 @@
 - 🐛 **AsyncProxyPool `ProxyStrategy` 改为 Enum**：从普通类改为 `class ProxyStrategy(str, Enum)`，与同步版 Enum 语义一致，同时保持字符串兼容性
 
 ### 🧹 冗余清理
-- 🔧 删除根部冗余 `data/` 目录（`dns_servers.json` / `proxy_servers.json` / `header_profiles.json`），代码引用统一指向 `resource_pool/data/`
-- 🔧 删除无引用文件 `resource_pool/data/header_profiles.json`（374 行无人引用）
+- 🔧 删除根部冗余 `data/` 目录（`dns_servers.json` / `proxy_servers.json` / `header_profiles.json`），代码引用统一指向 `nurture_pool/data/`
+- 🔧 删除无引用文件 `nurture_pool/data/header_profiles.json`（374 行无人引用）
 - 🔧 移动杂散文件 `1.py` → `examples/quickstart.py`
 - 🔧 修复测试文件名拼写错误 `test_stress_benchmark.py` → `test_stress_benchmark.py`
 
@@ -66,9 +66,9 @@
 
 ## v1.2.0 (2026-05-27)
 
-- 🚀 **养成系持久化 API**（`resource_pool._feeding`）：让池子"越用越肥"——`feed_ua()` / `feed_dns()` / `feed_proxy()` 一道命令将新资源永久写入安装目录，`import_ua()` / `import_dns()` / `import_proxy()` 批量导入，`export_fed()` 备份养成数据，`reset()` 一键清除，`status()` 查看喂养统计。养成数据与原数据同文件共处（`source="fed"` + `batch` 批次号），支持去重、权重更新、自动分类。全部 API 通过 `resource_pool.feed_ua()` 等惰性导入对外暴露
-- 🚀 **数据格式标准化**：新增 `resource_pool/data/schema/` 目录，含 `ua_format.json` / `dns_format.json` / `proxy_format.json` 三种标准格式定义，`import_*()` API 均按标准格式解析
-- 🚀 **数据模板与 Profile**：`resource_pool/data/` 纳入 `header_profiles.json`（Profile 组）和 `ua_templates.json`（UA 生成模板），便于深度定制
+- 🚀 **养成系持久化 API**（`nurture_pool._feeding`）：让池子"越用越肥"——`feed_ua()` / `feed_dns()` / `feed_proxy()` 一道命令将新资源永久写入安装目录，`import_ua()` / `import_dns()` / `import_proxy()` 批量导入，`export_fed()` 备份养成数据，`reset()` 一键清除，`status()` 查看喂养统计。养成数据与原数据同文件共处（`source="fed"` + `batch` 批次号），支持去重、权重更新、自动分类。全部 API 通过 `nurture_pool.feed_ua()` 等惰性导入对外暴露
+- 🚀 **数据格式标准化**：新增 `nurture_pool/data/schema/` 目录，含 `ua_format.json` / `dns_format.json` / `proxy_format.json` 三种标准格式定义，`import_*()` API 均按标准格式解析
+- 🚀 **数据模板与 Profile**：`nurture_pool/data/` 纳入 `header_profiles.json`（Profile 组）和 `ua_templates.json`（UA 生成模板），便于深度定制
 - 📝 **四层文档重构**：`docs/guides/` 拆分为开箱即用 / 初级定制 / 深度定制 / 底层源码 四层递进体系，每层含 5 种写法（单线程/多线程/多进程/异步/Scrapy），删除旧版 cookbook / deep-dive / quickstart
 - 🐛 **`_parse_json` 补充 `host` 字段解析**：荷花代理等供应商 JSON 使用 `host`/`port` 字段而非 `IP`/`ip`，原解析链路未覆盖导致 `load_from_url` 失败
 - 🛡️ **`_probe_proxy` 多目标三探验活**（同步+异步）：原逻辑仅随机选 1 个 URL 做单次探测，目标偶发抽风即冤杀代理。改为最多探测 3 个不同 URL，任一通过即判存活，误杀率从 70% 降到 0%
@@ -115,7 +115,7 @@ Bug 修复版本 —— 全量代码审查成果。
   - IP 直通：`AI_NUMERICHOST` 标记的调用直接走原始 `getaddrinfo`，不触发池解析
   - 重复 patch 是 no-op，防止覆盖原始引用
 - 🚀 **异步 aiohttp DNS 集成**：`AsyncDNSResolverPool.create_resolver()` 返回 aiohttp `TCPConnector` 兼容的异步 resolver 函数，直接传入 `aiohttp.TCPConnector(resolver=pool.create_resolver())` 即可让 aiohttp 的 DNS 走池
-- 🚀 **短别名 DNS 增强**：`resource_pool.DNS()` 新增 `patch_socket()` / `unpatch_socket()` 代理方法 + 上下文管理器，与完整版 API 一致
+- 🚀 **短别名 DNS 增强**：`nurture_pool.DNS()` 新增 `patch_socket()` / `unpatch_socket()` 代理方法 + 上下文管理器，与完整版 API 一致
 - 🔧 版本号 1.0.9 → 1.1.0
 
 ## v1.0.9 (2026-05-27)
@@ -161,11 +161,11 @@ Bug 修复版本 —— 全量代码审查成果。
 
 ## v1.0.5 (2026-05-26)
 
-- 🚀 **短别名封装层**：`import resource_pool` 一行搞定日常使用
-  - `resource_pool.UA()` — `pick()`/`headers()`/`reserve()`，包装 UserAgentPool
-  - `resource_pool.Proxy("ip:port")` — 直传地址格式，`pick()`/`pick_dict()`
-  - `resource_pool.DNS()` — 自动 health_check，`resolve()`/`lookup()`
-  - `resource_pool.combo(ua=ua, proxy=proxy, dns=dns)` — 一行拿全套
+- 🚀 **短别名封装层**：`import nurture_pool` 一行搞定日常使用
+  - `nurture_pool.UA()` — `pick()`/`headers()`/`reserve()`，包装 UserAgentPool
+  - `nurture_pool.Proxy("ip:port")` — 直传地址格式，`pick()`/`pick_dict()`
+  - `nurture_pool.DNS()` — 自动 health_check，`resolve()`/`lookup()`
+  - `nurture_pool.combo(ua=ua, proxy=proxy, dns=dns)` — 一行拿全套
 - 🔧 短别名纯包装设计：惰性加载零开销、底层 API 完全不变
 - 📝 文档同步：quickstart 改用短 API、cookbook 标注双路径、deep-dive 架构图更新
 - 🧪 274 测试全部通过，零破坏

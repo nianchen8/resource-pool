@@ -23,9 +23,9 @@ from proxy_pool.servers import (
     HEALTH_CHECK_URLS,
     _load_from_data_dir,
 )
-from resource_pool.base import StrategyProtocol
-from resource_pool.base_async import AsyncDummyLock, AsyncResourcePool
-from resource_pool.orchestrator_async import AsyncPoolOrchestrator
+from nurture_pool.base import StrategyProtocol
+from nurture_pool.base_async import AsyncDummyLock, AsyncResourcePool
+from nurture_pool.orchestrator_async import AsyncPoolOrchestrator
 
 logger = logging.getLogger(__name__)
 

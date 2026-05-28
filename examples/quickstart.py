@@ -1,10 +1,10 @@
-"""resource_pool 开箱即用 —— 最简集成示例
+"""nurture_pool 开箱即用 —— 最简集成示例
 
 高度集成的爬虫资源三件套：UA 请求头 / DNS 池加速 / 代理（可选）。
 单线程开箱即用，两行拿到带完整请求头 + DNS 池加速的 Response。
 """
 
-import resource_pool
+import nurture_pool
 import requests
 from user_agent_pool import UserAgentPool
 
@@ -38,7 +38,7 @@ print()
 # ── ④ DNS 池加速 —— with 块内 socket 层自动 patch ──
 #     requests / urllib3 的所有域名解析走池内 14 台 DNS 服务器轮询，
 #     比系统 DNS 更快更稳，反爬场景下还能绕开运营商 DNS 劫持
-dns = resource_pool.DNS()              # 惰性包装器，首次使用时自动初始化
+dns = nurture_pool.DNS()              # 惰性包装器，首次使用时自动初始化
 
 with dns:                              # 进入 → patch socket.getaddrinfo
     resp = requests.get("https://www.baidu.com",
@@ -51,8 +51,8 @@ print(f"④ Response: {resp.status_code}")
 # 支持格式：ip:port / ip:port:user:pass / http://ip:port 等
 #
 # 方式一：直接填地址
-# proxy = resource_pool.Proxy("1.2.3.4:8080")
-# proxy = resource_pool.Proxy("1.2.3.4:8080:user:pass")        # 有鉴权
+# proxy = nurture_pool.Proxy("1.2.3.4:8080")
+# proxy = nurture_pool.Proxy("1.2.3.4:8080:user:pass")        # 有鉴权
 #
 # 方式二：从供应商接口拉取
 # from proxy_pool import ProxyPool
@@ -61,5 +61,5 @@ print(f"④ Response: {resp.status_code}")
 #
 # 然后用编排器一把抓：
 # with dns:
-#     c = resource_pool.combo(ua=ua_pool, dns=dns, proxy=proxy)
+#     c = nurture_pool.combo(ua=ua_pool, dns=dns, proxy=proxy)
 #     resp = requests.get(url, headers=c.ua, proxies=c.proxy, timeout=10)

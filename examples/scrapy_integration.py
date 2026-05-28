@@ -60,10 +60,10 @@ class ResourcePoolMiddleware:
     def _init_pools(self) -> None:
         """从 Scrapy settings 初始化资源池"""
         try:
-            from resource_pool import (
+            from nurture_pool import (
                 UserAgentPool, DNSResolverPool, ProxyPool,
             )
-            from resource_pool import UAStrategy
+            from nurture_pool import UAStrategy
             from proxy_pool import ProxyStrategy
             from dns_resolver_pool import SelectStrategy
         except ImportError:
@@ -169,7 +169,7 @@ EXAMPLE_SPIDER = '''
 import scrapy
 
 class MySpider(scrapy.Spider):
-    name = "resource_pool_demo"
+    name = "nurture_pool_demo"
     start_urls = ["https://httpbin.org/ip"]
 
     # settings.py 中配置：

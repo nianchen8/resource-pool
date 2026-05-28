@@ -13,11 +13,11 @@ Python ≥ 3.10。核心依赖 `dnspython ≥ 2.6`，可选 `aiohttp`、`fake_us
 ## 5 秒上手
 
 ```python
-import resource_pool, requests
+import nurture_pool, requests
 from user_agent_pool import UserAgentPool
 
 ua = UserAgentPool()                    # 自动加载 854 种子 → 31,496 独立 UA
-dns = resource_pool.DNS()               # 14 台 DNS 轮换，惰性初始化
+dns = nurture_pool.DNS()               # 14 台 DNS 轮换，惰性初始化
 
 with dns:                               # patch socket，requests 的 DNS 走池
     resp = requests.get("https://www.baidu.com",
@@ -25,23 +25,23 @@ with dns:                               # patch socket，requests 的 DNS 走池
 # → 200
 ```
 
-> 每次请求自动换一套完整的浏览器请求头（14 字段）。有代理加一行 `resource_pool.Proxy("ip:port")`。
+> 每次请求自动换一套完整的浏览器请求头（14 字段）。有代理加一行 `nurture_pool.Proxy("ip:port")`。
 
 养成——让池子越用越肥：
 
 ```python
 # 喂一条新 UA，下次启动自动加载
-resource_pool.feed_ua("Mozilla/5.0 (Windows NT 10.0; Win64; x64) ... Chrome/148.0.0.0 ...")
+nurture_pool.feed_ua("Mozilla/5.0 (Windows NT 10.0; Win64; x64) ... Chrome/148.0.0.0 ...")
 
 # 喂一个代理（支持 ip:port:user:pass）
-resource_pool.feed_proxy("1.2.3.4:8080:user:pass", weight=8)
+nurture_pool.feed_proxy("1.2.3.4:8080:user:pass", weight=8)
 
 # 查看喂养统计
-print(resource_pool.status())
+print(nurture_pool.status())
 # → {"ua": {"builtin": 854, "fed": 2, "total": 856}, ...}
 ```
 
-> 养成数据写入安装目录。pip upgrade 前务必 `resource_pool.export_fed("proxy", "./backup/")` 备份。
+> 养成数据写入安装目录。pip upgrade 前务必 `nurture_pool.export_fed("proxy", "./backup/")` 备份。
 
 ## 按你的深度开始
 
@@ -80,7 +80,7 @@ print(resource_pool.status())
 ## 项目结构
 
 ```
-resource_pool/        ← 统一入口 + 框架层 (ABC / 编排器 / 锁 / 养成API)
+nurture_pool/        ← 统一入口 + 框架层 (ABC / 编排器 / 锁 / 养成API)
 │   ├── _feeding.py   ← 养成系持久化 (feed/import/export/reset)
 │   ├── data/         ← 养成数据 + schema + 模板
 user_agent_pool/      ← UA 池 (派系引擎 + 零件重组 + 细粒度筛选)
@@ -109,9 +109,9 @@ docs/
 ### v1.2.2 (2026-05-28)
 
 - 🐛 **致命修复**：`DNSResolverPool._load_defaults` 参数错误导致 CI 全红，4 个 Python 版本测试全部崩溃
-- 🚀 **`resource_pool.probe_proxy()` / `validate_fed_proxies()`**：代理连通性探测 + 养成代理批量三次验证
+- 🚀 **`nurture_pool.probe_proxy()` / `validate_fed_proxies()`**：代理连通性探测 + 养成代理批量三次验证
 - 🔧 **CI lint 全绿**：8 个 F401 修复，ruff check 零错误
-- 🔧 **`.gitignore`**: `data/` → `/data/` 精确化，避免误伤 `resource_pool/data/`
+- 🔧 **`.gitignore`**: `data/` → `/data/` 精确化，避免误伤 `nurture_pool/data/`
 - 🧹 **冗余消除**：移除 pool.py 重复 import、AsyncProxyState 补齐 score 属性、ProxyPool 支持字符串策略、编排器异常分级
 - 🧪 286 测试全部通过
 
@@ -144,7 +144,7 @@ docs/
 - 🚀 **DNS 上下文管理器**：`with dns:` 进入自动 patch，退出自动 unpatch，一行代码搞定
 - 🚀 **异步 aiohttp DNS 集成**：`AsyncDNSResolverPool.create_resolver()` 返回 aiohttp `TCPConnector` 兼容的异步 resolver，
   异步请求同样走 DNS 池
-- 🚀 **短别名 DNS 增强**：`resource_pool.DNS()` 支持 `patch_socket()` / `unpatch_socket()` + 上下文管理器
+- 🚀 **短别名 DNS 增强**：`nurture_pool.DNS()` 支持 `patch_socket()` / `unpatch_socket()` + 上下文管理器
 
 ### v1.0.9 (2026-05-27)
 
@@ -173,7 +173,7 @@ docs/
 
 ### v1.0.5 (2026-05-26)
 
-- 🚀 **短别名封装层**：`import resource_pool` 一行搞定日常使用
+- 🚀 **短别名封装层**：`import nurture_pool` 一行搞定日常使用
 
 ### v1.0.4 (2026-05-26)
 

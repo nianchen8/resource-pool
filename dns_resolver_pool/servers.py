@@ -1,6 +1,6 @@
 """内置 DNS 服务器注册表 —— 可作为蓝本自行扩展
 
-优先从 resource_pool/data/dns_servers.json 加载，
+优先从 nurture_pool/data/dns_servers.json 加载，
 找不到或解析失败则回退到下方硬编码数据。
 """
 
@@ -21,12 +21,12 @@ class ServerEntry(TypedDict, total=False):
 
 
 def _load_from_data_dir() -> list[ServerEntry] | None:
-    """尝试从 resource_pool/data/dns_servers.json 加载
+    """尝试从 nurture_pool/data/dns_servers.json 加载
 
     返回 None 表示数据文件不可用，调用方应回退到硬编码。
     """
     try:
-        data_dir = os.path.join(os.path.dirname(__file__), "..", "resource_pool", "data")
+        data_dir = os.path.join(os.path.dirname(__file__), "..", "nurture_pool", "data")
         path = os.path.join(data_dir, "dns_servers.json")
         if not os.path.isfile(path):
             return None
@@ -52,8 +52,8 @@ def _load_from_data_dir() -> list[ServerEntry] | None:
         return None
 
 
-# ── 硬编码回退（仅当 resource_pool/data/dns_servers.json 不可用时生效）──
-# ⚠️ 同步提醒：修改下方数据时，必须同步更新 resource_pool/data/dns_servers.json，
+# ── 硬编码回退（仅当 nurture_pool/data/dns_servers.json 不可用时生效）──
+# ⚠️ 同步提醒：修改下方数据时，必须同步更新 nurture_pool/data/dns_servers.json，
 #    否则正常路径走 JSON 不受影响，仅极端场景（JSON 损坏）才会出现数据漂移。
 _DOMESTIC: list[ServerEntry] = [
     {"ip": "114.114.114.114", "name": "114DNS", "region": "domestic", "enabled": True, "weight": 10},

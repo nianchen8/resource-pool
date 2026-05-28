@@ -1,6 +1,6 @@
 """User-Agent 池异常"""
 
-from resource_pool.exceptions import PoolExhaustedError, ResourceUnhealthyError
+from nurture_pool.exceptions import PoolExhaustedError, ResourceUnhealthyError
 
 
 class PoolExhaustedException(PoolExhaustedError):

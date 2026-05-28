@@ -1,5 +1,5 @@
 """单线程脚本 —— 三件套实测"""
-import resource_pool
+import nurture_pool
 import requests
 from user_agent_pool import UserAgentPool
 
@@ -12,7 +12,7 @@ ua_pool = UserAgentPool()
 print(f"UA  池: {ua_pool}")
 # → UserAgentPool(desktop=161, mobile=676, tablet=17)
 
-dns = resource_pool.DNS()
+dns = nurture_pool.DNS()
 print(f"DNS 池: {dns}")
 # → DNS(14 servers), 健康检查完成
 
@@ -32,7 +32,7 @@ print(f"   响应长度: {len(resp.text)} 字节")
 # ── ③ 编排器一把抓（UA + DNS + Proxy 一键组合）──
 print("\n③ 编排器 combo（无代理模式，Proxy 省略）...")
 with dns:
-    c = resource_pool.combo(ua=ua_pool, dns=dns)
+    c = nurture_pool.combo(ua=ua_pool, dns=dns)
     resp = requests.get("https://www.baidu.com", headers=c.ua, timeout=10)
 print(f"   状态码: {resp.status_code}")  # → 200
 print(f"   combo.ua 字段数: {len(c.ua)}")

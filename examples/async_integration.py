@@ -13,7 +13,7 @@ import logging
 from user_agent_pool.pool_async import AsyncUserAgentPool
 from dns_resolver_pool.pool_async import AsyncDNSResolverPool
 from proxy_pool.pool_async import AsyncProxyPool
-from resource_pool.orchestrator_async import AsyncPoolOrchestrator
+from nurture_pool.orchestrator_async import AsyncPoolOrchestrator
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(name)s] %(levelname)s: %(message)s")
 logger = logging.getLogger("async_demo")

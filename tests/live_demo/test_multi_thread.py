@@ -1,5 +1,5 @@
 """多线程脚本 —— 10并发 + with dns 包住线程池"""
-import resource_pool
+import nurture_pool
 import requests
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from user_agent_pool import UserAgentPool
@@ -12,14 +12,14 @@ print("=" * 55)
 ua_pool = UserAgentPool()
 print(f"UA  池: {ua_pool}")
 
-dns = resource_pool.DNS()
+dns = nurture_pool.DNS()
 print(f"DNS 池: {dns}")
 
 # ── with dns 包住整个线程池，所有线程的 DNS 解析走池内轮换 ──
 results = []
 with dns:
     def fetch(i):
-        c = resource_pool.combo(ua=ua_pool, dns=dns)
+        c = nurture_pool.combo(ua=ua_pool, dns=dns)
         resp = requests.get("https://www.baidu.com",
                             headers=c.ua, timeout=10)
         return i, resp.status_code, len(resp.text)

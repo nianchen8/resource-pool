@@ -458,7 +458,7 @@ graph TB
 ### 6.1 定时备份养成数据
 
 ```python
-import resource_pool, shutil, os
+import nurture_pool, shutil, os
 from datetime import datetime
 
 # ── 导出养成数据到独立备份目录 ──
@@ -466,28 +466,28 @@ backup_dir = f"./backup/{datetime.now().strftime('%Y%m%d_%H%M%S')}"
 os.makedirs(backup_dir, exist_ok=True)
 
 for pool_type in ("ua", "proxy", "dns"):
-    path = resource_pool.export_fed(pool_type, backup_dir)
+    path = nurture_pool.export_fed(pool_type, backup_dir)
     if path:
         print(f"✓ {pool_type}: {path}")
     else:
         print(f"- {pool_type}: 无养成数据")
 
 # ── 查看统计 ──
-print(resource_pool.status())
+print(nurture_pool.status())
 ```
 
 ### 6.2 验证养成代理质量
 
 ```python
 # 验证所有养成代理的连通性（三次测试，不通过自动导出失败列表）
-import resource_pool
+import nurture_pool
 
 # 单代理探测
-ok, detail = resource_pool.probe_proxy("1.2.3.4:8080", timeout=5)
+ok, detail = nurture_pool.probe_proxy("1.2.3.4:8080", timeout=5)
 print(f"探测结果: {'可用' if ok else '不可用'} — {detail}")
 
 # 批量验证养成代理
-result = resource_pool.validate_fed_proxies(
+result = nurture_pool.validate_fed_proxies(
     retries=3, timeout=5, export_failures=True,
 )
 print(f"验证完成: 通过 {result['passed']}, 失败 {result['failed']}, 导出到 {result.get('export_path', 'N/A')}")
@@ -510,8 +510,8 @@ pool.health_check()
 |------|------|
 | pip upgrade | 养成数据写入安装目录，`pip install --upgrade` 会覆盖——**升级前务必 `export_fed()` 备份** |
 | 多进程 | 每个子进程独立调用 `feed_*()`，数据文件写入是原子的（先写 `.tmp` 再 rename） |
-| 跨项目共享 | 使用 `resource_pool.export_fed("proxy", "/shared/")` 导出 → 另一台机器 `import_proxy()` 导入 |
-| 清除养成 | `resource_pool.reset("proxy")` 仅清除 fed 条目，内置数据不受影响 |
+| 跨项目共享 | 使用 `nurture_pool.export_fed("proxy", "/shared/")` 导出 → 另一台机器 `import_proxy()` 导入 |
+| 清除养成 | `nurture_pool.reset("proxy")` 仅清除 fed 条目，内置数据不受影响 |
 
 ---
 

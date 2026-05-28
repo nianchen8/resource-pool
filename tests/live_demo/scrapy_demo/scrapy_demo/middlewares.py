@@ -1,12 +1,12 @@
-"""resource_pool 集成中间件 —— UA + DNS + Proxy 三件套"""
-import resource_pool
+"""nurture_pool 集成中间件 —— UA + DNS + Proxy 三件套"""
+import nurture_pool
 from user_agent_pool import UserAgentPool
 
 
 class ResourcePoolMiddleware:
     def __init__(self):
         self.ua = UserAgentPool()
-        self.dns = resource_pool.DNS()
+        self.dns = nurture_pool.DNS()
 
     @classmethod
     def from_crawler(cls, crawler):

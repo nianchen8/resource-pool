@@ -10,7 +10,7 @@ from unittest.mock import patch, MagicMock
 
 import pytest
 
-from resource_pool import (
+from nurture_pool import (
     UserAgentPool, DNSResolverPool, ProxyPool,
     SelectStrategy, PoolOrchestrator,
     PoolExhaustedError,

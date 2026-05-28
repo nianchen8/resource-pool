@@ -11,7 +11,7 @@
 
     python examples/simple_requests_demo.py
 
-要求：requests >= 2.28, resource-pool >= 0.5.0
+要求：requests >= 2.28, nurture-pool >= 0.5.0
 """
 
 from __future__ import annotations

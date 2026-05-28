@@ -229,7 +229,7 @@ class TestBenchmarkReport:
     def test_summary_report(self):
         """汇总所有三级（100/500/1000）的 UA + Proxy + DNS 基准数据"""
         print("\n" + "=" * 70)
-        print("  resource-pool v1.0.3 基准压力测试报告")
+        print("  nurture-pool v1.0.3 基准压力测试报告")
         print("=" * 70)
 
         results: list[dict] = []

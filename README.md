@@ -1,11 +1,11 @@
-# Resource Pool ![version](https://img.shields.io/badge/version-1.2.3-blue)
+# Nurture Pool ![version](https://img.shields.io/badge/version-1.2.3-blue)
 
-> 爬虫资源池——UA 请求头、DNS、代理，三件套一把抓。
+> 养成系资源池——UA 请求头、DNS、代理，越用越肥的三件套。
 
 ## 安装
 
 ```bash
-pip install resource-pool
+pip install nurture-pool
 ```
 
 Python ≥ 3.10。核心依赖 `dnspython ≥ 2.6`，可选 `aiohttp`、`fake_useragent`。

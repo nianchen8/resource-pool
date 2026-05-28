@@ -137,7 +137,7 @@ async def demo_reserve_pattern():
 
 async def main():
     print("=" * 60)
-    print("  resource-pool 异步集成示例")
+    print("  nurture-pool 异步集成示例")
     print("=" * 60)
 
     print("\n[1] httpx 集成...")

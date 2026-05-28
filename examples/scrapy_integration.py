@@ -1,6 +1,6 @@
 """Scrapy 集成示例 —— 自定义 Middleware 接入资源池三池
 
-将 resource-pool 的 UA 池、DNS 池、代理池集成到 Scrapy 爬虫中，
+将 nurture-pool 的 UA 池、DNS 池、代理池集成到 Scrapy 爬虫中，
 通过 Downloader Middleware 在每次请求前自动替换资源。
 
 使用方式::
@@ -16,7 +16,7 @@
         'proxy': {'strategy': 'latency_weighted'},
     }
 
-要求：Scrapy >= 2.8, resource-pool >= 0.5.0
+要求：Scrapy >= 2.8, nurture-pool >= 0.5.0
 """
 
 from __future__ import annotations
@@ -67,7 +67,7 @@ class ResourcePoolMiddleware:
             from proxy_pool import ProxyStrategy
             from dns_resolver_pool import SelectStrategy
         except ImportError:
-            logger.warning("resource-pool 未安装，Middleware 将跳过资源替换")
+            logger.warning("nurture-pool 未安装，Middleware 将跳过资源替换")
             return
 
         config = self.crawler.settings.getdict("RESOURCE_POOL_CONFIG", {})

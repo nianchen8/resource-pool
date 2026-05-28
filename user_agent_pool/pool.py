@@ -525,34 +525,32 @@ class UserAgentPool(ResourcePool):
 
         支持两种格式：旧格式(desktop/mobile/tablet 键)和新格式(items 列表)。
         """
-        import os as _os
-
         # ── 三层加载：data_dir → 安装目录 JSON → 内置回退 ──
         data: dict | None = None
         source_label = ""
 
         # 1) data_dir 优先
         if self._data_dir:
-            path = _os.path.join(self._data_dir, "ua_seeds.json")
-            if _os.path.isfile(path):
+            path = os.path.join(self._data_dir, "ua_seeds.json")
+            if os.path.isfile(path):
                 data = self._try_load_json(path)
                 if data is not None:
                     source_label = path
 
         # 2) 安装目录 JSON（resource_pool/data/ua_seeds.json，含 fed）
         if data is None:
-            fed_path = _os.path.join(
-                _os.path.dirname(__file__), "..", "resource_pool", "data", "ua_seeds.json"
+            fed_path = os.path.join(
+                os.path.dirname(__file__), "..", "resource_pool", "data", "ua_seeds.json"
             )
-            if _os.path.isfile(fed_path):
+            if os.path.isfile(fed_path):
                 data = self._try_load_json(fed_path)
                 if data is not None:
                     source_label = fed_path
 
         # 3) 内置回退
         if data is None:
-            path = _os.path.join(_os.path.dirname(__file__), "ua_seeds.json")
-            if _os.path.isfile(path):
+            path = os.path.join(os.path.dirname(__file__), "ua_seeds.json")
+            if os.path.isfile(path):
                 data = self._try_load_json(path)
                 if data is not None and self._load_builtin:
                     source_label = path

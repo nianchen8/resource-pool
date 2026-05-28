@@ -795,14 +795,18 @@ class ProxyPool(ResourcePool):
             alive = len([s for s in self._proxies if s.enabled])
             result["alive"] = alive
 
-        # 2. 低于阈值自动补充
-        if self._min_alive > 0 and alive < self._min_alive and self._auto_refill_url:
-            try:
-                refilled = self.load_from_url(self._auto_refill_url, timeout=timeout)
-                result["refilled"] = refilled
-                result["alive"] = alive + refilled
-            except (OSError, ValueError) as e:
-                logger.warning("自动补充代理失败: %s", e)
+        # 2. 低于阈值自动补充（锁外执行 IO，但缩小竞态窗口）
+        if self._min_alive > 0 and self._auto_refill_url:
+            # 重新检查 alive（另一线程可能在锁释放后添加/移除了代理）
+            with self._lock:
+                alive = len([s for s in self._proxies if s.enabled])
+            if alive < self._min_alive:
+                try:
+                    refilled = self.load_from_url(self._auto_refill_url, timeout=timeout)
+                    result["refilled"] = refilled
+                    result["alive"] = alive + refilled
+                except (OSError, ValueError) as e:
+                    logger.warning("自动补充代理失败: %s", e)
 
         return result
 

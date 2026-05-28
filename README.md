@@ -1,11 +1,11 @@
-# Resource Pool ![version](https://img.shields.io/badge/version-1.2.2-blue)
+# Resource Pool ![version](https://img.shields.io/badge/version-1.2.3-blue)
 
 > 爬虫资源池——UA 请求头、DNS、代理，三件套一把抓。
 
 ## 安装
 
 ```bash
-pip install git+https://github.com/nianchen8/resource-pool.git
+pip install resource-pool
 ```
 
 Python ≥ 3.10。核心依赖 `dnspython ≥ 2.6`，可选 `aiohttp`、`fake_useragent`。
@@ -99,6 +99,12 @@ docs/
 ```
 
 ## 更新日志
+
+### v1.2.3 (2026-05-28)
+
+- 🔧 **DNS 故障隔离测试修复**：`test_invalid_server_raises` / `test_consecutive_fail_isolation` 添加 `fallback_to_system=False`，隔离系统 DNS 干扰
+- 🔧 **`ServerState.last_health` 假复活修复**：初始值从 `0.0` 改为 `time.time()`，防止被禁用服务器立即意外复活（同步+异步）
+- 🧪 286 测试全部通过
 
 ### v1.2.2 (2026-05-28)
 

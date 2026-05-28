@@ -52,7 +52,9 @@ def _load_from_data_dir() -> list[ServerEntry] | None:
         return None
 
 
-# 内部存根：供 _load_defaults 使用，实际数据优先从 JSON 加载
+# ── 硬编码回退（仅当 resource_pool/data/dns_servers.json 不可用时生效）──
+# ⚠️ 同步提醒：修改下方数据时，必须同步更新 resource_pool/data/dns_servers.json，
+#    否则正常路径走 JSON 不受影响，仅极端场景（JSON 损坏）才会出现数据漂移。
 _DOMESTIC: list[ServerEntry] = [
     {"ip": "114.114.114.114", "name": "114DNS", "region": "domestic", "enabled": True, "weight": 10},
     {"ip": "223.5.5.5",       "name": "阿里 DNS", "region": "domestic", "enabled": True, "weight": 10},
@@ -63,7 +65,7 @@ _DOMESTIC: list[ServerEntry] = [
     {"ip": "218.30.118.6",    "name": "DNS派 联通", "region": "domestic", "enabled": True, "weight": 6},
 ]
 
-# ── 海外 DNS ────────────────────────────────────────────────────────
+# ── 海外 DNS（同样需同步 dns_servers.json）──────────────────────────
 _OVERSEAS: list[ServerEntry] = [
     {"ip": "8.8.8.8",        "name": "Google DNS", "region": "overseas", "enabled": True, "weight": 8},
     {"ip": "8.8.4.4",        "name": "Google DNS 备用", "region": "overseas", "enabled": True, "weight": 7},

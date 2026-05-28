@@ -31,7 +31,7 @@ with dns:                               # patch socket，requests 的 DNS 走池
 # → 200
 ```
 
-> 每次请求自动换一套完整的浏览器请求头（14 字段）。有代理加一行 `nurture_pool.Proxy("ip:port")`。
+> 每次请求自动换一套完整的浏览器请求头（14 字段）。有代理加一行 `nurture_pool.Proxy("ip:port")`，支持 `ip:port` 和代理提取链接两种格式。异步版用 `nurture_pool.AsyncProxy(...)` / `AsyncUA()` / `AsyncDNS()` / `async_combo()` 同样的短别名。
 
 养成——让池子越用越肥：
 
@@ -77,7 +77,7 @@ print(nurture_pool.status())
 |------|------|
 | 派系引擎 | Chromium / Firefox / Safari 三维路由，版本号/平台/语言段数自动同步 |
 | 线程安全 | UA 池 ReadWriteLock（读并发 N 倍）、DNS 16 路缓存分片 |
-| 异步对等 | Async* 全系列，API 与同步版一致 |
+| 异步对等 | Async* 全系列，API 与同步版一致；AsyncUA/AsyncProxy/AsyncDNS/async_combo 异步短别名 |
 | 可插拔 | 内置枚举 + StrategyProtocol callable + isinstance 分派注册表 |
 | 故障隔离 | 连续失败隔离 → 定时复活 → 健康检查（三探验活），全自动 |
 | 数据持久化 | 养成 API 写入安装目录 → 下次启动自动加载 → export_fed 跨项目迁移 |
@@ -105,6 +105,11 @@ docs/
 ```
 
 ## 更新日志
+
+### v1.3.4 (2026-05-29)
+
+- 🚀 **异步短别名**：`AsyncUA` / `AsyncProxy` / `AsyncDNS` / `async_combo` 四件套，与同步短别名 API 完全对等，一行 `import nurture_pool` 搞定异步日常使用
+- 🚀 **Proxy 支持代理提取链接**：`nurture_pool.Proxy("https://...")` 和 `nurture_pool.AsyncProxy("https://...")` 支持直接传入代理供应商 API URL（同步+异步双路径），自动识别 9 种格式
 
 ### v1.3.3 (2026-05-29)
 

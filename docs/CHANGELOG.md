@@ -1,5 +1,37 @@
 # 更新日志
 
+## v1.3.1 (2026-05-28)
+
+文档审查与代码清理。
+
+### 📝 文档
+- 📝 **README**：版本徽章 1.2.4 → 1.3.1，补充 v1.3.0 / v1.3.1 更新日志条目
+- 📝 **CHANGELOG**：补充 v1.3.0 模块重命名完整记录
+- 📝 **PRODUCTION**：适用版本号 v1.2.3 → v1.3.1
+
+### 🧹 清理
+- 🧹 **ruff F401 修复**：`rename_module.py` 移除未使用导入 `os` / `sys`
+
+## v1.3.0 (2026-05-28)
+
+**BREAKING CHANGE** — 内部模块名 `resource_pool` 重命名为 `nurture_pool`，对齐 PyPI 包名 `nurture-pool`。
+
+### 🚀 模块重命名
+- 🚀 **目录重命名**：`resource_pool/` → `nurture_pool/`
+- 🚀 **Python import**：所有 `from resource_pool.X` → `from nurture_pool.X`（14 处源码 import）
+- 🚀 **运行时路径**：`dns_resolver_pool/servers.py` 的 `"..", "resource_pool", "data"` → `"..", "nurture_pool", "data"`
+- 🚀 **配置文件**：`pyproject.toml` 中 `packages.find.include` 和 `package-data` 同步更新
+- 🚀 **文档/示例/测试**：全部代码示例中 import/API 调用同步修改
+- 🚀 **显示名**：文档中 `resource-pool` → `nurture-pool`（项目名引用）
+
+### 影响范围
+- 📊 **46 个文件**，**283 处替换**
+- 🧪 **295 测试全部通过**（286 pytest + 6 live_demo + 3 example）
+- ⚠️ **BREAKING CHANGE**：`import resource_pool` → `import nurture_pool`，现有代码必须更新导入语句
+
+### 🔧 工具
+- 🔧 **`rename_module.py`**：批量迁移脚本，支持 `--dry-run` 预览
+
 ## v1.2.3 (2026-05-28)
 
 第三轮代码审查修复 —— PyPI 发布就绪。

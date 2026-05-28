@@ -1,4 +1,4 @@
-# Nurture Pool ![version](https://img.shields.io/badge/version-1.2.4-blue)
+# Nurture Pool ![version](https://img.shields.io/badge/version-1.3.1-blue)
 
 > 养成系资源池——UA 请求头、DNS、代理，越用越肥的三件套。
 
@@ -99,6 +99,19 @@ docs/
 ```
 
 ## 更新日志
+
+### v1.3.1 (2026-05-28)
+
+- 📝 **文档审查**：README / CHANGELOG / PRODUCTION / 四层指南深度审查，修正版本号与引用一致性
+- 🧹 **ruff 修复**：`rename_module.py` 移除未使用导入 `os` / `sys`（F401）
+- 🧪 295 测试全部通过
+
+### v1.3.0 (2026-05-28)
+
+- 🚀 **模块重命名**：内部模块名 `resource_pool` → `nurture_pool`，对齐 PyPI 包名 `nurture-pool`
+  - ⚠️ **BREAKING CHANGE**：`import resource_pool` → `import nurture_pool`
+  - 46 个文件、283 处替换，包括 Python 源码、文档、示例、配置
+  - 全量 295 测试全部通过（286 pytest + 6 live_demo + 3 example）
 
 ### v1.2.3 (2026-05-28)
 

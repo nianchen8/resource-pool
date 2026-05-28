@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "resource-pool"
-version = "1.2.2"
+version = "1.2.3"
 description = "可扩展的网络资源池框架，内置 User-Agent 池（含 Header Profile 组）+ DNS 解析器池 + 代理池"
 readme = "README.md"
 license = { text = "MIT" }

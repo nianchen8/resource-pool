@@ -1,6 +1,6 @@
 # 生产环境部署指南
 
-> 适用版本：v1.2.2+ | 最后更新：2026-05-28
+> 适用版本：v1.2.3+ | 最后更新：2026-05-28
 
 本指南覆盖 resource-pool 在生产环境中的配置、监控、排障和最佳实践。
 
@@ -146,6 +146,9 @@ async def create_async_pools_from_config(config_path: str = "config.toml"):
     ua_pool = AsyncUserAgentPool(
         strategy=UAStrategy(ua_cfg.get("strategy", "weighted")),
         thread_safe=ua_cfg.get("thread_safe", True),
+        data_dir=ua_cfg.get("data_dir"),
+        load_builtin=ua_cfg.get("load_builtin", True),
+        load_fed=ua_cfg.get("load_fed", True),
     )
 
     dns_cfg = cfg.get("dns_pool", {})
@@ -156,6 +159,9 @@ async def create_async_pools_from_config(config_path: str = "config.toml"):
         max_consecutive_fails=dns_cfg.get("max_consecutive_fails", 3),
         revive_after=dns_cfg.get("revive_after", 120),
         thread_safe=dns_cfg.get("thread_safe", True),
+        data_dir=dns_cfg.get("data_dir"),
+        load_builtin=dns_cfg.get("load_builtin", True),
+        load_fed=dns_cfg.get("load_fed", True),
     )
 
     proxy_cfg = cfg.get("proxy_pool", {})
@@ -166,6 +172,9 @@ async def create_async_pools_from_config(config_path: str = "config.toml"):
         min_alive=proxy_cfg.get("min_alive", 0),
         auto_refill_url=proxy_cfg.get("auto_refill_url", ""),
         thread_safe=proxy_cfg.get("thread_safe", True),
+        data_dir=proxy_cfg.get("data_dir"),
+        load_builtin=proxy_cfg.get("load_builtin", True),
+        load_fed=proxy_cfg.get("load_fed", True),
     )
 
     return ua_pool, dns_pool, proxy_pool

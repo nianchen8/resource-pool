@@ -1,5 +1,14 @@
 # 更新日志
 
+## v1.2.3 (2026-05-28)
+
+DNS 故障隔离测试修复 —— 系统 DNS 兜底干扰 + `_try_revive` 假复活修复。
+
+### 🔧 修复
+- 🔧 **`test_invalid_server_raises` 修复**：池内所有 DNS 被 `remove_server` 禁用后，系统 DNS 兜底成功导致 `PoolExhaustedException` 未抛出 → 添加 `fallback_to_system=False` 隔离系统 DNS 干扰
+- 🔧 **`test_consecutive_fail_isolation` 修复**：第一次 resolve 失败后系统 DNS 兜底成功 → 结果被缓存 → 第二次 resolve 命中缓存 → 坏 DNS 未被第二次尝试 → `consecutive_fails` 仍为 1 → 未触发隔离 → 添加 `fallback_to_system=False` 确保每次都走池内失败计数
+- 🔧 **`ServerState.last_health` 假复活修复**（同步+异步）：`last_health` 初始化为 `0.0` → `_try_revive` 中 `now - 0.0 > revive_after` 恒为真 → 被 `remove_server` / `mark_failed` 禁用的服务器会立即复活。已修复为 `last_health = time.time()`
+
 ## v1.2.2 (2026-05-28)
 
 第二轮全量代码审查修复版本 —— CI 修复 + 代理探测 + 冗余清理。

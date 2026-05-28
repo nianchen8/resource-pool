@@ -606,6 +606,7 @@ def import_dns(
 def import_proxy(
     data: list[dict[str, Any]],
     batch: str | None = None,
+    auto_validate: bool = True,
 ) -> dict[str, int]:
     """批量导入代理，返回导入统计
 
@@ -621,6 +622,7 @@ def import_proxy(
     Args:
         data: 符合 schema/proxy_format.json 的条目列表
         batch: 批次号（可选）
+        auto_validate: 导入后自动三次失败测试（默认 True）
 
     Returns:
         {"added": N, "skipped": N, "errors": N}
@@ -716,6 +718,11 @@ def import_proxy(
         "import_proxy: added=%d, skipped=%d, errors=%d, batch=%s",
         result["added"], result["skipped"], result["errors"], batch,
     )
+
+    if auto_validate and result["added"] > 0:
+        logger.info("import_proxy: 开始验证新导入的代理...")
+        validate_fed_proxies(timeout=5.0, max_retries=3, batch=batch)
+
     return result
 
 

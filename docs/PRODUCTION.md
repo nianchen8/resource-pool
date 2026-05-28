@@ -1,6 +1,6 @@
 # 生产环境部署指南
 
-> 适用版本：v1.3.1+ | 最后更新：2026-05-28
+> 适用版本：v1.3.3+ | 最后更新：2026-05-29
 
 本指南覆盖 nurture-pool 在生产环境中的配置、监控、排障和最佳实践。
 
@@ -487,9 +487,7 @@ ok, detail = nurture_pool.probe_proxy("1.2.3.4:8080", timeout=5)
 print(f"探测结果: {'可用' if ok else '不可用'} — {detail}")
 
 # 批量验证养成代理
-result = nurture_pool.validate_fed_proxies(
-    retries=3, timeout=5, export_failures=True,
-)
+result = nurture_pool.validate_fed_proxies(max_retries=3, timeout=5)
 print(f"验证完成: 通过 {result['passed']}, 失败 {result['failed']}, 导出到 {result.get('export_path', 'N/A')}")
 ```
 

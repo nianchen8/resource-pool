@@ -3,6 +3,7 @@
 import json
 import logging
 import os
+import re
 import threading
 import time
 import random
@@ -384,6 +385,11 @@ class DNSResolverPool(ResourcePool):
                 return pool_ref._original_getaddrinfo(
                     host, port, family, type, proto, flags,
                 )
+            # 已是 IP 地址 → 直通系统 getaddrinfo，避免 DNS 池尝试"解析"IP
+            if DNSResolverPool._is_ip_address(host):
+                return pool_ref._original_getaddrinfo(
+                    host, port, family, type, proto, flags,
+                )
             try:
                 ips = pool_ref.resolve_all(host)
                 if not ips:
@@ -553,6 +559,18 @@ class DNSResolverPool(ResourcePool):
             return [str(r) for r in answer]
         except dns.exception.DNSException as exc:
             raise ResourceUnhealthyException(state.ip, str(exc)) from exc
+
+    # ── IP 地址检测 ────────────────────────────────────────────────
+    _IPV4_RE = re.compile(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$')
+
+    @staticmethod
+    def _is_ip_address(host: str) -> bool:
+        """判断 host 是否已是 IP 地址（IPv4 或 IPv6）"""
+        if DNSResolverPool._IPV4_RE.match(host):
+            return True
+        if ':' in host and host.count(':') >= 2:
+            return True
+        return False
 
     @staticmethod
     def _system_resolve(domain: str, record_type: str, timeout: float) -> list[str]:

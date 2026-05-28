@@ -87,6 +87,11 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "Proxy":                      ("nurture_pool._shortcuts", "Proxy"),
     "DNS":                        ("nurture_pool._shortcuts", "DNS"),
     "combo":                      ("nurture_pool._shortcuts", "combo"),
+    # 异步短别名
+    "AsyncUA":                    ("nurture_pool._shortcuts", "AsyncUA"),
+    "AsyncProxy":                 ("nurture_pool._shortcuts", "AsyncProxy"),
+    "AsyncDNS":                   ("nurture_pool._shortcuts", "AsyncDNS"),
+    "async_combo":                ("nurture_pool._shortcuts", "async_combo"),
     # 养成系 API
     "feed_ua":                    ("nurture_pool._feeding", "feed_ua"),
     "feed_proxy":                 ("nurture_pool._feeding", "feed_proxy"),
@@ -153,6 +158,11 @@ __all__ = [
     "Proxy",
     "DNS",
     "combo",
+    # 异步短别名
+    "AsyncUA",
+    "AsyncProxy",
+    "AsyncDNS",
+    "async_combo",
     # 养成系 API
     "feed_ua",
     "feed_proxy",

@@ -1,5 +1,25 @@
 # 更新日志
 
+## v1.3.4 (2026-05-29)
+
+异步短别名四件套 + Proxy 代理提取链接支持。
+
+### 🚀 新功能
+- 🚀 **异步短别名四件套**：`AsyncUA` / `AsyncProxy` / `AsyncDNS` / `async_combo`，与同步短别名 API 完全对等
+  - `AsyncUA`：`pick()` / `headers()` / `reserve()`，包装 `AsyncUserAgentPool`
+  - `AsyncProxy`：`pick()` / `pick_dict()` / `add()` / `check()`，支持 `ip:port` 和代理提取链接，`_ensure_loaded` 两步延迟加载
+  - `AsyncDNS`：`resolve()` / `resolve_all()` / `lookup()` / `check()`，包装 `AsyncDNSResolverPool`
+  - `async_combo(**pools)`：异步一行组合多池资源，返回 `PoolCombo`
+- 🚀 **Proxy 支持代理提取链接**：`nurture_pool.Proxy("https://...")` 和 `nurture_pool.AsyncProxy("https://...")` 支持直接传入代理供应商 API URL（同步+异步双路径），自动识别 9 种格式
+  - `Proxy.__init__(addr)` / `Proxy.add(addr)` 检测 `http://` / `https://` 前缀 → 自动走 `load_from_url()` 而非 `_parse_proxy_str()`
+  - `AsyncProxy` 采用 `_ensure()` + `_ensure_loaded()` 两步延迟模式：池构造为同步操作，地址/URL 加载为异步操作
+
+### 📝 文档
+- 📝 **底层源码.md**：机制六"短别名惰性加载"补全异步短别名部分（类结构 / `_ensure_loaded` 设计 / 惰性导入注册表 / 源文件行号）
+- 📝 **开箱即用.md**：异步节新增"短别名写法"替代方案（长路径 vs 短别名对照）
+- 📝 **README.md**：5秒上手提示补充 Proxy URL 格式 + 异步短别名；架构速览补充异步短别名；更新日志补 v1.3.4
+- 📝 **PRODUCTION.md**：适用版本号 v1.3.3 → v1.3.4
+
 ## v1.3.3 (2026-05-29)
 
 文档修复。

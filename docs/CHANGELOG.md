@@ -1,5 +1,22 @@
 # 更新日志
 
+## v1.3.3 (2026-05-29)
+
+文档修复。
+
+### 📝 文档
+- 📝 **开箱即用.md**：修正惰性初始化 repr 输出（DNS/Proxy）、`orch` 赋值位置说明（模块级 vs main 内）、`validate_fed_proxies` 参数名 `retries` → `max_retries`
+- 📝 **PRODUCTION.md**：修正 `validate_fed_proxies` 参数名 `retries` → `max_retries`，移除不存在的 `export_failures` 参数
+- 📝 **底层源码.md**：更新 UA 池 5 处源文件行号（`_load_unified_seeds`/`_build_ua_component_pools`/`_generate_ua_from_faction`/`_assemble_headers_from_faction`/`_patch_sec_ch_ua`）至最新源码位置
+
+## v1.3.2 (2026-05-29)
+
+DNS Socket补丁 + aiohttp Resolver IP直通修复。
+
+### 🐛 修复
+- 🐛 **`_patched_getaddrinfo` IP直通**：socket补丁拦截所有`getaddrinfo`调用时，若host已是IP地址（如`"1.2.3.4"`），此前会传入`resolve_all()`尝试用DNS服务器"解析"IP，导致全部DNS超时后才回退系统DNS。现增加`_is_ip_address()`检测，IPv4/IPv6地址直接走原始`getaddrinfo`，零开销直通
+- 🐛 **`create_resolver()` IP直通**：异步aiohttp resolver同样增加IP地址检测，已是IP的host直接返回不触发DNS池解析
+
 ## v1.3.1 (2026-05-28)
 
 文档审查与代码清理。

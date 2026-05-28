@@ -106,6 +106,15 @@ docs/
 
 ## 更新日志
 
+### v1.3.3 (2026-05-29)
+
+- 📝 **文档修复**：开箱即用.md 修正惰性初始化 repr、orch 赋值位置注释、`validate_fed_proxies` 参数名；PRODUCTION.md 修正 `validate_fed_proxies` 参数名并移除不存在的 `export_failures` 参数；底层源码.md 更新 UA 池 5 处源文件行号至最新
+
+### v1.3.2 (2026-05-29)
+
+- 🐛 **DNS IP直通**：socket补丁 + aiohttp resolver 增加IP地址检测，已是IP的host不触发DNS池解析，零开销直通（同步+异步双路径）
+- 🧪 131 测试全部通过
+
 ### v1.3.1 (2026-05-28)
 
 - 📝 **文档审查**：README / CHANGELOG / PRODUCTION / 四层指南深度审查，修正版本号与引用一致性
